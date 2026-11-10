@@ -28,7 +28,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 11 – CVF diagnostic + corrected unknown-element test · browser copies only · read-only, this page cannot save"></calcite-navigation-logo>
+      description="Run 12 – CVF: do collapsed groups explain the empty report? · browser copies only · read-only, this page cannot save"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -47,6 +47,7 @@
       </calcite-label>
       <calcite-button id="openOne" appearance="outline" disabled>Open this one</calcite-button>
     </div>
+    <details style="margin:8px 0 12px;"><summary style="cursor:pointer;font-size:13px;">CVF form structure (groups, start state, visibility)</summary><div id="structure" class="diff" style="margin-top:6px;"></div></details>
     <table>
       <thead><tr><th>Form</th><th>Record</th><th>Variant (browser copy)</th><th>Opens unchanged?</th></tr></thead>
       <tbody id="results"></tbody>
@@ -99,6 +100,7 @@
 
   // ---------- Load the web map, the four layer copies, the Field Rows table, and the TEST records ----------
   const combos = [];   // { formTitle, layer, feature, label }
+  let structureText = "";
   let webmap;
   try {
     const res = await portal.queryItems({ query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20 });
@@ -174,12 +176,46 @@
       if (!n) throw new Error('no element uses an expression titled "CVF ready"');
       return t;
     };
+    const variantExpanded = (lyr) => {
+      // Copy with every group set to start expanded (nothing else changed).
+      const t = lyr.formTemplate.clone();
+      (function walk(els) { for (const el of els || []) {
+        if (el.type === "group") { el.initialState = "expanded"; walk(el.elements); }
+      } })(t.elements);
+      return t;
+    };
+    const variantExpandedShown = (lyr) => {
+      // Groups expanded AND the CVF ready rule removed (sections shown and open).
+      const t = variantShown(lyr);
+      (function walk(els) { for (const el of els || []) {
+        if (el.type === "group") { el.initialState = "expanded"; walk(el.elements); }
+      } })(t.elements);
+      return t;
+    };
     const add = (form, id, name, make) => { const c = pick(form, id); if (c) base.push({ ...c, variant: name, make }); else missing.push(form + " " + id); };
     add("App-CVF", "AEP63-26-999", "copy (as in A2)", variantCopy);
-    add("App-CVF", "AEP63-26-999", "copy, CVF ready rule removed (sections shown)", variantShown);
+    add("App-CVF", "AEP63-26-999", "copy, all groups start expanded", variantExpanded);
+    add("App-CVF", "AEP63-26-999", "copy, groups expanded + CVF ready rule removed", variantExpandedShown);
     add("App-CVF", "AEP63-26-998", "copy (as in A2)", variantCopy);
-    add("App-CVF", "AEP63-26-998", "copy, CVF ready rule removed (sections shown)", variantShown);
-    add("App-Approval", "AEP63-26-999", "copy + unknown input type on Funding source (C4 test)", variantUnknown);
+    add("App-CVF", "AEP63-26-998", "copy, all groups start expanded", variantExpanded);
+    add("App-CVF", "AEP63-26-998", "copy, groups expanded + CVF ready rule removed", variantExpandedShown);
+
+    // Describe the CVF form's structure: each group's start state and visibility rule, and which fields sit where.
+    const cvf = base.length ? base[0].layer : null;
+    if (cvf) {
+      const titles = {};
+      for (const ei of cvf.formTemplate.expressionInfos || []) titles[ei.name] = ei.title || ei.name;
+      const lines = [];
+      (function walk(els, grp) { for (const el of els || []) {
+        if (el.type === "group") {
+          lines.push('GROUP "' + el.label + '" · starts ' + (el.initialState || "(default)") + " · visible: " + (el.visibilityExpression ? titles[el.visibilityExpression] : "always"));
+          walk(el.elements, el.label);
+        } else if (el.type === "field") {
+          lines.push((grp ? "   " : "") + el.fieldName + (el.visibilityExpression ? " · visible: " + titles[el.visibilityExpression] : "") + (el.valueExpression ? " · calculated" : ""));
+        }
+      } })(cvf.formTemplate.elements, "");
+      structureText = lines.join("\n");
+    }
     combos.length = 0; combos.push(...base);
 
     // fill the pickers and the table
@@ -193,6 +229,7 @@
     fillRecs();
     $("results").innerHTML = combos.map((c, i) =>
       `<tr><td>${c.formTitle}</td><td>${c.label}</td><td>${c.variant}</td><td id="r${i}" class="wait">not run</td></tr>`).join("");
+    $("structure").textContent = structureText || "(not available)";
     ["runAll", "pickForm", "pickRec", "openOne"].forEach(id => $(id).disabled = false);
     setStatus($("status"), missing.length ? "bad" : "ok",
       "Signed in as " + portal.user.username + " · " + combos.length + " form/record combinations found" +
