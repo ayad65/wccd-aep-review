@@ -25,7 +25,7 @@
 <body>
 <calcite-shell>
   <calcite-navigation slot="header">
-    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="Run 7 (clean page, form opened from a copy) · App-Approval on TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
+    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="Run 8 – A1 save test · App-Approval on TEST AEP63-26-999 · saves ONLY to this TEST record, and only when you tick the box and click Save"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -39,8 +39,12 @@
       <arcgis-feature-form id="form"></arcgis-feature-form>
 
       <div slot="footer" style="width:100%;">
-        <div class="footer-row">
-          <calcite-button id="updateBtn" width="full" disabled>Update (check only – no save)</calcite-button>
+        <div class="footer-row" style="align-items:center;">
+          <calcite-label layout="inline" style="margin:0;flex:1;">
+            <calcite-checkbox id="confirmBox"></calcite-checkbox>
+            I confirm this is a save to TEST AEP63-26-999
+          </calcite-label>
+          <calcite-button id="updateBtn" kind="danger" disabled>Save to TEST</calcite-button>
         </div>
         <div id="status">
           <div id="s-signin" class="wait">○ Sign-in</div>
@@ -81,12 +85,13 @@
   }
 
   // ---------- Load SDK modules ----------
-  const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
+  const [esriConfig, esriId, OAuthInfo, Portal, WebMap, Graphic] = await $arcgis.import([
     "@arcgis/core/config.js",
     "@arcgis/core/identity/IdentityManager.js",
     "@arcgis/core/identity/OAuthInfo.js",
     "@arcgis/core/portal/Portal.js",
-    "@arcgis/core/WebMap.js"
+    "@arcgis/core/WebMap.js",
+    "@arcgis/core/Graphic.js"
   ]);
   esriConfig.portalUrl = PORTAL_URL;
 
@@ -169,35 +174,83 @@
     if (v instanceof Date) return v.getTime();
     return v;
   }
+  let changedKeys = [];
+  let lastSig = "";
   async function checkChanged() {
     try {
       const vals = await form.getValues();
-      const diffs = [];
+      const diffs = [], keys = [];
       for (const k of Object.keys(vals)) {
         if (!(k in original)) continue;
         const a = norm(original[k]), b = norm(vals[k]);
-        if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
+        if (a !== b) { diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b)); keys.push(k); }
       }
+      changedKeys = keys;
+      const sig = diffs.join("|");
+      if (sig !== lastSig) { $("s-submit").textContent = ""; lastSig = sig; }   // clear an old check result
       if (diffs.length === 0) {
         setStatus("s-dirty", "ok", "Changed since opening: nothing");
         $("changed").textContent = "";
-        $("updateBtn").disabled = true;
       } else {
         setStatus("s-dirty", "bad", "Changed since opening: " + diffs.length + " field(s)");
         $("changed").textContent = diffs.join("\n");
-        $("updateBtn").disabled = false;
       }
+      $("updateBtn").disabled = !(diffs.length && $("confirmBox").checked);
     } catch (e) { /* form still calculating – try again on the next tick */ }
   }
   setInterval(checkChanged, 1000);
   form.addEventListener("arcgisValueChange", checkChanged);
+  $("confirmBox").addEventListener("calciteCheckboxChange", checkChanged);
 
-  // ---------- 7. Update button: runs the form's own validation, NEVER saves ----------
-  $("updateBtn").addEventListener("click", () => form.submit());
-  form.addEventListener("arcgisSubmit", (evt) => {
+  // ---------- 7. Save: the form validates first; then only the changed fields are written ----------
+  const OID = layer.objectIdField;
+  const oid = original[OID];
+  let saving = false;
+  $("updateBtn").addEventListener("click", () => {
+    if (!$("confirmBox").checked) return;
+    saving = true;
+    form.submit();                      // commits the boxes and runs the form's own required/valid checks
+  });
+  form.addEventListener("arcgisSubmit", async (evt) => {
     const inv = (evt.detail && evt.detail.invalid) || [];
-    if (inv.length) setStatus("s-submit", "bad", "Would not save – required/invalid: " + inv.join(", "));
-    else            setStatus("s-submit", "ok",  "Would save (valid). Test page: nothing written.");
+    if (inv.length) { saving = false; setStatus("s-submit", "bad", "Not saved – required/invalid: " + inv.join(", ")); return; }
+    if (!saving) return;
+    saving = false;
+    try {
+      // Safety: this page writes only to TEST AEP63-26-999.
+      const aepid = String(original.AEPID || "");
+      if (!aepid.endsWith(TEST_ID) || aepid.includes(FORBIDDEN)) throw new Error("refused: not the TEST record");
+      const vals = await form.getValues();
+      const attrs = { [OID]: oid };
+      const written = [];
+      for (const k of changedKeys) {
+        const fld = layer.fields.find(f => f.name === k);
+        if (!fld || fld.editable === false) continue;
+        let v = vals[k];
+        if (v instanceof Date) v = v.getTime();
+        if (v === "") v = null;
+        attrs[k] = v;
+        written.push(k + " = " + JSON.stringify(v));
+      }
+      if (!written.length) throw new Error("nothing to save");
+      setStatus("s-submit", "wait", "Saving " + written.length + " field(s)…");
+      const res = await layer.applyEdits({ updateFeatures: [ new Graphic({ attributes: attrs }) ] });
+      const r = res.updateFeatureResults && res.updateFeatureResults[0];
+      if (!r || r.error) throw new Error(r && r.error ? r.error.message : "no result returned");
+
+      // Reopen from the service with a fresh copy of the form, as if opening the record again.
+      const q = await layer.queryFeatures({ objectIds: [oid], outFields: ["*"], returnGeometry: true });
+      feature = q.features[0];
+      original = { ...feature.attributes };
+      form.formTemplate = layer.formTemplate.clone();
+      form.feature = feature;
+      $("confirmBox").checked = false;
+      lastSig = "";                     // keep the saved message until the next change
+      setStatus("s-submit", "ok", "Saved and reopened. Written: " + written.join(" · "));
+    } catch (e) {
+      setStatus("s-submit", "bad", "Save failed – " + (e.message || e));
+      console.error(e);
+    }
   });
 </script>
 </body>
