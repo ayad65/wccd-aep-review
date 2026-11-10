@@ -7,7 +7,7 @@
 
   <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite) -->
   <script type="module" src="https://js.arcgis.com/5.1/"></script>
-  <!-- Widget CSS (needed for the FeatureForm widget in section W) -->
+  <!-- Widget CSS -->
   <link rel="stylesheet" href="https://js.arcgis.com/5.1/esri/themes/light/main.css" />
 
   <style>
@@ -27,7 +27,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 3 (tests C + D: component / widget / stripped copy) · TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
+      description="Run 4 (bisect by expression type, browser copies only) · TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -37,20 +37,22 @@
   <arcgis-map id="mapEl"></arcgis-map>
 
   <calcite-shell-panel slot="panel-end" width="l" resizable>
-    <calcite-panel heading="App-Approval – three ways">
-      <div class="sec"><h3>K · Component (arcgis-feature-form), form from the layer copy</h3>
-        <arcgis-feature-form id="formK"></arcgis-feature-form></div>
-      <div class="sec"><h3>W · Widget (FeatureForm, as EB's Edit widget uses), form from the layer copy</h3>
-        <div id="formW" class="widget-host"></div></div>
-      <div class="sec"><h3>S · Component with an in-browser copy of the form, all expressions removed</h3>
-        <arcgis-feature-form id="formS"></arcgis-feature-form></div>
+    <calcite-panel heading="App-Approval – five ways">
+      <div class="sec"><h3>K · Full form (all expressions) – baseline</h3><arcgis-feature-form id="formK"></arcgis-feature-form></div>
+      <div class="sec"><h3>V · Visibility rules only</h3><arcgis-feature-form id="formV"></arcgis-feature-form></div>
+      <div class="sec"><h3>R · Visibility + required + editable rules</h3><arcgis-feature-form id="formR"></arcgis-feature-form></div>
+      <div class="sec"><h3>C · Calculations only</h3><arcgis-feature-form id="formC"></arcgis-feature-form></div>
+      <div class="sec"><h3>X · Everything except the Stage / DateStage3 / ApprovalLetterDate calculations</h3><arcgis-feature-form id="formX"></arcgis-feature-form></div>
 
       <div slot="footer" style="width:100%;">
         <div id="status">
           <div id="s-load" class="wait">○ Loading…</div>
-          <div id="s-K" class="wait">○ K component: –</div><div id="d-K" class="diff"></div>
-          <div id="s-W" class="wait">○ W widget: –</div><div id="d-W" class="diff"></div>
-          <div id="s-S" class="wait">○ S stripped copy: –</div><div id="d-S" class="diff"></div>
+          <div id="s-K" class="wait">○ K: –</div><div id="d-K" class="diff"></div>
+          <div id="s-V" class="wait">○ V: –</div><div id="d-V" class="diff"></div>
+          <div id="s-R" class="wait">○ R: –</div><div id="d-R" class="diff"></div>
+          <div id="s-C" class="wait">○ C: –</div><div id="d-C" class="diff"></div>
+          <div id="s-X" class="wait">○ X: –</div><div id="d-X" class="diff"></div>
+          <div class="wait" style="margin-top:6px;">Expressions on AppStatus, FundingSource and the Decision group:</div><div id="exprs" class="diff"></div>
         </div>
       </div>
     </calcite-panel>
@@ -79,9 +81,7 @@
     "@arcgis/core/portal/Portal.js",
     "@arcgis/core/WebMap.js"
   ]);
-  let FeatureForm = null, widgetErr = "";
-  try { FeatureForm = await $arcgis.import("@arcgis/core/widgets/FeatureForm.js"); }
-  catch (e) { widgetErr = e.message || String(e); }
+
   esriConfig.portalUrl = PORTAL_URL;
 
   // ---------- Sign in ----------
@@ -122,44 +122,69 @@
   // Each form gets its own copy of the record, so they cannot affect each other.
   const copyOf = () => { const g = feature.clone(); g.layer = layer; return g; };
 
-  // ---------- K: component, form from the layer copy ----------
-  const formK = $("formK");
-  await formK.componentOnReady();
-  formK.map = webmap; formK.layer = layer; formK.feature = copyOf();
-
-  // ---------- W: FeatureForm widget, form from the layer copy ----------
-  let formW = null;
-  try {
-    if (!FeatureForm) throw new Error("widget not available in SDK 5.1: " + widgetErr);
-    formW = new FeatureForm({ container: "formW", map: webmap, layer: layer, feature: copyOf() });
-  } catch (e) { setStatus("s-W", "bad", "W widget could not start – " + (e.message || e)); }
-
-  // ---------- S: component, in-browser copy of the form with every expression removed ----------
-  function strip(elements) {
-    for (const el of elements || []) {
-      el.visibilityExpression = null;
-      if ("requiredExpression" in el) el.requiredExpression = null;
-      if ("editableExpression" in el) el.editableExpression = null;
-      if ("valueExpression"    in el) el.valueExpression    = null;
-      if (el.type === "group") strip(el.elements);
-    }
+  // ---------- Browser-only copies of the form, with chosen expression types kept ----------
+  // kind = "visibility" | "required" | "editable" | "value"; keep(kind, el) says whether to keep it.
+  const KINDS = { visibility: "visibilityExpression", required: "requiredExpression",
+                  editable: "editableExpression", value: "valueExpression" };
+  function copyWith(keep) {
+    const t = layer.formTemplate.clone();          // this browser tab only – the Map Viewer form is not touched
+    (function walk(els) {
+      for (const el of els || []) {
+        for (const [kind, prop] of Object.entries(KINDS)) {
+          if (prop in el && el[prop] && !keep(kind, el)) el[prop] = null;
+        }
+        if (el.type === "group") walk(el.elements);
+      }
+    })(t.elements);
+    return t;
   }
-  const tS = layer.formTemplate.clone();     // a copy in this browser tab only – the Map Viewer form is not touched
-  strip(tS.elements);
-  tS.expressionInfos = [];
-  const formS = $("formS");
-  await formS.componentOnReady();
-  formS.map = webmap; formS.layer = layer; formS.formTemplate = tS; formS.feature = copyOf();
+  const STAMPS = ["Stage", "DateStage3", "ApprovalLetterDate"];
+  const variants = {
+    K: null,                                                          // full form from the layer
+    V: copyWith((k) => k === "visibility"),
+    R: copyWith((k) => k === "visibility" || k === "required" || k === "editable"),
+    C: copyWith((k) => k === "value"),
+    X: copyWith((k, el) => !(k === "value" && STAMPS.includes(el.fieldName)))
+  };
+  const forms = {};
+  for (const [key, tmpl] of Object.entries(variants)) {
+    const f = $("form" + key);
+    await f.componentOnReady();
+    f.map = webmap; f.layer = layer;
+    if (tmpl) f.formTemplate = tmpl;
+    f.feature = copyOf();
+    forms[key] = f;
+  }
 
-  // ---------- "Changed since opening" for each form ----------
+  // ---------- List the expressions on AppStatus, FundingSource and the Decision group ----------
+  const titles = {};
+  for (const ei of layer.formTemplate.expressionInfos || []) titles[ei.name] = ei.title || ei.name;
+  const lines = [];
+  (function walk(els, groupLabel) {
+    for (const el of els || []) {
+      const isTarget = el.fieldName === "AppStatus" || el.fieldName === "FundingSource" ||
+                       (el.type === "group" && /decision/i.test(el.label || ""));
+      if (isTarget) {
+        const who = el.type === "group" ? 'group "' + el.label + '"' : el.fieldName + (groupLabel ? ' (in "' + groupLabel + '")' : "");
+        const parts = [];
+        for (const [kind, prop] of Object.entries(KINDS)) if (prop in el && el[prop]) parts.push(kind + " = " + titles[el[prop]]);
+        lines.push(who + ": " + (parts.length ? parts.join(" · ") : "no expressions"));
+      }
+      if (el.type === "group") walk(el.elements, el.label);
+    }
+  })(layer.formTemplate.elements, "");
+  $("exprs").textContent = lines.join("\n");
+  console.log("Form template JSON:", JSON.stringify(layer.formTemplate.toJSON(), null, 1));
+
+  // ---------- "Changed since opening" for each copy ----------
   function norm(v) {
     if (v === undefined || v === null || v === "") return null;
     if (v instanceof Date) return v.getTime();
     return v;
   }
-  async function check(key, label, getValues) {
+  async function check(key) {
     try {
-      const vals = await getValues();
+      const vals = await forms[key].getValues();
       if (!vals) return;
       const diffs = [];
       for (const k of Object.keys(vals)) {
@@ -167,17 +192,13 @@
         const a = norm(original[k]), b = norm(vals[k]);
         if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
       }
-      const head = label + " · form shows AppStatus=" + JSON.stringify(norm(vals.AppStatus)) +
+      const head = key + " · AppStatus=" + JSON.stringify(norm(vals.AppStatus)) +
                    ", FundingSource=" + JSON.stringify(norm(vals.FundingSource)) + " · changed: ";
-      if (diffs.length === 0) { setStatus("s-" + key, "ok", head + "nothing"); $("d-" + key).textContent = ""; }
+      if (!diffs.length) { setStatus("s-" + key, "ok", head + "nothing"); $("d-" + key).textContent = ""; }
       else { setStatus("s-" + key, "bad", head + diffs.length + " field(s)"); $("d-" + key).textContent = diffs.join("\n"); }
-    } catch (e) { /* still calculating – next tick */ }
+    } catch (e) { /* still calculating */ }
   }
-  setInterval(() => {
-    check("K", "K component",     () => formK.getValues());
-    if (formW) check("W", "W widget", () => formW.getValues());
-    check("S", "S stripped copy", () => formS.getValues());
-  }, 1000);
+  setInterval(() => { for (const k of Object.keys(forms)) check(k); }, 1000);
 </script>
 </body>
 </html>
