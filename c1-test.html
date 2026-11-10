@@ -5,252 +5,224 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – C1 form test</title>
 
-  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite + CSS) -->
+  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite) -->
   <script type="module" src="https://js.arcgis.com/5.1/"></script>
 
   <style>
     html, body { margin: 0; height: 100%; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
     calcite-shell { height: 100%; }
-    arcgis-map { height: 100%; width: 100%; }
-    arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
-    #status { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-top: 1px solid #ddd; background: #fafafa; }
-    #status .ok   { color: #2e7d32; }
-    #status .bad  { color: #c62828; }
-    #status .wait { color: #777; }
-    #changed { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
-    .footer-row { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #ddd; }
+    #main { padding: 16px; overflow: auto; height: 100%; box-sizing: border-box; }
+    #controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+    #controls calcite-label { margin: 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #eef3f8; }
+    .diff { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
+    #status { font-size: 13px; margin: 8px 0; }
+    .ok { color: #2e7d32; } .bad { color: #c62828; } .wait { color: #777; }
+    #formHost arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
     .hdr-user { font-size: 13px; margin-right: 8px; }
   </style>
 </head>
 <body>
 <calcite-shell>
   <calcite-navigation slot="header">
-    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="Run 8 – A1 save test · App-Approval on TEST AEP63-26-999 · saves ONLY to this TEST record, and only when you tick the box and click Save"></calcite-navigation-logo>
+    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
+      description="Run 9 – A2: every form × every TEST record opens unchanged? · read-only, this page cannot save"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
     </div>
   </calcite-navigation>
 
-  <arcgis-map id="mapEl"></arcgis-map>
+  <div id="main">
+    <div id="status" class="wait">○ Loading…</div>
+    <div id="controls">
+      <calcite-button id="runAll" disabled>Run all combinations</calcite-button>
+      <calcite-label>Form
+        <calcite-select id="pickForm" disabled></calcite-select>
+      </calcite-label>
+      <calcite-label>Record
+        <calcite-select id="pickRec" disabled></calcite-select>
+      </calcite-label>
+      <calcite-button id="openOne" appearance="outline" disabled>Open this one</calcite-button>
+    </div>
+    <table>
+      <thead><tr><th>Form</th><th>Record</th><th>Opens unchanged?</th></tr></thead>
+      <tbody id="results"></tbody>
+    </table>
+  </div>
 
   <calcite-shell-panel slot="panel-end" width="l" resizable>
-    <calcite-panel heading="App-Approval form">
-      <arcgis-feature-form id="form"></arcgis-feature-form>
-
-      <div slot="footer" style="width:100%;">
-        <div class="footer-row" style="align-items:center;">
-          <calcite-label layout="inline" style="margin:0;flex:1;">
-            <calcite-checkbox id="confirmBox"></calcite-checkbox>
-            I confirm this is a save to TEST AEP63-26-999
-          </calcite-label>
-          <calcite-button id="updateBtn" kind="danger" disabled>Save to TEST</calcite-button>
-        </div>
-        <div id="status">
-          <div id="s-signin" class="wait">○ Sign-in</div>
-          <div id="s-map"    class="wait">○ Web map "WCCD AEP Review (EB)"</div>
-          <div id="s-layer"  class="wait">○ Layer copy "App-Approval" + its form</div>
-          <div id="s-record" class="wait">○ Record TEST AEP63-26-999</div>
-          <div id="s-dirty"  class="wait">○ Changed since opening: –</div>
-          <div id="changed"></div>
-          <div id="s-submit" class="wait"></div>
-        </div>
-      </div>
+    <calcite-panel id="formPanel" heading="Form">
+      <div id="formHost"></div>
+      <div slot="footer" style="width:100%;padding:8px 12px;font-size:13px;" id="formStatus" class="wait"></div>
     </calcite-panel>
   </calcite-shell-panel>
 </calcite-shell>
 
 <script type="module">
   // ---------- Settings ----------
-  const CLIENT_ID   = "GgRGSkyzcLuMKcSS";                 // public OAuth Client ID
-  const PORTAL_URL  = "https://clarion.maps.arcgis.com";  // your organization's address
-  const MAP_TITLE   = "WCCD AEP Review (EB)";
-  const LAYER_TITLE = "App-Approval";
-  const TEST_ID     = "AEP63-26-999";                     // the ONLY record this page opens
-  const FORBIDDEN   = "AEP63-25-002";                     // Campbell – never open
+  const CLIENT_ID  = "GgRGSkyzcLuMKcSS";
+  const PORTAL_URL = "https://clarion.maps.arcgis.com";
+  const MAP_TITLE  = "WCCD AEP Review (EB)";
+  const PARENT_FORMS = ["App-Ranking", "App-Approval", "App-Agreement", "App-CVF"];
+  const ROWS_TABLE   = "Field Rows";
+  const TEST_IDS   = ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"];   // the ONLY records this page opens
+  const FORBIDDEN  = "AEP63-25-002";                                      // Campbell – never open
 
-  // ---------- Helpers ----------
   const $ = (id) => document.getElementById(id);
-  // Never show sign-in tokens on screen.
   const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••");
-  function setStatus(id, state, text) {
-    const el = $(id);
-    text = mask(text);
-    el.className = state;
-    el.textContent = (state === "ok" ? "✔ " : state === "bad" ? "✖ " : "○ ") + text;
-  }
-  function fail(id, text, err) {
-    setStatus(id, "bad", text + (err ? " – " + (err.message || err) : ""));
-    console.error(text, err);
-  }
+  function setStatus(el, state, text) { el.className = state; el.textContent = mask(text); }
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  // ---------- Load SDK modules ----------
-  const [esriConfig, esriId, OAuthInfo, Portal, WebMap, Graphic] = await $arcgis.import([
+  const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
     "@arcgis/core/config.js",
     "@arcgis/core/identity/IdentityManager.js",
     "@arcgis/core/identity/OAuthInfo.js",
     "@arcgis/core/portal/Portal.js",
-    "@arcgis/core/WebMap.js",
-    "@arcgis/core/Graphic.js"
+    "@arcgis/core/WebMap.js"
   ]);
   esriConfig.portalUrl = PORTAL_URL;
 
-  // ---------- 1. Sign in (OAuth, same window) ----------
+  // ---------- Sign in ----------
   const info = new OAuthInfo({ appId: CLIENT_ID, portalUrl: PORTAL_URL, popup: false });
   esriId.registerOAuthInfos([info]);
   const sharingUrl = PORTAL_URL + "/sharing";
+  try { await esriId.checkSignInStatus(sharingUrl); } catch { await esriId.getCredential(sharingUrl); }
+  const portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
+  await portal.load();
+  $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
+  $("signOut").disabled = false;
+  $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
 
-  let portal;
-  try {
-    try { await esriId.checkSignInStatus(sharingUrl); }
-    catch { await esriId.getCredential(sharingUrl); }   // redirects to ArcGIS sign-in, then back here
-    portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
-    await portal.load();
-    $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
-    $("signOut").disabled = false;
-    setStatus("s-signin", "ok", "Signed in as " + portal.user.username);
-  } catch (e) { fail("s-signin", "Sign-in failed", e); throw e; }
-
-  $("signOut").addEventListener("click", () => {
-    esriId.destroyCredentials();
-    window.location.href = window.location.pathname;   // reload without any token in the address
-  });
-
-  // ---------- 2. Find and load the web map by title ----------
+  // ---------- Load the web map, the four layer copies, the Field Rows table, and the TEST records ----------
+  const combos = [];   // { formTitle, layer, feature, label }
   let webmap;
   try {
-    const res = await portal.queryItems({
-      query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20
-    });
+    const res = await portal.queryItems({ query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20 });
     const hits = res.results.filter(i => i.title === MAP_TITLE);
     if (hits.length !== 1) throw new Error(hits.length + " web maps with that exact title");
     webmap = new WebMap({ portalItem: hits[0] });
     await webmap.loadAll();
-    $("mapEl").map = webmap;
-    setStatus("s-map", "ok", 'Web map "' + MAP_TITLE + '" loaded (item ' + hits[0].id + ")");
-  } catch (e) { fail("s-map", "Web map not loaded", e); throw e; }
 
-  // ---------- 3. Find the App-Approval layer copy and its form ----------
-  let layer;
-  try {
-    layer = webmap.allLayers.find(l => l.title === LAYER_TITLE);
-    if (!layer) throw new Error("no layer titled " + LAYER_TITLE);
-    await layer.load();
-    if (!layer.formTemplate) throw new Error("layer has no Map Viewer form");
-    setStatus("s-layer", "ok", 'Layer "' + LAYER_TITLE + '" with its form (' +
-      layer.formTemplate.elements.length + " top-level elements)");
-  } catch (e) { fail("s-layer", "Layer/form not found", e); throw e; }
+    const where = TEST_IDS.map(id => "AEPID LIKE '%" + id + "'").join(" OR ");
+    const parentGids = {};   // AEPID -> GlobalID
+    const missing = [];
 
-  // ---------- 4. Query TEST AEP63-26-999 (and only that record) ----------
-  let feature, original;
-  try {
-    const q = await layer.queryFeatures({
-      where: "AEPID LIKE '%" + TEST_ID + "'",
-      outFields: ["*"],
-      returnGeometry: true
-    });
-    if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + TEST_ID);
-    feature = q.features[0];
-    const aepid = String(feature.attributes.AEPID || "");
-    if (aepid.includes(FORBIDDEN)) throw new Error("refused: Campbell record");
-    original = { ...feature.attributes };              // stored values, for the "changed" check
-    setStatus("s-record", "ok", "Record " + aepid + " (ObjectID " + feature.attributes[layer.objectIdField] + ")");
-  } catch (e) { fail("s-record", "Record not loaded", e); throw e; }
+    for (const title of PARENT_FORMS) {
+      const lyr = webmap.allLayers.find(l => l.title === title);
+      if (!lyr) { missing.push(title); continue; }
+      await lyr.load();
+      if (!lyr.formTemplate) { missing.push(title + " (no form)"); continue; }
+      const q = await lyr.queryFeatures({ where, outFields: ["*"], returnGeometry: false });
+      const feats = q.features
+        .filter(f => !String(f.attributes.AEPID || "").includes(FORBIDDEN))
+        .sort((a, b) => String(b.attributes.AEPID).localeCompare(String(a.attributes.AEPID)));
+      for (const f of feats) {
+        const id = String(f.attributes.AEPID);
+        parentGids[id] = f.attributes[lyr.globalIdField || "GlobalID"];
+        combos.push({ formTitle: title, layer: lyr, feature: f, label: id });
+      }
+    }
 
-  // ---------- 5. Open the form (the Map Viewer form stored on the layer copy) ----------
-  const form = $("form");
-  await form.componentOnReady();
-  // Run 7: open the form from a COPY of the layer's form (Run 6 finding).
-  // Handing the form the layer's own form object empties typed fields on opening;
-  // an identical copy opens clean. Content is the same Map Viewer form.
-  form.map = webmap;
-  form.layer = layer;
-  form.formTemplate = layer.formTemplate.clone();
-  form.feature = feature;
+    const tbl = webmap.allTables.find(t => t.title === ROWS_TABLE);
+    if (!tbl) missing.push(ROWS_TABLE);
+    else {
+      await tbl.load();
+      if (!tbl.formTemplate) missing.push(ROWS_TABLE + " (no form)");
+      else {
+        for (const [id, gid] of Object.entries(parentGids)) {
+          if (!gid) continue;
+          const q = await tbl.queryFeatures({ where: "parentglobalid = '" + gid + "'", outFields: ["*"] });
+          for (const f of q.features) {
+            const a = f.attributes;
+            const rowName = a.FieldLabelResolved || a.FieldName || a.FieldID || ("row " + a[tbl.objectIdField]);
+            combos.push({ formTitle: ROWS_TABLE, layer: tbl, feature: f, label: id + " · " + rowName });
+          }
+        }
+      }
+    }
 
-  // ---------- 6. "Changed since opening" (same idea as the EB What-changed probe) ----------
+    // fill the pickers and the table
+    const forms = [...new Set(combos.map(c => c.formTitle))];
+    $("pickForm").innerHTML = forms.map(f => `<calcite-option value="${f}">${f}</calcite-option>`).join("");
+    const fillRecs = () => {
+      const f = $("pickForm").value || forms[0];
+      $("pickRec").innerHTML = combos.map((c, i) => c.formTitle === f ? `<calcite-option value="${i}">${c.label}</calcite-option>` : "").join("");
+    };
+    $("pickForm").addEventListener("calciteSelectChange", fillRecs);
+    fillRecs();
+    $("results").innerHTML = combos.map((c, i) =>
+      `<tr><td>${c.formTitle}</td><td>${c.label}</td><td id="r${i}" class="wait">not run</td></tr>`).join("");
+    ["runAll", "pickForm", "pickRec", "openOne"].forEach(id => $(id).disabled = false);
+    setStatus($("status"), missing.length ? "bad" : "ok",
+      "Signed in as " + portal.user.username + " · " + combos.length + " form/record combinations found" +
+      (missing.length ? " · missing: " + missing.join(", ") : ""));
+  } catch (e) { setStatus($("status"), "bad", "Load failed – " + (e.message || e)); console.error(e); throw e; }
+
+  // ---------- Open one combination in a brand-new form, wait for it to settle, compare with the stored values ----------
   function norm(v) {
     if (v === undefined || v === null || v === "") return null;
     if (v instanceof Date) return v.getTime();
     return v;
   }
-  let changedKeys = [];
-  let lastSig = "";
-  async function checkChanged() {
-    try {
-      const vals = await form.getValues();
-      const diffs = [], keys = [];
-      for (const k of Object.keys(vals)) {
-        if (!(k in original)) continue;
-        const a = norm(original[k]), b = norm(vals[k]);
-        if (a !== b) { diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b)); keys.push(k); }
-      }
-      changedKeys = keys;
-      const sig = diffs.join("|");
-      if (sig !== lastSig) { $("s-submit").textContent = ""; lastSig = sig; }   // clear an old check result
-      if (diffs.length === 0) {
-        setStatus("s-dirty", "ok", "Changed since opening: nothing");
-        $("changed").textContent = "";
-      } else {
-        setStatus("s-dirty", "bad", "Changed since opening: " + diffs.length + " field(s)");
-        $("changed").textContent = diffs.join("\n");
-      }
-      $("updateBtn").disabled = !(diffs.length && $("confirmBox").checked);
-    } catch (e) { /* form still calculating – try again on the next tick */ }
-  }
-  setInterval(checkChanged, 1000);
-  form.addEventListener("arcgisValueChange", checkChanged);
-  $("confirmBox").addEventListener("calciteCheckboxChange", checkChanged);
+  async function openAndCheck(i) {
+    const c = combos[i];
+    const cell = $("r" + i);
+    setStatus(cell, "wait", "opening…");
+    $("formPanel").heading = c.formTitle + " – " + c.label;
+    // a fresh component for every combination, like opening the record anew
+    $("formHost").innerHTML = "";
+    const form = document.createElement("arcgis-feature-form");
+    $("formHost").appendChild(form);
+    await form.componentOnReady();
+    const original = { ...c.feature.attributes };
+    form.map = webmap;
+    form.layer = c.layer;
+    form.formTemplate = c.layer.formTemplate.clone();    // the Run 6 fix: always a copy
+    form.feature = c.feature.clone();
 
-  // ---------- 7. Save: the form validates first; then only the changed fields are written ----------
-  const OID = layer.objectIdField;
-  const oid = original[OID];
-  let saving = false;
-  $("updateBtn").addEventListener("click", () => {
-    if (!$("confirmBox").checked) return;
-    saving = true;
-    form.submit();                      // commits the boxes and runs the form's own required/valid checks
-  });
-  form.addEventListener("arcgisSubmit", async (evt) => {
-    const inv = (evt.detail && evt.detail.invalid) || [];
-    if (inv.length) { saving = false; setStatus("s-submit", "bad", "Not saved – required/invalid: " + inv.join(", ")); return; }
-    if (!saving) return;
-    saving = false;
-    try {
-      // Safety: this page writes only to TEST AEP63-26-999.
-      const aepid = String(original.AEPID || "");
-      if (!aepid.endsWith(TEST_ID) || aepid.includes(FORBIDDEN)) throw new Error("refused: not the TEST record");
-      const vals = await form.getValues();
-      const attrs = { [OID]: oid };
-      const written = [];
-      for (const k of changedKeys) {
-        const fld = layer.fields.find(f => f.name === k);
-        if (!fld || fld.editable === false) continue;
-        let v = vals[k];
-        if (v instanceof Date) v = v.getTime();
-        if (v === "") v = null;
-        attrs[k] = v;
-        written.push(k + " = " + JSON.stringify(v));
-      }
-      if (!written.length) throw new Error("nothing to save");
-      setStatus("s-submit", "wait", "Saving " + written.length + " field(s)…");
-      const res = await layer.applyEdits({ updateFeatures: [ new Graphic({ attributes: attrs }) ] });
-      const r = res.updateFeatureResults && res.updateFeatureResults[0];
-      if (!r || r.error) throw new Error(r && r.error ? r.error.message : "no result returned");
-
-      // Reopen from the service with a fresh copy of the form, as if opening the record again.
-      const q = await layer.queryFeatures({ objectIds: [oid], outFields: ["*"], returnGeometry: true });
-      feature = q.features[0];
-      original = { ...feature.attributes };
-      form.formTemplate = layer.formTemplate.clone();
-      form.feature = feature;
-      $("confirmBox").checked = false;
-      lastSig = "";                     // keep the saved message until the next change
-      setStatus("s-submit", "ok", "Saved and reopened. Written: " + written.join(" · "));
-    } catch (e) {
-      setStatus("s-submit", "bad", "Save failed – " + (e.message || e));
-      console.error(e);
+    // settle: same result 4 checks in a row (about 3 s), at most 20 s
+    let last = null, same = 0, diffs = [];
+    const t0 = Date.now();
+    await sleep(1500);
+    while (Date.now() - t0 < 20000) {
+      try {
+        const vals = await form.getValues();
+        diffs = [];
+        for (const k of Object.keys(vals)) {
+          if (!(k in original)) continue;
+          const a = norm(original[k]), b = norm(vals[k]);
+          if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
+        }
+        const sig = diffs.join("|");
+        same = (sig === last) ? same + 1 : 0;
+        last = sig;
+        if (same >= 4) break;
+      } catch (e) { /* still calculating */ }
+      await sleep(700);
     }
+    if (!diffs.length) { setStatus(cell, "ok", "✔ nothing changed"); }
+    else {
+      cell.className = "bad";
+      cell.innerHTML = "✖ " + diffs.length + " field(s)<div class='diff'></div>";
+      cell.querySelector(".diff").textContent = diffs.join("\n");
+    }
+    setStatus($("formStatus"), diffs.length ? "bad" : "ok",
+      c.formTitle + " · " + c.label + " · changed since opening: " + (diffs.length ? diffs.length + " field(s)" : "nothing"));
+    return diffs.length;
+  }
+
+  $("openOne").addEventListener("click", () => openAndCheck(Number($("pickRec").value)));
+  $("runAll").addEventListener("click", async () => {
+    ["runAll", "openOne"].forEach(id => $(id).disabled = true);
+    let bad = 0;
+    for (let i = 0; i < combos.length; i++) { bad += (await openAndCheck(i)) ? 1 : 0; }
+    setStatus($("status"), bad ? "bad" : "ok",
+      "Run all finished: " + (combos.length - bad) + " of " + combos.length + " combinations open unchanged" +
+      (bad ? " · " + bad + " changed (see table)" : ""));
+    ["runAll", "openOne"].forEach(id => $(id).disabled = false);
   });
 </script>
 </body>
