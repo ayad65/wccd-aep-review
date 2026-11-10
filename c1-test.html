@@ -5,29 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – C1 form test</title>
 
-  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite) -->
+  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite + CSS) -->
   <script type="module" src="https://js.arcgis.com/5.1/"></script>
-  <!-- Widget CSS -->
-  <link rel="stylesheet" href="https://js.arcgis.com/5.1/esri/themes/light/main.css" />
 
   <style>
     html, body { margin: 0; height: 100%; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
     calcite-shell { height: 100%; }
     arcgis-map { height: 100%; width: 100%; }
-    arcgis-feature-form, .widget-host { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
-    .sec { border-bottom: 4px solid #ccc; padding-bottom: 8px; }
-    .sec h3 { margin: 0; padding: 8px 12px; background: #eef3f8; font-size: 14px; }
-    #status { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-top: 1px solid #ddd; background: #fafafa; max-height: 40vh; overflow-y: auto; }
-    .ok { color: #2e7d32; } .bad { color: #c62828; } .wait { color: #777; }
-    .diff { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; margin: 0 0 6px 16px; }
+    arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
+    #status { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-top: 1px solid #ddd; background: #fafafa; }
+    #status .ok   { color: #2e7d32; }
+    #status .bad  { color: #c62828; }
+    #status .wait { color: #777; }
+    #changed { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
+    .footer-row { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #ddd; }
     .hdr-user { font-size: 13px; margin-right: 8px; }
   </style>
 </head>
 <body>
 <calcite-shell>
   <calcite-navigation slot="header">
-    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 6 (original form vs untouched copy, browser copies only) · TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
+    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="Run 7 (clean page, form opened from a copy) · App-Approval on TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -37,21 +35,21 @@
   <arcgis-map id="mapEl"></arcgis-map>
 
   <calcite-shell-panel slot="panel-end" width="l" resizable>
-    <calcite-panel heading="App-Approval – original vs copy">
-      <div class="sec"><h3>K · The layer's own form (original object) – baseline</h3><arcgis-feature-form id="formK"></arcgis-feature-form></div>
-      <div class="sec"><h3>K2 · Full copy of the form, nothing removed (control)</h3><arcgis-feature-form id="formK2"></arcgis-feature-form></div>
-      <div class="sec"><h3>P1 · Copy, all rules + Stage marker + Letter date stamp</h3><arcgis-feature-form id="formP1"></arcgis-feature-form></div>
-      <div class="sec"><h3>P2 · Copy, all rules + Approval completed stamp + Letter date stamp</h3><arcgis-feature-form id="formP2"></arcgis-feature-form></div>
+    <calcite-panel heading="App-Approval form">
+      <arcgis-feature-form id="form"></arcgis-feature-form>
 
       <div slot="footer" style="width:100%;">
+        <div class="footer-row">
+          <calcite-button id="updateBtn" width="full" disabled>Update (check only – no save)</calcite-button>
+        </div>
         <div id="status">
-          <div id="s-load" class="wait">○ Loading…</div>
-          <div id="s-K" class="wait">○ K: –</div><div id="d-K" class="diff"></div>
-          <div id="s-K2" class="wait">○ K2: –</div><div id="d-K2" class="diff"></div>
-          <div id="s-P1" class="wait">○ P1: –</div><div id="d-P1" class="diff"></div>
-          <div id="s-P2" class="wait">○ P2: –</div><div id="d-P2" class="diff"></div>
-          <div class="wait" style="margin-top:6px;">Original form vs copy (form-level settings and differences):</div><div id="cmp" class="diff"></div>
-          <div class="wait" style="margin-top:6px;">Expressions on the targets and the three stamp fields:</div><div id="exprs" class="diff"></div>
+          <div id="s-signin" class="wait">○ Sign-in</div>
+          <div id="s-map"    class="wait">○ Web map "WCCD AEP Review (EB)"</div>
+          <div id="s-layer"  class="wait">○ Layer copy "App-Approval" + its form</div>
+          <div id="s-record" class="wait">○ Record TEST AEP63-26-999</div>
+          <div id="s-dirty"  class="wait">○ Changed since opening: –</div>
+          <div id="changed"></div>
+          <div id="s-submit" class="wait"></div>
         </div>
       </div>
     </calcite-panel>
@@ -60,21 +58,29 @@
 
 <script type="module">
   // ---------- Settings ----------
-  const CLIENT_ID   = "GgRGSkyzcLuMKcSS";
-  const PORTAL_URL  = "https://clarion.maps.arcgis.com";
+  const CLIENT_ID   = "GgRGSkyzcLuMKcSS";                 // public OAuth Client ID
+  const PORTAL_URL  = "https://clarion.maps.arcgis.com";  // your organization's address
   const MAP_TITLE   = "WCCD AEP Review (EB)";
   const LAYER_TITLE = "App-Approval";
-  const TEST_ID     = "AEP63-26-999";     // the ONLY record this page opens
-  const FORBIDDEN   = "AEP63-25-002";     // Campbell – never open
+  const TEST_ID     = "AEP63-26-999";                     // the ONLY record this page opens
+  const FORBIDDEN   = "AEP63-25-002";                     // Campbell – never open
 
+  // ---------- Helpers ----------
   const $ = (id) => document.getElementById(id);
   // Never show sign-in tokens on screen.
-  const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••").replace(/\?[^\s]*$/,"?…");
+  const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••");
   function setStatus(id, state, text) {
-    const el = $(id); el.className = state; text = mask(text);
+    const el = $(id);
+    text = mask(text);
+    el.className = state;
     el.textContent = (state === "ok" ? "✔ " : state === "bad" ? "✖ " : "○ ") + text;
   }
+  function fail(id, text, err) {
+    setStatus(id, "bad", text + (err ? " – " + (err.message || err) : ""));
+    console.error(text, err);
+  }
 
+  // ---------- Load SDK modules ----------
   const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
     "@arcgis/core/config.js",
     "@arcgis/core/identity/IdentityManager.js",
@@ -82,148 +88,117 @@
     "@arcgis/core/portal/Portal.js",
     "@arcgis/core/WebMap.js"
   ]);
-
   esriConfig.portalUrl = PORTAL_URL;
 
-  // ---------- Sign in ----------
+  // ---------- 1. Sign in (OAuth, same window) ----------
   const info = new OAuthInfo({ appId: CLIENT_ID, portalUrl: PORTAL_URL, popup: false });
   esriId.registerOAuthInfos([info]);
   const sharingUrl = PORTAL_URL + "/sharing";
-  try { await esriId.checkSignInStatus(sharingUrl); } catch { await esriId.getCredential(sharingUrl); }
-  const portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
-  await portal.load();
-  $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
-  $("signOut").disabled = false;
-  $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
 
-  // ---------- Web map, layer, record ----------
-  let webmap, layer, feature, original;
+  let portal;
   try {
-    const res = await portal.queryItems({ query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20 });
+    try { await esriId.checkSignInStatus(sharingUrl); }
+    catch { await esriId.getCredential(sharingUrl); }   // redirects to ArcGIS sign-in, then back here
+    portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
+    await portal.load();
+    $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
+    $("signOut").disabled = false;
+    setStatus("s-signin", "ok", "Signed in as " + portal.user.username);
+  } catch (e) { fail("s-signin", "Sign-in failed", e); throw e; }
+
+  $("signOut").addEventListener("click", () => {
+    esriId.destroyCredentials();
+    window.location.href = window.location.pathname;   // reload without any token in the address
+  });
+
+  // ---------- 2. Find and load the web map by title ----------
+  let webmap;
+  try {
+    const res = await portal.queryItems({
+      query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20
+    });
     const hits = res.results.filter(i => i.title === MAP_TITLE);
     if (hits.length !== 1) throw new Error(hits.length + " web maps with that exact title");
     webmap = new WebMap({ portalItem: hits[0] });
     await webmap.loadAll();
     $("mapEl").map = webmap;
+    setStatus("s-map", "ok", 'Web map "' + MAP_TITLE + '" loaded (item ' + hits[0].id + ")");
+  } catch (e) { fail("s-map", "Web map not loaded", e); throw e; }
 
+  // ---------- 3. Find the App-Approval layer copy and its form ----------
+  let layer;
+  try {
     layer = webmap.allLayers.find(l => l.title === LAYER_TITLE);
     if (!layer) throw new Error("no layer titled " + LAYER_TITLE);
     await layer.load();
     if (!layer.formTemplate) throw new Error("layer has no Map Viewer form");
+    setStatus("s-layer", "ok", 'Layer "' + LAYER_TITLE + '" with its form (' +
+      layer.formTemplate.elements.length + " top-level elements)");
+  } catch (e) { fail("s-layer", "Layer/form not found", e); throw e; }
 
-    const q = await layer.queryFeatures({ where: "AEPID LIKE '%" + TEST_ID + "'", outFields: ["*"], returnGeometry: true });
+  // ---------- 4. Query TEST AEP63-26-999 (and only that record) ----------
+  let feature, original;
+  try {
+    const q = await layer.queryFeatures({
+      where: "AEPID LIKE '%" + TEST_ID + "'",
+      outFields: ["*"],
+      returnGeometry: true
+    });
     if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + TEST_ID);
     feature = q.features[0];
-    if (String(feature.attributes.AEPID || "").includes(FORBIDDEN)) throw new Error("refused: Campbell record");
-    original = { ...feature.attributes };
-    setStatus("s-load", "ok", "Signed in as " + portal.user.username + " · map, App-Approval form and " +
-      feature.attributes.AEPID + " loaded · stored AppStatus=" + original.AppStatus + ", FundingSource=" + original.FundingSource);
-  } catch (e) { setStatus("s-load", "bad", "Load failed – " + (e.message || e)); console.error(e); throw e; }
+    const aepid = String(feature.attributes.AEPID || "");
+    if (aepid.includes(FORBIDDEN)) throw new Error("refused: Campbell record");
+    original = { ...feature.attributes };              // stored values, for the "changed" check
+    setStatus("s-record", "ok", "Record " + aepid + " (ObjectID " + feature.attributes[layer.objectIdField] + ")");
+  } catch (e) { fail("s-record", "Record not loaded", e); throw e; }
 
-  // Each form gets its own copy of the record, so they cannot affect each other.
-  const copyOf = () => { const g = feature.clone(); g.layer = layer; return g; };
+  // ---------- 5. Open the form (the Map Viewer form stored on the layer copy) ----------
+  const form = $("form");
+  await form.componentOnReady();
+  // Run 7: open the form from a COPY of the layer's form (Run 6 finding).
+  // Handing the form the layer's own form object empties typed fields on opening;
+  // an identical copy opens clean. Content is the same Map Viewer form.
+  form.map = webmap;
+  form.layer = layer;
+  form.formTemplate = layer.formTemplate.clone();
+  form.feature = feature;
 
-  // ---------- Browser-only copies of the form, with chosen expression types kept ----------
-  // kind = "visibility" | "required" | "editable" | "value"; keep(kind, el) says whether to keep it.
-  const KINDS = { visibility: "visibilityExpression", required: "requiredExpression",
-                  editable: "editableExpression", value: "valueExpression" };
-  function copyWith(keep) {
-    const t = layer.formTemplate.clone();          // this browser tab only – the Map Viewer form is not touched
-    (function walk(els) {
-      for (const el of els || []) {
-        for (const [kind, prop] of Object.entries(KINDS)) {
-          if (prop in el && el[prop] && !keep(kind, el)) el[prop] = null;
-        }
-        if (el.type === "group") walk(el.elements);
-      }
-    })(t.elements);
-    return t;
-  }
-  const STAMPS = ["Stage", "DateStage3", "ApprovalLetterDate"];
-  // Copies keep every rule; "without" names the stamp calculations removed.
-  const without = (fields) => copyWith((k, el) => !(k === "value" && fields.includes(el.fieldName)));
-  const variants = {
-    K:  null,                                   // layer's own form object
-    K2: layer.formTemplate.clone(),             // untouched copy – the control
-    P1: without(["DateStage3"]),                // Stage + Letter date stamps
-    P2: without(["Stage"])                      // DateStage3 + Letter date stamps
-  };
-
-  // ---------- Compare the original form with an untouched copy ----------
-  try {
-    const orig = layer.formTemplate, cp = variants.K2;
-    const props = ["title", "description", "preserveFieldValuesWhenHidden"];
-    const out = [];
-    for (const pr of props) out.push(pr + ": original=" + JSON.stringify(orig[pr]) + " · copy=" + JSON.stringify(cp[pr]));
-    out.push("expressionInfos: original=" + (orig.expressionInfos || []).length + " · copy=" + (cp.expressionInfos || []).length);
-    out.push("elements: original=" + (orig.elements || []).length + " · copy=" + (cp.elements || []).length);
-    const diffs = [];
-    (function deep(a, b, path) {
-      if (diffs.length >= 12) return;
-      if (typeof a !== "object" || a === null || typeof b !== "object" || b === null) {
-        if (JSON.stringify(a) !== JSON.stringify(b)) diffs.push(path + ": original=" + JSON.stringify(a) + " · copy=" + JSON.stringify(b));
-        return;
-      }
-      for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) deep(a[k], b[k], path + "." + k);
-    })(orig.toJSON(), cp.toJSON(), "form");
-    out.push(diffs.length ? "JSON differences:\n  " + diffs.join("\n  ") : "JSON of original and copy: identical");
-    $("cmp").textContent = out.join("\n");
-    console.log("Original form JSON:", JSON.stringify(orig.toJSON()));
-  } catch (e) { $("cmp").textContent = "compare failed: " + (e.message || e); }
-
-  const forms = {};
-  for (const [key, tmpl] of Object.entries(variants)) {
-    const f = $("form" + key);
-    await f.componentOnReady();
-    f.map = webmap; f.layer = layer;
-    if (tmpl) f.formTemplate = tmpl;
-    f.feature = copyOf();
-    forms[key] = f;
-  }
-
-  // ---------- List the expressions on AppStatus, FundingSource and the Decision group ----------
-  const titles = {};
-  for (const ei of layer.formTemplate.expressionInfos || []) titles[ei.name] = ei.title || ei.name;
-  const lines = [];
-  (function walk(els, groupLabel) {
-    for (const el of els || []) {
-      const isTarget = el.fieldName === "AppStatus" || el.fieldName === "FundingSource" || STAMPS.includes(el.fieldName) ||
-                       (el.type === "group" && /decision/i.test(el.label || ""));
-      if (isTarget) {
-        const who = el.type === "group" ? 'group "' + el.label + '"' : el.fieldName + (groupLabel ? ' (in "' + groupLabel + '")' : "");
-        const parts = [];
-        for (const [kind, prop] of Object.entries(KINDS)) if (prop in el && el[prop]) parts.push(kind + " = " + titles[el[prop]]);
-        lines.push(who + ": " + (parts.length ? parts.join(" · ") : "no expressions"));
-      }
-      if (el.type === "group") walk(el.elements, el.label);
-    }
-  })(layer.formTemplate.elements, "");
-  $("exprs").textContent = lines.join("\n");
-  console.log("Form template JSON:", JSON.stringify(layer.formTemplate.toJSON(), null, 1));
-
-  // ---------- "Changed since opening" for each copy ----------
+  // ---------- 6. "Changed since opening" (same idea as the EB What-changed probe) ----------
   function norm(v) {
     if (v === undefined || v === null || v === "") return null;
     if (v instanceof Date) return v.getTime();
     return v;
   }
-  async function check(key) {
+  async function checkChanged() {
     try {
-      const vals = await forms[key].getValues();
-      if (!vals) return;
+      const vals = await form.getValues();
       const diffs = [];
       for (const k of Object.keys(vals)) {
         if (!(k in original)) continue;
         const a = norm(original[k]), b = norm(vals[k]);
         if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
       }
-      const head = key + " · AppStatus=" + JSON.stringify(norm(vals.AppStatus)) +
-                   ", FundingSource=" + JSON.stringify(norm(vals.FundingSource)) + " · changed: ";
-      if (!diffs.length) { setStatus("s-" + key, "ok", head + "nothing"); $("d-" + key).textContent = ""; }
-      else { setStatus("s-" + key, "bad", head + diffs.length + " field(s)"); $("d-" + key).textContent = diffs.join("\n"); }
-    } catch (e) { /* still calculating */ }
+      if (diffs.length === 0) {
+        setStatus("s-dirty", "ok", "Changed since opening: nothing");
+        $("changed").textContent = "";
+        $("updateBtn").disabled = true;
+      } else {
+        setStatus("s-dirty", "bad", "Changed since opening: " + diffs.length + " field(s)");
+        $("changed").textContent = diffs.join("\n");
+        $("updateBtn").disabled = false;
+      }
+    } catch (e) { /* form still calculating – try again on the next tick */ }
   }
-  setInterval(() => { for (const k of Object.keys(forms)) check(k); }, 1000);
+  setInterval(checkChanged, 1000);
+  form.addEventListener("arcgisValueChange", checkChanged);
+
+  // ---------- 7. Update button: runs the form's own validation, NEVER saves ----------
+  $("updateBtn").addEventListener("click", () => form.submit());
+  form.addEventListener("arcgisSubmit", (evt) => {
+    const inv = (evt.detail && evt.detail.invalid) || [];
+    if (inv.length) setStatus("s-submit", "bad", "Would not save – required/invalid: " + inv.join(", "));
+    else            setStatus("s-submit", "ok",  "Would save (valid). Test page: nothing written.");
+  });
 </script>
 </body>
 </html>
