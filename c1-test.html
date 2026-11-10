@@ -28,7 +28,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 9 – A2: every form × every TEST record opens unchanged? · read-only, this page cannot save"></calcite-navigation-logo>
+      description="Run 10 – CVF fix test + unknown-element test · browser copies only · read-only, this page cannot save"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -48,7 +48,7 @@
       <calcite-button id="openOne" appearance="outline" disabled>Open this one</calcite-button>
     </div>
     <table>
-      <thead><tr><th>Form</th><th>Record</th><th>Opens unchanged?</th></tr></thead>
+      <thead><tr><th>Form</th><th>Record</th><th>Variant (browser copy)</th><th>Opens unchanged?</th></tr></thead>
       <tbody id="results"></tbody>
     </table>
   </div>
@@ -76,12 +76,13 @@
   function setStatus(el, state, text) { el.className = state; el.textContent = mask(text); }
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
+  const [esriConfig, esriId, OAuthInfo, Portal, WebMap, FormTemplate] = await $arcgis.import([
     "@arcgis/core/config.js",
     "@arcgis/core/identity/IdentityManager.js",
     "@arcgis/core/identity/OAuthInfo.js",
     "@arcgis/core/portal/Portal.js",
-    "@arcgis/core/WebMap.js"
+    "@arcgis/core/WebMap.js",
+    "@arcgis/core/form/FormTemplate.js"
   ]);
   esriConfig.portalUrl = PORTAL_URL;
 
@@ -144,17 +145,42 @@
       }
     }
 
+    // ---------- Run 10: keep only the combinations under test, each with variants ----------
+    const pick = (form, id) => combos.find(c => c.formTitle === form && c.label === id);
+    const base = [];
+    const variantCopy = (lyr) => lyr.formTemplate.clone();
+    const variantKeep = (lyr) => { const t = lyr.formTemplate.clone(); t.preserveFieldValuesWhenHidden = true; return t; };
+    const variantUnknown = (lyr) => {
+      // Stand-in for a newer element type: give FundingSource an input type SDK 5.1 does not know.
+      const j = lyr.formTemplate.toJSON();
+      let done = false;
+      (function walk(els) { for (const el of els || []) {
+        if (!done && el.fieldName === "FundingSource") { el.inputType = { type: "dynamic-choice", choicesExpression: "expr/unknown-test" }; done = true; }
+        if (el.elements) walk(el.elements);
+      } })(j.elements);
+      if (!done) throw new Error("FundingSource element not found");
+      return FormTemplate.fromJSON(j);
+    };
+    const add = (form, id, name, make) => { const c = pick(form, id); if (c) base.push({ ...c, variant: name, make }); else missing.push(form + " " + id); };
+    add("App-CVF", "AEP63-26-999", "copy (as in A2)", variantCopy);
+    add("App-CVF", "AEP63-26-999", "copy + keep values when hidden", variantKeep);
+    add("App-CVF", "AEP63-26-998", "copy (as in A2)", variantCopy);
+    add("App-CVF", "AEP63-26-998", "copy + keep values when hidden", variantKeep);
+    add("App-Approval", "AEP63-26-999", "copy + keep values when hidden", variantKeep);
+    add("App-Approval", "AEP63-26-999", "copy + unknown input type on Funding source (C4 test)", variantUnknown);
+    combos.length = 0; combos.push(...base);
+
     // fill the pickers and the table
     const forms = [...new Set(combos.map(c => c.formTitle))];
     $("pickForm").innerHTML = forms.map(f => `<calcite-option value="${f}">${f}</calcite-option>`).join("");
     const fillRecs = () => {
       const f = $("pickForm").value || forms[0];
-      $("pickRec").innerHTML = combos.map((c, i) => c.formTitle === f ? `<calcite-option value="${i}">${c.label}</calcite-option>` : "").join("");
+      $("pickRec").innerHTML = combos.map((c, i) => c.formTitle === f ? `<calcite-option value="${i}">${c.label} · ${c.variant}</calcite-option>` : "").join("");
     };
     $("pickForm").addEventListener("calciteSelectChange", fillRecs);
     fillRecs();
     $("results").innerHTML = combos.map((c, i) =>
-      `<tr><td>${c.formTitle}</td><td>${c.label}</td><td id="r${i}" class="wait">not run</td></tr>`).join("");
+      `<tr><td>${c.formTitle}</td><td>${c.label}</td><td>${c.variant}</td><td id="r${i}" class="wait">not run</td></tr>`).join("");
     ["runAll", "pickForm", "pickRec", "openOne"].forEach(id => $(id).disabled = false);
     setStatus($("status"), missing.length ? "bad" : "ok",
       "Signed in as " + portal.user.username + " · " + combos.length + " form/record combinations found" +
@@ -171,7 +197,7 @@
     const c = combos[i];
     const cell = $("r" + i);
     setStatus(cell, "wait", "opening…");
-    $("formPanel").heading = c.formTitle + " – " + c.label;
+    $("formPanel").heading = c.formTitle + " – " + c.label + " – " + c.variant;
     // a fresh component for every combination, like opening the record anew
     $("formHost").innerHTML = "";
     const form = document.createElement("arcgis-feature-form");
@@ -180,8 +206,14 @@
     const original = { ...c.feature.attributes };
     form.map = webmap;
     form.layer = c.layer;
-    form.formTemplate = c.layer.formTemplate.clone();    // the Run 6 fix: always a copy
-    form.feature = c.feature.clone();
+    try {
+      form.formTemplate = c.make(c.layer);               // always a copy (Run 6 fix), plus the variant
+      form.feature = c.feature.clone();
+    } catch (e) {
+      setStatus(cell, "bad", "✖ page error while opening: " + (e.message || e));
+      setStatus($("formStatus"), "bad", c.formTitle + " · " + c.label + " · " + c.variant + " · error: " + (e.message || e));
+      return 1;
+    }
 
     // settle: same result 4 checks in a row (about 3 s), at most 20 s
     let last = null, same = 0, diffs = [];
