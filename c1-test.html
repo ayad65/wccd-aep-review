@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WCCD AEP – C1 form test</title>
+
+  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite + CSS) -->
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+
+  <style>
+    html, body { margin: 0; height: 100%; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
+    calcite-shell { height: 100%; }
+    arcgis-map { height: 100%; width: 100%; }
+    #status { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-top: 1px solid #ddd; background: #fafafa; }
+    #status .ok   { color: #2e7d32; }
+    #status .bad  { color: #c62828; }
+    #status .wait { color: #777; }
+    #changed { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
+    .footer-row { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #ddd; }
+    .hdr-user { font-size: 13px; margin-right: 8px; }
+  </style>
+</head>
+<body>
+<calcite-shell>
+  <calcite-navigation slot="header">
+    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="App-Approval on TEST AEP63-26-999 (this page never saves)"></calcite-navigation-logo>
+    <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
+      <span id="user" class="hdr-user">Not signed in</span>
+      <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
+    </div>
+  </calcite-navigation>
+
+  <arcgis-map id="mapEl"></arcgis-map>
+
+  <calcite-shell-panel slot="panel-end" width="l" resizable>
+    <calcite-panel heading="App-Approval form">
+      <arcgis-feature-form id="form"></arcgis-feature-form>
+
+      <div slot="footer" style="width:100%;">
+        <div class="footer-row">
+          <calcite-button id="updateBtn" width="full" disabled>Update (check only – no save)</calcite-button>
+        </div>
+        <div id="status">
+          <div id="s-signin" class="wait">○ Sign-in</div>
+          <div id="s-map"    class="wait">○ Web map "WCCD AEP Review (EB)"</div>
+          <div id="s-layer"  class="wait">○ Layer copy "App-Approval" + its form</div>
+          <div id="s-record" class="wait">○ Record TEST AEP63-26-999</div>
+          <div id="s-dirty"  class="wait">○ Changed since opening: –</div>
+          <div id="changed"></div>
+          <div id="s-submit" class="wait"></div>
+        </div>
+      </div>
+    </calcite-panel>
+  </calcite-shell-panel>
+</calcite-shell>
+
+<script type="module">
+  // ---------- Settings ----------
+  const CLIENT_ID   = "GgRGSkyzcLuMKcSS";                 // public OAuth Client ID
+  const PORTAL_URL  = "https://clarion.maps.arcgis.com";  // your organization's address
+  const MAP_TITLE   = "WCCD AEP Review (EB)";
+  const LAYER_TITLE = "App-Approval";
+  const TEST_ID     = "AEP63-26-999";                     // the ONLY record this page opens
+  const FORBIDDEN   = "AEP63-25-002";                     // Campbell – never open
+
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  function setStatus(id, state, text) {
+    const el = $(id);
+    el.className = state;
+    el.textContent = (state === "ok" ? "✔ " : state === "bad" ? "✖ " : "○ ") + text;
+  }
+  function fail(id, text, err) {
+    setStatus(id, "bad", text + (err ? " – " + (err.message || err) : ""));
+    console.error(text, err);
+  }
+
+  // ---------- Load SDK modules ----------
+  const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
+    "@arcgis/core/config.js",
+    "@arcgis/core/identity/IdentityManager.js",
+    "@arcgis/core/identity/OAuthInfo.js",
+    "@arcgis/core/portal/Portal.js",
+    "@arcgis/core/WebMap.js"
+  ]);
+  esriConfig.portalUrl = PORTAL_URL;
+
+  // ---------- 1. Sign in (OAuth, same window) ----------
+  const info = new OAuthInfo({ appId: CLIENT_ID, portalUrl: PORTAL_URL, popup: false });
+  esriId.registerOAuthInfos([info]);
+  const sharingUrl = PORTAL_URL + "/sharing";
+
+  let portal;
+  try {
+    try { await esriId.checkSignInStatus(sharingUrl); }
+    catch { await esriId.getCredential(sharingUrl); }   // redirects to ArcGIS sign-in, then back here
+    portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
+    await portal.load();
+    $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
+    $("signOut").disabled = false;
+    setStatus("s-signin", "ok", "Signed in as " + portal.user.username);
+  } catch (e) { fail("s-signin", "Sign-in failed", e); throw e; }
+
+  $("signOut").addEventListener("click", () => {
+    esriId.destroyCredentials();
+    window.location.href = window.location.pathname;   // reload without any token in the address
+  });
+
+  // ---------- 2. Find and load the web map by title ----------
+  let webmap;
+  try {
+    const res = await portal.queryItems({
+      query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20
+    });
+    const hits = res.results.filter(i => i.title === MAP_TITLE);
+    if (hits.length !== 1) throw new Error(hits.length + " web maps with that exact title");
+    webmap = new WebMap({ portalItem: hits[0] });
+    await webmap.loadAll();
+    $("mapEl").map = webmap;
+    setStatus("s-map", "ok", 'Web map "' + MAP_TITLE + '" loaded (item ' + hits[0].id + ")");
+  } catch (e) { fail("s-map", "Web map not loaded", e); throw e; }
+
+  // ---------- 3. Find the App-Approval layer copy and its form ----------
+  let layer;
+  try {
+    layer = webmap.allLayers.find(l => l.title === LAYER_TITLE);
+    if (!layer) throw new Error("no layer titled " + LAYER_TITLE);
+    await layer.load();
+    if (!layer.formTemplate) throw new Error("layer has no Map Viewer form");
+    setStatus("s-layer", "ok", 'Layer "' + LAYER_TITLE + '" with its form (' +
+      layer.formTemplate.elements.length + " top-level elements)");
+  } catch (e) { fail("s-layer", "Layer/form not found", e); throw e; }
+
+  // ---------- 4. Query TEST AEP63-26-999 (and only that record) ----------
+  let feature, original;
+  try {
+    const q = await layer.queryFeatures({
+      where: "AEPID LIKE '%" + TEST_ID + "'",
+      outFields: ["*"],
+      returnGeometry: true
+    });
+    if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + TEST_ID);
+    feature = q.features[0];
+    const aepid = String(feature.attributes.AEPID || "");
+    if (aepid.includes(FORBIDDEN)) throw new Error("refused: Campbell record");
+    original = { ...feature.attributes };              // stored values, for the "changed" check
+    setStatus("s-record", "ok", "Record " + aepid + " (ObjectID " + feature.attributes[layer.objectIdField] + ")");
+  } catch (e) { fail("s-record", "Record not loaded", e); throw e; }
+
+  // ---------- 5. Open the form (the Map Viewer form stored on the layer copy) ----------
+  const form = $("form");
+  await form.componentOnReady();
+  form.map = webmap;                 // for any $map expressions
+  form.editType = "UPDATE";          // same edit context as the EB Edit widget
+  form.timeZone = "system";          // show dates in this computer's time zone
+  form.layer = layer;
+  form.formTemplate = layer.formTemplate;
+  form.feature = feature;
+
+  // ---------- 6. "Changed since opening" (same idea as the EB What-changed probe) ----------
+  function norm(v) {
+    if (v === undefined || v === null || v === "") return null;
+    if (v instanceof Date) return v.getTime();
+    return v;
+  }
+  async function checkChanged() {
+    try {
+      const vals = await form.getValues();
+      const diffs = [];
+      for (const k of Object.keys(vals)) {
+        if (!(k in original)) continue;
+        const a = norm(original[k]), b = norm(vals[k]);
+        if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
+      }
+      if (diffs.length === 0) {
+        setStatus("s-dirty", "ok", "Changed since opening: nothing");
+        $("changed").textContent = "";
+        $("updateBtn").disabled = true;
+      } else {
+        setStatus("s-dirty", "bad", "Changed since opening: " + diffs.length + " field(s)");
+        $("changed").textContent = diffs.join("\n");
+        $("updateBtn").disabled = false;
+      }
+    } catch (e) { /* form still calculating – try again on the next tick */ }
+  }
+  setInterval(checkChanged, 1000);
+  form.addEventListener("arcgisValueChange", checkChanged);
+
+  // ---------- 7. Update button: runs the form's own validation, NEVER saves ----------
+  $("updateBtn").addEventListener("click", () => form.submit());
+  form.addEventListener("arcgisSubmit", (evt) => {
+    const inv = (evt.detail && evt.detail.invalid) || [];
+    if (inv.length) setStatus("s-submit", "bad", "Would not save – required/invalid: " + inv.join(", "));
+    else            setStatus("s-submit", "ok",  "Would save (valid). Test page: nothing written.");
+  });
+</script>
+</body>
+</html>
