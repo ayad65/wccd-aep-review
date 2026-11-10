@@ -27,7 +27,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 4 (bisect by expression type, browser copies only) · TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
+      description="Run 5 (one stamp calculation at a time, browser copies only) · TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -37,22 +37,20 @@
   <arcgis-map id="mapEl"></arcgis-map>
 
   <calcite-shell-panel slot="panel-end" width="l" resizable>
-    <calcite-panel heading="App-Approval – five ways">
+    <calcite-panel heading="App-Approval – four ways">
       <div class="sec"><h3>K · Full form (all expressions) – baseline</h3><arcgis-feature-form id="formK"></arcgis-feature-form></div>
-      <div class="sec"><h3>V · Visibility rules only</h3><arcgis-feature-form id="formV"></arcgis-feature-form></div>
-      <div class="sec"><h3>R · Visibility + required + editable rules</h3><arcgis-feature-form id="formR"></arcgis-feature-form></div>
-      <div class="sec"><h3>C · Calculations only</h3><arcgis-feature-form id="formC"></arcgis-feature-form></div>
-      <div class="sec"><h3>X · Everything except the Stage / DateStage3 / ApprovalLetterDate calculations</h3><arcgis-feature-form id="formX"></arcgis-feature-form></div>
+      <div class="sec"><h3>S1 · All rules + only the Stage marker calculation</h3><arcgis-feature-form id="formS1"></arcgis-feature-form></div>
+      <div class="sec"><h3>S2 · All rules + only the Approval completed stamp (DateStage3)</h3><arcgis-feature-form id="formS2"></arcgis-feature-form></div>
+      <div class="sec"><h3>S3 · All rules + only the Letter date stamp (ApprovalLetterDate)</h3><arcgis-feature-form id="formS3"></arcgis-feature-form></div>
 
       <div slot="footer" style="width:100%;">
         <div id="status">
           <div id="s-load" class="wait">○ Loading…</div>
           <div id="s-K" class="wait">○ K: –</div><div id="d-K" class="diff"></div>
-          <div id="s-V" class="wait">○ V: –</div><div id="d-V" class="diff"></div>
-          <div id="s-R" class="wait">○ R: –</div><div id="d-R" class="diff"></div>
-          <div id="s-C" class="wait">○ C: –</div><div id="d-C" class="diff"></div>
-          <div id="s-X" class="wait">○ X: –</div><div id="d-X" class="diff"></div>
-          <div class="wait" style="margin-top:6px;">Expressions on AppStatus, FundingSource and the Decision group:</div><div id="exprs" class="diff"></div>
+          <div id="s-S1" class="wait">○ S1: –</div><div id="d-S1" class="diff"></div>
+          <div id="s-S2" class="wait">○ S2: –</div><div id="d-S2" class="diff"></div>
+          <div id="s-S3" class="wait">○ S3: –</div><div id="d-S3" class="diff"></div>
+          <div class="wait" style="margin-top:6px;">Expressions on the targets and the three stamp fields:</div><div id="exprs" class="diff"></div>
         </div>
       </div>
     </calcite-panel>
@@ -69,8 +67,10 @@
   const FORBIDDEN   = "AEP63-25-002";     // Campbell – never open
 
   const $ = (id) => document.getElementById(id);
+  // Never show sign-in tokens on screen.
+  const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••").replace(/\?[^\s]*$/,"?…");
   function setStatus(id, state, text) {
-    const el = $(id); el.className = state;
+    const el = $(id); el.className = state; text = mask(text);
     el.textContent = (state === "ok" ? "✔ " : state === "bad" ? "✖ " : "○ ") + text;
   }
 
@@ -139,12 +139,13 @@
     return t;
   }
   const STAMPS = ["Stage", "DateStage3", "ApprovalLetterDate"];
+  // Every copy keeps all visibility / required / editable rules and every calculation EXCEPT the stamps not named.
+  const onlyStamp = (keepField) => copyWith((k, el) => !(k === "value" && STAMPS.includes(el.fieldName) && el.fieldName !== keepField));
   const variants = {
-    K: null,                                                          // full form from the layer
-    V: copyWith((k) => k === "visibility"),
-    R: copyWith((k) => k === "visibility" || k === "required" || k === "editable"),
-    C: copyWith((k) => k === "value"),
-    X: copyWith((k, el) => !(k === "value" && STAMPS.includes(el.fieldName)))
+    K:  null,                              // full form from the layer
+    S1: onlyStamp("Stage"),
+    S2: onlyStamp("DateStage3"),
+    S3: onlyStamp("ApprovalLetterDate")
   };
   const forms = {};
   for (const [key, tmpl] of Object.entries(variants)) {
@@ -162,7 +163,7 @@
   const lines = [];
   (function walk(els, groupLabel) {
     for (const el of els || []) {
-      const isTarget = el.fieldName === "AppStatus" || el.fieldName === "FundingSource" ||
+      const isTarget = el.fieldName === "AppStatus" || el.fieldName === "FundingSource" || STAMPS.includes(el.fieldName) ||
                        (el.type === "group" && /decision/i.test(el.label || ""));
       if (isTarget) {
         const who = el.type === "group" ? 'group "' + el.label + '"' : el.fieldName + (groupLabel ? ' (in "' + groupLabel + '")' : "");
