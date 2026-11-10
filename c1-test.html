@@ -12,6 +12,7 @@
     html, body { margin: 0; height: 100%; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
     calcite-shell { height: 100%; }
     arcgis-map { height: 100%; width: 100%; }
+    arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
     #status { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-top: 1px solid #ddd; background: #fafafa; }
     #status .ok   { color: #2e7d32; }
     #status .bad  { color: #c62828; }
@@ -24,7 +25,7 @@
 <body>
 <calcite-shell>
   <calcite-navigation slot="header">
-    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="App-Approval on TEST AEP63-26-999 (this page never saves)"></calcite-navigation-logo>
+    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test" description="Run 2 (Test A, minimal settings) · App-Approval on TEST AEP63-26-999 · this page never saves"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -151,11 +152,10 @@
   // ---------- 5. Open the form (the Map Viewer form stored on the layer copy) ----------
   const form = $("form");
   await form.componentOnReady();
+  // Test A (run 2): minimal settings. Removed: explicit formTemplate, editType, timeZone.
+  // The component takes the form from the layer copy itself.
   form.map = webmap;                 // for any $map expressions
-  form.editType = "UPDATE";          // same edit context as the EB Edit widget
-  form.timeZone = "system";          // show dates in this computer's time zone
   form.layer = layer;
-  form.formTemplate = layer.formTemplate;
   form.feature = feature;
 
   // ---------- 6. "Changed since opening" (same idea as the EB What-changed probe) ----------
