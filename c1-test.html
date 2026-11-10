@@ -28,7 +28,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 10 – CVF fix test + unknown-element test · browser copies only · read-only, this page cannot save"></calcite-navigation-logo>
+      description="Run 11 – CVF diagnostic + corrected unknown-element test · browser copies only · read-only, this page cannot save"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -152,21 +152,33 @@
     const variantKeep = (lyr) => { const t = lyr.formTemplate.clone(); t.preserveFieldValuesWhenHidden = true; return t; };
     const variantUnknown = (lyr) => {
       // Stand-in for a newer element type: give FundingSource an input type SDK 5.1 does not know.
+      // (Run 10 bug fixed: the JSON keeps elements under "formElements".)
       const j = lyr.formTemplate.toJSON();
       let done = false;
       (function walk(els) { for (const el of els || []) {
         if (!done && el.fieldName === "FundingSource") { el.inputType = { type: "dynamic-choice", choicesExpression: "expr/unknown-test" }; done = true; }
-        if (el.elements) walk(el.elements);
-      } })(j.elements);
-      if (!done) throw new Error("FundingSource element not found");
+        walk(el.formElements || el.elements);
+      } })(j.formElements || j.elements);
+      if (!done) throw new Error("FundingSource element not found in form JSON");
       return FormTemplate.fromJSON(j);
+    };
+    const variantShown = (lyr) => {
+      // Copy with the "CVF ready" visibility rule removed, so the CVF sections are always shown.
+      const t = lyr.formTemplate.clone();
+      const names = new Set((t.expressionInfos || []).filter(e => (e.title || "") === "CVF ready").map(e => e.name));
+      let n = 0;
+      (function walk(els) { for (const el of els || []) {
+        if (el.visibilityExpression && names.has(el.visibilityExpression)) { el.visibilityExpression = null; n++; }
+        if (el.type === "group") walk(el.elements);
+      } })(t.elements);
+      if (!n) throw new Error('no element uses an expression titled "CVF ready"');
+      return t;
     };
     const add = (form, id, name, make) => { const c = pick(form, id); if (c) base.push({ ...c, variant: name, make }); else missing.push(form + " " + id); };
     add("App-CVF", "AEP63-26-999", "copy (as in A2)", variantCopy);
-    add("App-CVF", "AEP63-26-999", "copy + keep values when hidden", variantKeep);
+    add("App-CVF", "AEP63-26-999", "copy, CVF ready rule removed (sections shown)", variantShown);
     add("App-CVF", "AEP63-26-998", "copy (as in A2)", variantCopy);
-    add("App-CVF", "AEP63-26-998", "copy + keep values when hidden", variantKeep);
-    add("App-Approval", "AEP63-26-999", "copy + keep values when hidden", variantKeep);
+    add("App-CVF", "AEP63-26-998", "copy, CVF ready rule removed (sections shown)", variantShown);
     add("App-Approval", "AEP63-26-999", "copy + unknown input type on Funding source (C4 test)", variantUnknown);
     combos.length = 0; combos.push(...base);
 
@@ -226,7 +238,10 @@
         for (const k of Object.keys(vals)) {
           if (!(k in original)) continue;
           const a = norm(original[k]), b = norm(vals[k]);
-          if (a !== b) diffs.push(k + ": " + JSON.stringify(a) + " → " + JSON.stringify(b));
+          if (a !== b) {
+            const rec = form.feature && form.feature.attributes ? norm(form.feature.attributes[k]) : "n/a";
+            diffs.push(k + ": stored " + JSON.stringify(a) + " · form reports " + JSON.stringify(b) + " · form's record holds " + JSON.stringify(rec));
+          }
         }
         const sig = diffs.join("|");
         same = (sig === last) ? same + 1 : 0;
@@ -235,10 +250,12 @@
       } catch (e) { /* still calculating */ }
       await sleep(700);
     }
-    if (!diffs.length) { setStatus(cell, "ok", "✔ nothing changed"); }
+    const ready = original.AppStatus === "Approved" && original.DateStage4 != null;
+    const readyNote = c.formTitle === "App-CVF" ? " · CVF ready (stored values) = " + ready : "";
+    if (!diffs.length) { setStatus(cell, "ok", "✔ nothing changed" + readyNote); }
     else {
       cell.className = "bad";
-      cell.innerHTML = "✖ " + diffs.length + " field(s)<div class='diff'></div>";
+      cell.innerHTML = "✖ " + diffs.length + " field(s)" + readyNote + "<div class='diff'></div>";
       cell.querySelector(".diff").textContent = diffs.join("\n");
     }
     setStatus($("formStatus"), diffs.length ? "bad" : "ok",
