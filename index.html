@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B2b, 11 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B2c, 11 Nov 2026).
     Saves ONLY from the Approval tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
@@ -851,7 +851,9 @@
     const fieldOf = (name) => S.fields[name.toLowerCase()];
     const isNum = (f) => f && /integer|single|double|long/.test(f.type || "");
     const labelOf = (k) => S.labels[k] || (fieldOf(k) && fieldOf(k).alias) || k;
-    const dispV = (k, v) => show(fieldOf(k), normV(v)) ?? "(empty)";
+    const dispV = (k, v) => { const f = fieldOf(k), n = normV(v);        // dates are shown with their time of day here, because that is what gets stored
+      if (f && f.type === "date" && typeof n === "number") return new Date(n).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
+      return show(f, n) ?? "(empty)"; };
 
     function flatten(tmpl) {
       const out = [];
@@ -1062,11 +1064,21 @@
     function readInput(t) {
       const name = t.dataset.f, f = fieldOf(name), kind = t.dataset.kind; let v;
       if (kind === "switch") v = t.checked ? t.dataset.on : t.dataset.off;
-      else if (kind === "date") v = t.value ? new Date(t.value.length > 10 ? t.value : t.value + "T00:00").getTime() : null;
+      else if (kind === "date") v = dateValue(name, t.value);
       else if (kind === "number") { const n = Number(String(t.value).replace(/,/g, "").trim()); v = t.value.trim() === "" || !isFinite(n) ? null : n; }
       else v = t.value === "" ? null : t.value;
       if ((kind === "choice" || kind === "switch") && v != null && isNum(f)) v = Number(v);
       return v;
+    }
+    // Dates are stored the way Esri's picker stores them (read on the test page, 11 Nov): changing the day keeps the stored time of day;
+    // a date typed into an empty field takes the time on the clock. One addition: if the box was emptied and refilled, the record's own time of day is used.
+    function dateValue(name, text) {
+      if (!text) return null;
+      const m = /^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/.exec(text); if (!m) return S.values[name] ?? null;
+      const baseMs = normV(S.values[name]) ?? normV(S.original[name]), base = baseMs != null ? new Date(baseMs) : new Date();
+      const d = m[4] != null ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], base.getSeconds(), base.getMilliseconds())
+                             : new Date(+m[1], +m[2] - 1, +m[3], base.getHours(), base.getMinutes(), base.getSeconds(), base.getMilliseconds());
+      return d.getTime();
     }
     async function runRules() {
       clearTimeout(typeTimer); typeTimer = null;
