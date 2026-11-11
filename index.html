@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B1c, 11 Nov 2026). READ-ONLY: this page never saves.
+    WCCD AEP custom app – Home + Worklist (build B2a, 11 Nov 2026).
+    Saves ONLY from the Approval tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,6 +126,9 @@
     details.gcard { border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
     details.gcard.tint { background: #F1F5FA; border-color: #B9CBE0; }
     details.gcard > summary { cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; min-height: 44px; padding: 8px 14px; font-size: 15px; font-weight: 700; }
+    details.gcard > summary > span:first-child::before { content: ""; display: inline-block; width: 0; height: 0; margin-right: 10px; vertical-align: middle;
+      border-style: solid; border-width: 5px 0 5px 8px; border-color: transparent transparent transparent var(--ink); }
+    details.gcard[open] > summary > span:first-child::before { border-width: 8px 5px 0 5px; border-color: var(--ink) transparent transparent transparent; margin-right: 8px; }
     details.gcard > summary .cnt { font-size: 13px; font-weight: 500; color: var(--muted); }
     details.gcard[open] > summary { border-bottom: 1px solid var(--soft); }
     details.gcard.tint[open] > summary { border-bottom-color: #B9CBE0; }
@@ -136,7 +140,23 @@
     .vals dd { margin: 0; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
     .vals dd.empty { color: var(--muted); font-weight: 400; }
     .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px 16px; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
+    .strip .fig { display: flex; flex-direction: column; justify-content: space-between; }
     .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
+    /* Editing */
+    .edBar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+    .btn { height: 44px; padding: 0 18px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; }
+    .btn.go { border: 0; background: var(--blue); color: #fff; font-weight: 700; }
+    .btn:disabled { background: var(--line); color: #2B3138; border-color: var(--line); cursor: default; }
+    .okmsg { background: #E3F1E6; color: #1E4D2B; border: 1px solid #1E4D2B; border-radius: 4px; padding: 12px 16px; font-size: 14px; font-weight: 600; white-space: pre-wrap; }
+    .error { white-space: pre-wrap; }
+    #edForm { border: 1px solid var(--line); border-radius: 4px; min-height: 80px; }
+    #edForm.locked { pointer-events: none; opacity: .55; }
+    #edForm arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
+    .review { border: 2px solid var(--blue); border-radius: 4px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .review h3 { margin: 0; } .review ul { margin: 0; padding-left: 20px; font-size: 14px; } .review li { margin: 3px 0; overflow-wrap: anywhere; }
+    .review .small { font-size: 13px; color: var(--muted); }
+    .edBtns { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+    .edBtns > span { font-size: 13px; color: var(--muted); flex: 1 1 240px; }
     details.rowAll .cards { padding-bottom: 12px; }
     table.mini { min-width: 640px; } table.mini td, table.mini th { padding: 10px 12px; }
     details.rowAll { border: 1px solid var(--line); border-radius: 4px; padding: 0 12px; }
@@ -193,7 +213,7 @@
             <tbody id="closedRows"></tbody>
           </table></div>
         </details>
-        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. This page only reads; it never changes a record.</p>
+        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Only the Approval tab of a TEST record can save, and only after you review and confirm.</p>
         <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
       </div>
     </section>
@@ -216,7 +236,9 @@
     portalUrl: "https://clarion.maps.arcgis.com",
     mapTitle: "WCCD AEP Review (EB)",
     layerTitle: "Applications",
-    viewOnly: ["AEP63-25-002"]                        // Campbell: never saved from this app
+    viewOnly: ["AEP63-25-002"],                       // Campbell: never saved from this app
+    editable: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"],   // the only records this app may save, while both apps are evaluated
+    editLayer: "App-Approval"
   };
   const STAGES = ["Intake", "Ranking", "Approval", "Agreement", "Reimbursement", "Closed"];
   const NEXT   = ["next: rank it", "next: finish the ranking", "next: record the decision", "next: record the signatures", "next: check the CVF", "paid"];
@@ -262,7 +284,7 @@
   };
 
   // ---------------- Load the SDK modules, sign in ----------------
-  let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "";
+  let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "", webmap = null, appLayer = null;
   let appFields = {}, gidField = null, forms = {}, fr = { rows: null, fields: {}, list: [], parent: null, error: "" };
   const lower = (list) => Object.fromEntries((list || []).map((f) => [f.name.toLowerCase(), f]));
   const normId = (v) => String(v ?? "").replace(/[{}]/g, "").toLowerCase();
@@ -300,11 +322,12 @@
     const res = await portal.queryItems({ query: 'title:"' + CFG.mapTitle + '" AND type:"Web Map"', num: 20 });
     const hits = res.results.filter((i) => i.title === CFG.mapTitle);
     if (hits.length !== 1) throw new Error(hits.length + ' web maps titled "' + CFG.mapTitle + '"');
-    const webmap = new WebMap({ portalItem: hits[0] });
+    webmap = new WebMap({ portalItem: hits[0] });
     await webmap.load();
     const layer = webmap.allLayers.find((l) => l.title === CFG.layerTitle);
     if (!layer) throw new Error('no layer titled "' + CFG.layerTitle + '" in the web map');
     await layer.load();
+    appLayer = layer;
 
     const names = layer.fields.map((f) => f.name);
     gidField = (layer.fields.find((f) => f.type === "global-id") || {}).name || layer.globalIdField || "GlobalID";
@@ -444,9 +467,10 @@
   // w: "L" / "R" = left or right column, "full" = full width with the values in two columns, "figs" = a strip of figures. open:false = starts collapsed.
   const RULES = {
     cvf:  [{ re: /^General$/, w: "figs", title: "Lime and cost" }, { re: /internal/i, w: "L" }, { re: /payment|invoice/i, w: "R", tint: true }],
-    appr: [{ re: /^General$/ }, { re: /decision/i, w: "L" }, { re: /sign/i, w: "R", tint: true }],
-    agr:  [{ re: /^General$/ }, { re: /landowner|applicant|owner/i, w: "L" }, { re: /wccd|district/i, w: "R", tint: true }],
-    rank: [{ re: /^General$/ }, { re: /total/i, w: "full" }, { re: /awarded/i }, { re: /question|criteri|scor|rank/i, w: "full", open: false, score: true }],
+    appr: [{ re: /decision/i, w: "L" }, { re: /sign/i, w: "R", tint: true }, { re: /program limit/i, w: "R" }, { re: /three/i, w: "R" }],
+    agr:  [{ re: /signature/i, w: "full" }],
+    rank: [{ re: /^General$/, w: "L", title: "Eligibility" }, { re: /reviewer/i, w: "R" }, { re: /total/i, w: "full" }, { re: /awarded/i },
+           { re: /question/i, w: "full", open: false, score: true }],
     rows: [{ re: /^Field$/i, w: "L" }, { re: /lime rec/i, w: "L" }, { re: /^Soil test results$/i, w: "R" }, { re: /soil test lab/i, w: "R", tint: true },
            { re: /^Other$/, title: "Notes" }, { re: /more soil/i, w: "full", open: false }, { re: /lab report/i, w: "full", open: false },
            { re: /crop/i, w: "full", open: false }, { re: /optimal/i, w: "full", open: false }, { re: /name/i, w: "L", open: false }, { re: /acreage/i, w: "R", open: false }]
@@ -513,9 +537,15 @@
     const fm = forms[t.key] || { list: [], error: "not loaded" };
     if (fm.error) return "<h2>" + esc(t.label) + '</h2><div class="error">This form\'s layout could not be read: ' + esc(fm.error) + "</div>";
     const calc = num(F.calc ? r.a[F.calc] : null);
+    let top = "";
+    if (t.key === EDIT_TAB) {
+      if (saveNote && saveNote.id === r.id) top += '<div class="' + saveNote.cls + '">' + esc(saveNote.text) + "</div>";
+      top += canEdit(r) ? '<div class="edBar"><button type="button" class="btn go" id="edOpen">Edit</button><span>TEST record. Nothing is saved until you review and confirm.</span></div>'
+                        : '<div class="edBar"><span>' + (r.viewOnly ? "This record is view only in this app." : "Editing is switched on for the TEST records only.") + "</span></div>";
+    }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
     return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
-      " fields have a value. Messages the form works out on screen are not shown. " + (t.key === "cvf" ? "Cost verification stays view only in this app for now." : "Editing comes in a later build.") + "</p>" +
+      " fields have a value. Messages the form works out on screen are not shown. " + (t.key === "cvf" ? "Cost verification stays view only in this app for now." : t.key === EDIT_TAB ? "" : "Editing comes in a later build.") + "</p>" + top +
       emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>');
   }
   function itemHtml(r) {
@@ -526,13 +556,14 @@
   }
   function renderWork(id) {
     const r = rows.find((x) => x.id === id) || null;
-    if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; }
+    if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; saveNote = null; }
     const order = (a, b) => (b.red.length > 0) - (a.red.length > 0) || a.id.localeCompare(b.id);
     const closed = rows.filter((x) => x.closed).sort((a, b) => b.fy.localeCompare(a.fy) || a.id.localeCompare(b.id));
     $("todo").innerHTML = "<h1>To do</h1><p>Open applications, grouped by the next step.</p>" +
       GROUPS.map((gname, gi) => { const items = rows.filter((x) => stepOf(x) === gi).sort(order);
         return '<div class="grp"><h2><span>' + gname + "</span><span>" + items.length + "</span></h2>" + (items.map(itemHtml).join("") || '<span class="none">None</span>') + "</div>"; }).join("") +
       '<details class="closedList"' + (r && r.closed ? " open" : "") + "><summary>Closed (" + closed.length + ")</summary>" + (closed.map(itemHtml).join("") || '<span class="none">None</span>') + "</details>";
+    if (ed && r && ed.r.id === r.id) return;          // the form is open: leave it alone
     const d = $("detail");
     d.className = "detail" + (r && r.closed ? " isClosed" : "");
     if (!r) { d.innerHTML = '<div class="pane"><h2>' + (id ? "Application not found" : "No application selected") + "</h2><p>" +
@@ -561,11 +592,236 @@
       '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + t.label + "</button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
   }
-  $("detail").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) { curTab = b.dataset.tab; renderWork(curId); } });
+  $("detail").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-tab]");
+    if (b) { if (!leaveEdit()) return; curTab = b.dataset.tab; renderWork(curId); return; }
+    const id = e.target.id, r = rows.find((x) => x.id === curId);
+    if (id === "edOpen" && r) openEdit(r);
+    else if (id === "edCancel") { if (leaveEdit()) renderWork(curId); }
+    else if (id === "edSave" && ed && ed.ready) ed.form.submit();
+    else if (id === "edBack" && ed) { ed.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; $("edForm").classList.remove("locked"); }
+    else if (id === "edConfirm" && ed) confirmSave(ed);
+  });
+
+  // ---------------- Editing: Approval tab only, TEST records only (safe save, as proven on the test page, Run 14) ----------------
+  const EDIT_TAB = "appr";
+  let ed = null, saveNote = null, loadedAll = false, Graphic = null, arcade = null;
+  const canEdit = (r) => !r.viewOnly && CFG.editable.some((t) => r.id.endsWith(t));
+  const normV = (v) => (v === undefined || v === null || v === "") ? null : (v instanceof Date ? v.getTime() : v);
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+  const dirty = () => !!(ed && ed.touched.size);
+  function closeEdit() { if (ed) { clearInterval(ed.timer); ed = null; } }
+  function leaveEdit() {
+    if (!ed) return true;
+    if (dirty() && !window.confirm("You have changes that are not saved. Leave without saving?")) return false;
+    closeEdit(); return true;
+  }
+  window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
+  function guard(e) {              // refuse anything that is not one of the TEST records
+    const id = String(e.original[F.id] ?? "");
+    if (id !== e.r.id || !canEdit(e.r) || CFG.viewOnly.some((v) => id.includes(v))) throw new Error("refused: this record may not be saved from this app");
+  }
+  const edStatus = (cls, text) => { const el = $("edStatus"); if (el) { el.className = cls; el.textContent = mask(text); } };
+  const lab = (e, k) => e.labels[k] || (e.fields[k.toLowerCase()] && e.fields[k.toLowerCase()].alias) || k;
+  const disp = (e, k, v) => show(e.fields[k.toLowerCase()], normV(v)) ?? "(empty)";
+  const changeText = (e, x) => lab(e, x.k) + ": " + disp(e, x.k, x.a) + " → " + disp(e, x.k, x.b);
+
+  async function openEdit(r) {
+    if (!canEdit(r) || ed) return;
+    document.querySelector("#detail .pane").innerHTML =
+      "<h2>Approval – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening the Approval form…</div><div id="edForm" class="locked"></div>' +
+      '<div id="edReview" class="review" hidden></div>' +
+      '<div class="edBtns" id="edBtns"><span id="edChanged">Nothing changed yet.</span><button type="button" class="btn" id="edCancel">Cancel</button><button type="button" class="btn go" id="edSave" disabled>Review and save</button></div>';
+    const e = ed = { r, touched: new Set(), calc: new Set(), labels: {}, fields: {}, ready: false, plan: null, lastInput: 0, exec: new Map(), timer: null };
+    try {
+      if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
+      if (!loadedAll) { await webmap.loadAll(); loadedAll = true; }
+      const layer = e.layer = webmap.allLayers.find((l) => l.title === CFG.editLayer);
+      if (!layer) throw new Error('no layer titled "' + CFG.editLayer + '" in the web map');
+      await layer.load();
+      if (!layer.formTemplate) throw new Error(CFG.editLayer + " has no Map Viewer form");
+      e.fields = lower(layer.fields);
+      const q = await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
+      if (ed !== e) return;
+      if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + r.id + " in " + CFG.editLayer);
+      e.feature = q.features[0]; e.original = { ...e.feature.attributes }; e.oid = e.original[layer.objectIdField];
+      guard(e);
+      const tmpl = e.tmpl = layer.formTemplate.clone();            // always a copy of the form (finding of Run 6)
+      (function walk(els) { for (const el of els || []) {
+        if (el.type === "field") { if (el.valueExpression) e.calc.add(el.fieldName); if (el.label) e.labels[el.fieldName] = el.label; }
+        if (el.type === "group") walk(el.elements);
+      } })(tmpl.elements);
+      const host = $("edForm"), form = e.form = document.createElement("arcgis-feature-form");
+      host.appendChild(form);
+      await form.componentOnReady();
+      form.map = webmap; form.layer = layer; form.formTemplate = tmpl; form.feature = e.feature;
+      // a typed-field change counts as the user's only right after a real click or keystroke in the form
+      for (const ev of ["pointerdown", "keydown", "input", "change"]) host.addEventListener(ev, () => { e.lastInput = Date.now(); }, true);
+      form.addEventListener("arcgisValueChange", (evt) => {
+        const f = evt.detail && evt.detail.fieldName;
+        if (!f || !e.ready || e.calc.has(f) || Date.now() - e.lastInput > 1500) return;
+        e.touched.add(f);
+      });
+      form.addEventListener("arcgisSubmit", (evt) => onSubmit(e, evt));
+
+      // Opening check: before anything is typed, the form must report exactly what is stored.
+      edStatus("notice", "Checking that the form opens in step with the stored record…");
+      const t0 = Date.now(); let last = null, same = 0, diffs = null;
+      while (ed === e) {
+        await sleep(600);
+        let d = null; try { d = await diffsOf(e); } catch { /* still loading */ }
+        if (d) { const key = JSON.stringify(d.map((x) => [x.k, x.b])); same = key === last ? same + 1 : 0; last = key; diffs = d; }
+        if (diffs && same >= 3 && Date.now() - t0 >= 2500) break;
+        if (Date.now() - t0 > 20000) { if (!diffs) throw new Error("the form did not finish loading"); break; }
+      }
+      if (ed !== e) return;
+      if (diffs.length) {
+        $("edSave").hidden = true; $("edChanged").textContent = "";
+        edStatus("error", "Editing is blocked. The form opened with " + diffs.length + " value(s) different from the stored record, before anything was typed:\n" +
+          diffs.map((x) => "• " + changeText(e, x)).join("\n") + "\nNothing was saved. Click Cancel to go back.");
+        return;
+      }
+      e.ready = true; host.classList.remove("locked");
+      edStatus("notice", "The form opened in step with the stored record. Nothing is saved until you review and confirm.");
+      e.timer = setInterval(() => live(e), 1000);
+    } catch (err) { if (ed === e) { edStatus("error", "The form could not be opened – " + (err.message || err)); const b = $("edSave"); if (b) b.hidden = true; } console.error(err); }
+  }
+
+  function skipField(e, fld) {
+    const efi = e.layer.editFieldsInfo || {};
+    const sys = [e.layer.objectIdField, e.layer.globalIdField, efi.creatorField, efi.creationDateField, efi.editorField, efi.editDateField].filter(Boolean).map((x) => x.toLowerCase());
+    return !fld || fld.editable === false || sys.includes(fld.name.toLowerCase());
+  }
+  async function diffsOf(e) {      // every field where the form's value differs from the stored record
+    const vals = await e.form.getValues(), out = [];
+    for (const k of Object.keys(vals)) {
+      if (!(k in e.original) || skipField(e, e.fields[k.toLowerCase()])) continue;
+      const a = normV(e.original[k]), b = normV(vals[k]);
+      if (a !== b) out.push({ k, a, b });
+    }
+    return Object.assign(out, { vals });
+  }
+  // Visibility worked out by the page itself, to tell "emptied because your change hid it" from noise (refinement 1)
+  async function evalExpr(e, name, g, gOrig) {
+    const info = (e.tmpl.expressionInfos || []).find((x) => x.name === name);
+    if (!info) throw new Error("expression " + name + " not found");
+    let ex = e.exec.get(name);
+    if (!ex) { ex = await arcade.createArcadeExecutor(info.expression, arcade.createArcadeProfile("form-calculation")); e.exec.set(name, ex); }
+    return await ex.executeAsync({ "$feature": g, "$originalFeature": gOrig, "$layer": e.layer, "$datastore": e.layer, "$map": webmap, "$editcontext": { editType: "UPDATE" } },
+                                 { spatialReference: e.layer.spatialReference });
+  }
+  async function visibilityMap(e, attrs) {
+    const g = new Graphic({ attributes: attrs, geometry: e.feature.geometry }), gOrig = new Graphic({ attributes: { ...e.original }, geometry: e.feature.geometry });
+    const out = {};
+    const vis = async (el) => { if (!el.visibilityExpression) return true;
+      try { return (await evalExpr(e, el.visibilityExpression, g, gOrig)) === true; } catch (err) { console.warn("visibility", el.visibilityExpression, err); return "error"; } };
+    const walk = async (els, parentVis) => { for (const el of els || []) {
+      let v = await vis(el);
+      if (parentVis === false) v = false; else if (parentVis === "error" && v !== false) v = "error";
+      if (el.type === "group") await walk(el.elements, v); else if (el.type === "field") out[el.fieldName] = v;
+    } };
+    await walk(e.tmpl.elements, true);
+    return out;
+  }
+  async function buildPlan(e, withVisibility) {
+    const diffs = await diffsOf(e), vals = diffs.vals;
+    const will = [], empty = [], check = [], ign = [];
+    const userChanged = e.touched.size > 0;
+    let visOpen = null, visNow = null;
+    const candidates = diffs.filter((d) => !e.touched.has(d.k) && !e.calc.has(d.k) && d.a !== null && d.b === null);
+    if (withVisibility && userChanged && candidates.length) {
+      const nowAttrs = { ...e.original };
+      for (const d of diffs) if (e.touched.has(d.k) || e.calc.has(d.k)) nowAttrs[d.k] = normV(vals[d.k]);
+      visOpen = await visibilityMap(e, { ...e.original });
+      visNow = await visibilityMap(e, nowAttrs);
+    }
+    for (const d of diffs) {
+      if (e.touched.has(d.k)) will.push({ ...d, why: "you changed it" });
+      else if (e.calc.has(d.k)) { if (userChanged) will.push({ ...d, why: "calculated" }); else ign.push(d); }
+      else if (visOpen && candidates.includes(d)) {
+        const o = visOpen[d.k], n = visNow[d.k];
+        if (o === true && n === false) empty.push(d); else if (o === "error" || n === "error") check.push(d); else ign.push(d);
+      } else ign.push(d);
+    }
+    return { will, empty, check, ign };
+  }
+  async function live(e) {
+    if (ed !== e || e.plan || !$("edChanged")) return;
+    try {
+      const p = await buildPlan(e, false);
+      const mine = p.will.filter((x) => x.why !== "calculated"), calc = p.will.length - mine.length;
+      $("edChanged").textContent = mine.length ? "You changed: " + mine.map((x) => lab(e, x.k)).join(", ") + "." + (calc ? " " + calc + " calculated value" + (calc === 1 ? "" : "s") + " will follow." : "") : "Nothing changed yet.";
+      $("edSave").disabled = !p.will.length;
+    } catch (err) { console.warn("live", err); }
+  }
+  async function onSubmit(e, evt) {
+    if (ed !== e || !e.ready) return;
+    const inv = (evt.detail && evt.detail.invalid) || [];
+    if (inv.length) { edStatus("error", "Not saved. Required or invalid: " + inv.map((k) => lab(e, k)).join(", ") + "."); return; }
+    edStatus("notice", "Preparing the review…");
+    try {
+      const p = await buildPlan(e, true);
+      if (!p.will.length && !p.empty.length) { edStatus("notice", "Nothing to save."); return; }
+      e.plan = p;
+      const ul = (items, f) => items.length ? "<ul>" + items.map((x) => "<li>" + f(x) + "</li>").join("") + "</ul>" : '<p class="small">None.</p>';
+      $("edReview").innerHTML = "<h3>Review before saving " + esc(e.r.id) + "</h3>" +
+        "<div><b>Will save</b>" + ul(p.will, (x) => esc(changeText(e, x)) + ' <span class="small">(' + x.why + ")</span>") + "</div>" +
+        "<div><b>Will empty</b> <span class=\"small\">(hidden by your change)</span>" + ul(p.empty, (x) => esc(lab(e, x.k) + ": " + disp(e, x.k, x.a) + " → (empty)")) + "</div>" +
+        (p.check.length ? "<div><b>Check</b> <span class=\"small\">(tick to empty; left alone otherwise)</span>" + p.check.map((x, i) =>
+          '<label style="display:flex;gap:8px;min-height:44px;align-items:center;font-size:14px"><input type="checkbox" data-i="' + i + '" style="width:20px;height:20px"> ' + esc(lab(e, x.k) + ": stored " + disp(e, x.k, x.a) + " – empty it?") + "</label>").join("") + "</div>" : "") +
+        (p.ign.length ? '<details><summary class="small">Left alone, not written (' + p.ign.length + ")</summary>" + ul(p.ign, (x) => esc(lab(e, x.k) + ": stored " + disp(e, x.k, x.a) + ", form reports " + disp(e, x.k, x.b))) + "</details>" : "") +
+        '<div class="edBtns"><span>This writes to the real record.</span><button type="button" class="btn" id="edBack">Back to the form</button><button type="button" class="btn go" id="edConfirm">Confirm and save</button></div>';
+      $("edReview").hidden = false; $("edBtns").hidden = true; $("edForm").classList.add("locked");
+      edStatus("notice", "Review the changes below. Nothing has been saved yet.");
+    } catch (err) { edStatus("error", "The review could not be prepared – " + (err.message || err)); console.error(err); }
+  }
+  async function confirmSave(e) {
+    if (ed !== e || !e.plan) return;
+    const plan = e.plan, layer = e.layer;
+    const ticked = [...$("edReview").querySelectorAll("input[type=checkbox]")].filter((c) => c.checked).map((c) => plan.check[Number(c.dataset.i)]);
+    $("edReview").hidden = true;
+    try {
+      guard(e);
+      const efi = layer.editFieldsInfo || {};
+      if (efi.editDateField) {           // has anyone saved this record since it was opened?
+        const q = await layer.queryFeatures({ objectIds: [e.oid], outFields: [efi.editDateField] });
+        if (normV(q.features[0].attributes[efi.editDateField]) !== normV(e.original[efi.editDateField])) throw new Error("someone saved this record since you opened it. Cancel, reopen it and enter the change again");
+      }
+      const vals = await e.form.getValues();
+      const attrs = { [layer.objectIdField]: e.oid };
+      for (const x of plan.will) attrs[x.k] = normV(vals[x.k]);
+      for (const x of plan.empty.concat(ticked)) attrs[x.k] = null;
+      const keys = Object.keys(attrs).filter((k) => k !== layer.objectIdField);
+      edStatus("notice", "Saving " + keys.length + " field(s)…");
+      const res = await layer.applyEdits({ updateFeatures: [new Graphic({ attributes: attrs })] });
+      const one = res.updateFeatureResults && res.updateFeatureResults[0];
+      if (!one || one.error) throw new Error(one && one.error ? one.error.message : "no result returned");
+      // read the record back and verify what is stored
+      const back = (await layer.queryFeatures({ objectIds: [e.oid], outFields: ["*"] })).features[0].attributes;
+      const bad = keys.filter((k) => normV(back[k]) !== normV(attrs[k])).map((k) => lab(e, k) + ": wrote " + disp(e, k, attrs[k]) + ", the layer holds " + disp(e, k, back[k]));
+      const id = e.r.id;
+      saveNote = bad.length ? { id, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
+                            : { id, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + keys.map((k) => lab(e, k) + " = " + disp(e, k, attrs[k])).join(" · ") };
+      closeEdit();
+      try { await reloadRows(); } catch (err) { saveNote.text += "\nThe lists could not be refreshed; reload the page. (" + mask(err.message || err) + ")"; }
+      curTab = EDIT_TAB; renderWork(id);
+    } catch (err) {
+      e.plan = null;
+      if ($("edBtns")) { $("edBtns").hidden = false; $("edForm").classList.remove("locked"); }
+      edStatus("error", "Save stopped – " + (err.message || err) + ". Nothing was written unless stated above."); console.error(err);
+    }
+  }
+  async function reloadRows() {
+    const q = await appLayer.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: false });
+    rows = q.features.map((f) => toRow(f.attributes)); crossChecks(rows);
+  }
   $("detail").addEventListener("change", (e) => { if (e.target.id === "showEmpty") { showEmpty = e.target.checked; renderWork(curId); } });
   function route() {
     const h = decodeURIComponent(window.location.hash || "#/");
     const isWork = h.startsWith("#/work");
+    if (ed && (!isWork || h.replace(/^#\/work\/?/, "") !== ed.r.id)) {       // leaving a record that is being edited
+      if (!leaveEdit()) { window.location.hash = "#/work/" + encodeURIComponent(ed.r.id); return; }
+    }
     $("home").hidden = isWork; $("work").hidden = !isWork;
     for (const [el, on] of [[$("navHome"), !isWork], [$("navWork"), isWork]]) {
       if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
