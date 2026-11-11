@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B2c, 11 Nov 2026).
-    Saves ONLY from the Approval tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
+    WCCD AEP custom app – Home + Worklist (build B3a, 11 Nov 2026).
+    Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -149,7 +149,15 @@
     .ecard.tint { background: #F1F5FA; border-color: #B9CBE0; }
     .ecard > h3 { margin: 0; font-size: 15px; padding: 12px 14px; border-bottom: 1px solid var(--soft); }
     .ecard.tint > h3 { border-bottom-color: #B9CBE0; }
-    .ecard > div { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .ecard > .ebody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .ecard.two > .ebody { display: block; columns: 2; column-gap: 28px; }
+    .ecard.two > .ebody > * { break-inside: avoid; margin-bottom: 12px; }
+    .ecard .strip { border: 0; padding: 0; }
+    details.ecard > summary { cursor: pointer; min-height: 44px; padding: 12px 14px; font-size: 15px; font-weight: 700; }
+    details.ecard[open] > summary { border-bottom: 1px solid var(--soft); }
+    .fld .lab { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+    .fld .cval { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; white-space: pre-wrap; }
+    @media (max-width: 900px) { .ecard.two > .ebody { columns: 1; } }
     .pane .fld > label { display: block; min-height: 0; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
     .fld .req { color: var(--red); font-weight: 600; } .fld small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
     .fld input[type="text"], .fld input[type="date"], .fld input[type="datetime-local"], .fld textarea, .fld select {
@@ -567,14 +575,14 @@
     if (fm.error) return "<h2>" + esc(t.label) + '</h2><div class="error">This form\'s layout could not be read: ' + esc(fm.error) + "</div>";
     const calc = num(F.calc ? r.a[F.calc] : null);
     let top = "";
-    if (t.key === EDIT_TAB) {
-      if (saveNote && saveNote.id === r.id) top += '<div class="' + saveNote.cls + '">' + esc(saveNote.text) + "</div>";
+    if (EDIT_TABS.includes(t.key)) {
+      if (saveNote && saveNote.id === r.id && (saveNote.tab || EDIT_TAB) === t.key) top += '<div class="' + saveNote.cls + '">' + esc(saveNote.text) + "</div>";
       top += canEdit(r) ? '<div class="edBar"><button type="button" class="btn go" id="edOpen">Edit</button><span>TEST record. Nothing is saved until you review and confirm.</span></div>'
                         : '<div class="edBar"><span>' + (r.viewOnly ? "This record is view only in this app." : "Editing is switched on for the TEST records only.") + "</span></div>";
     }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
     return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
-      " fields have a value. Messages the form works out on screen are not shown. " + (t.key === "cvf" ? "Cost verification stays view only in this app for now." : t.key === EDIT_TAB ? "" : "Editing comes in a later build.") + "</p>" + top +
+      " fields have a value. Messages the form works out on screen are not shown. " + "</p>" + top +
       emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>');
   }
   function itemHtml(r) {
@@ -627,7 +635,7 @@
     const id = e.target.id, r = rows.find((x) => x.id === curId);
     const rs = e.target.closest("[data-restore]");
     if (rs && ed && ed.own) { OWN.restore(rs.dataset.restore); return; }
-    if (id === "edOpen" && r) { if (CFG.editEngine === "esri") openEdit(r); else OWN.open(r); }
+    if (id === "edOpen" && r) { if (CFG.editEngine === "esri" && curTab === EDIT_TAB) openEdit(r); else OWN.open(r, curTab); }
     else if (id === "edCancel") { if (leaveEdit()) renderWork(curId); }
     else if (id === "edSave" && ed && ed.ready) { if (ed.own) OWN.review(); else ed.form.submit(); }
     else if (id === "edBack" && ed) { if (ed.own) OWN.back(); else { ed.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; $("edForm").classList.remove("locked"); } }
@@ -635,7 +643,8 @@
   });
 
   // ---------------- Editing: Approval tab only, TEST records only (safe save, as proven on the test page, Run 14) ----------------
-  const EDIT_TAB = "appr";
+  const EDIT_TAB = "appr";                                  // the one tab the Esri-form fallback can edit
+  const EDIT_TABS = ["rank", "appr", "agr", "cvf"];         // tabs our own layout can edit
   let ed = null, saveNote = null, loadedAll = false, Graphic = null, arcade = null;
   const canEdit = (r) => !r.viewOnly && CFG.editable.some((t) => r.id.endsWith(t));
   const normV = (v) => (v === undefined || v === null || v === "") ? null : (v instanceof Date ? v.getTime() : v);
@@ -845,12 +854,23 @@
   // ================= Editing with our own layout, running the Map Viewer form's own rules (proven on test page D1, 11 Nov) =================
   const OWN = (() => {
     let S = null, token = 0, running = false, pending = false, typeTimer = null;
-    const LEFT = /decision/i;                       // the group on the left; the other groups go right, tinted
+    // Where each part of a form goes. Matched on the group name; "loose0" is the run of fields before the first group.
+    // col L / R = left or right column (R is tinted); full = full width; two = contents flow in two columns; strip = a row of figures;
+    // textsRight = typed boxes on the left, the form's result lines on the right; splitRight = fields whose label matches go to the right half;
+    // closed = starts collapsed; order = position (default: the form's own order).
+    const SPEC = {
+      appr: [{ re: /decision/i, col: "L" }, { re: /./, col: "R" }],
+      rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", two: true, order: 3 },
+             { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
+      agr:  [{ re: /signature/i, col: "full", splitRight: /wccd|title|representative/i }, { re: /./, col: "full" }],
+      cvf:  [{ re: /^loose0$/, col: "full", title: "Lime and cost", textsRight: true }, { re: /internal/i, col: "L" }, { re: /payment|invoice/i, col: "R" }, { re: /./, col: "full" }]
+    };
+    const pretty = (k) => String(k).replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^(\w)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
     const same = (a, b) => { a = normV(a); b = normV(b); return a === b || (typeof a === "number" && typeof b === "number" && Math.abs(a - b) < 1e-9); };
     const st = (cls, text) => edStatus(cls, text);
     const fieldOf = (name) => S.fields[name.toLowerCase()];
     const isNum = (f) => f && /integer|single|double|long/.test(f.type || "");
-    const labelOf = (k) => S.labels[k] || (fieldOf(k) && fieldOf(k).alias) || k;
+    const labelOf = (k) => { const f = fieldOf(k), a = f && f.alias; return S.labels[k] || (a && a !== k ? a : pretty(k)); };
     const dispV = (k, v) => { const f = fieldOf(k), n = normV(v);        // dates are shown with their time of day here, because that is what gets stored
       if (f && f.type === "date" && typeof n === "number") return new Date(n).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
       return show(f, n) ?? "(empty)"; };
@@ -995,7 +1015,10 @@
       const name = el.fieldName, id = "f_" + name;
       const back = S.values[name] == null && S.stash[name] != null
         ? '<button type="button" class="linkbtn" data-restore="' + esc(name) + '">Restore the earlier value: ' + esc(dispV(name, S.stash[name])) + "</button>" : "";
-      return '<div class="fld' + (S.calc[name] ? " calcfld" : "") + '"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
+      const f = fieldOf(name), locked = S.calc[name] || S.edit[name] === false || (f && f.editable === false);
+      if (locked) return '<div class="fld calcfld"><span class="lab">' + esc(labelOf(name)) + '</span><div class="cval">' + esc(show(f, normV(S.values[name])) ?? "—") + "</div>" +
+        (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
+      return '<div class="fld"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
         inputHtml(el) + back + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
     }
     function skip(k) {            // never written: system fields and fields the layer does not let anyone edit
@@ -1015,24 +1038,43 @@
     }
     function render() {
       const host = $("own"); if (!host || !S) return;
-      const secs = []; let loose = null;
+      // sections: the groups, and each run of elements outside a group ("loose0", "loose1", …)
+      const secs = []; let loose = null, nLoose = 0;
       for (const x of S.els) {
-        if (x.isGroup) { secs.push({ name: x.el.label || "Group", grp: x.el, items: [] }); loose = null; }
+        if (x.isGroup) { secs.push({ name: x.el.label || "Group", grp: x.el, items: [], pos: secs.length }); loose = null; }
         else if (x.grp) secs.find((q) => q.grp === x.grp).items.push(x.el);
-        else { if (!loose) { loose = { name: "", items: [] }; secs.push(loose); } loose.items.push(x.el); }
+        else { if (!loose) { loose = { name: "loose" + (nLoose++), items: [], pos: secs.length }; secs.push(loose); } loose.items.push(x.el); }
       }
-      let html = "", L = [], R = [];
+      const spec = SPEC[S.tabKey] || [{ re: /./, col: "full" }];
+      for (const q of secs) { q.rule = spec.find((r) => r.re.test(q.name)) || { col: "full" }; q.order = q.rule.order != null ? q.rule.order : 100 + q.pos; }
+      secs.sort((a, b) => a.order - b.order || a.pos - b.pos);
+      const vis = (el) => S.vis[S.key(el)] !== false;
+      let top = "", html = "", L = [], R = [];
       const flush = () => { if (L.length && R.length) html += '<div class="cols"><div class="col">' + L.join("") + '</div><div class="col">' + R.join("") + "</div></div>"; else html += L.join("") + R.join(""); L = []; R = []; };
       for (const q of secs) {
         if (q.grp && S.groupVis.get(q.grp) === false) continue;
-        const body = q.items.map(elHtml).filter(Boolean);
-        if (!body.length) continue;
-        if (!q.grp) { flush(); html += '<div class="ecard"><div>' + body.join("") + "</div></div>"; continue; }
-        const left = LEFT.test(q.name);
-        const card = '<div class="ecard' + (left ? "" : " tint") + '"><h3>' + esc(q.name) + "</h3><div>" + body.join("") + "</div></div>";
-        (left ? L : R).push(card);
+        let items = q.items.filter(vis);
+        if (!q.grp) {                       // message lines that come before the first box of a loose run go across the top
+          const firstField = items.findIndex((el) => el.type === "field");
+          const head = firstField < 0 ? items : items.slice(0, firstField);
+          top += head.map(elHtml).join(""); items = firstField < 0 ? [] : items.slice(firstField);
+        }
+        if (!items.length) continue;
+        const r = q.rule, title = r.title || (q.grp ? q.name : "");
+        let body;
+        if (r.strip) body = '<div class="strip">' + items.filter((el) => el.type === "field").map((el) => '<div class="fig"><small>' + esc(labelOf(el.fieldName)) + "</small><b>" + esc(show(fieldOf(el.fieldName), normV(S.values[el.fieldName])) ?? "—") + "</b></div>").join("") + "</div>";
+        else if (r.textsRight) body = '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field").map(elHtml).join("") + '</div><div class="col">' + items.filter((el) => el.type !== "field").map(elHtml).join("") + "</div></div>";
+        else if (r.splitRight) { const isR = (el) => el.type === "field" && r.splitRight.test(labelOf(el.fieldName));
+          body = items.filter((el) => el.type !== "field").map(elHtml).join("") + '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field" && !isR(el)).map(elHtml).join("") + '</div><div class="col">' + items.filter(isR).map(elHtml).join("") + "</div></div>"; }
+        else body = items.map(elHtml).join("");
+        const cls = "ecard" + (r.col === "R" ? " tint" : "") + (r.two ? " two" : "");
+        const card = r.closed
+          ? '<details class="' + cls + '" data-card="' + esc(q.name) + '"' + (S.openCards.has(q.name) ? " open" : "") + "><summary>" + esc(title) + '</summary><div class="ebody">' + body + "</div></details>"
+          : '<div class="' + cls + '">' + (title ? "<h3>" + esc(title) + "</h3>" : "") + '<div class="ebody">' + body + "</div></div>";
+        if (r.col === "L") L.push(card); else if (r.col === "R") R.push(card); else { flush(); html += card; }
       }
       flush();
+      html = (top ? '<div class="ecard"><div class="ebody">' + top + "</div></div>" : "") + html;
       const act = document.activeElement, keep = act && host.contains(act) ? { id: act.id, name: act.name, val: act.value, type: act.type, a: act.selectionStart, f: act.dataset.f } : null;
       host.innerHTML = html;
       if (keep) {      // keep the cursor, and anything being typed, where it was
@@ -1103,32 +1145,34 @@
     const idle = async () => { if (typeTimer) await runRules(); while (running || pending) await sleep(50); };
 
     // ---- open, review, save ----
-    async function open(r) {
-      if (!canEdit(r) || ed) return;
+    async function open(r, tabKey) {
+      const tab = TABS.find((x) => x.key === tabKey);
+      if (!canEdit(r) || ed || !tab || !tab.layer || !EDIT_TABS.includes(tabKey)) return;
       const my = ++token;
       document.querySelector("#detail .pane").innerHTML =
-        "<h2>Approval – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
+        "<h2>" + esc(tab.label) + " – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
         '<div class="edBtns" id="edBtns"><span id="edChanged"></span><button type="button" class="btn" id="edRestore" data-restore="*" hidden></button>' +
         '<button type="button" class="btn" id="edCancel">Cancel</button><button type="button" class="btn go" id="edSave" disabled>Review and save</button></div>' +
         '<details class="diag"><summary>Editing diagnostics (for Claude)</summary><pre id="edDiag"></pre></details>';
       $("own").addEventListener("input", (evt) => { const k = evt.target.dataset && evt.target.dataset.kind; if (k === "text" || k === "number") onEdit(evt); });
       $("own").addEventListener("change", onEdit);
+      $("own").addEventListener("toggle", (evt) => { const c = evt.target.dataset && evt.target.dataset.card; if (c && S) { if (evt.target.open) S.openCards.add(c); else S.openCards.delete(c); } }, true);
       const e = ed = { r, own: true, ready: false, timer: null, original: null, touched: { get size() { return e.ready ? diffs().length : 0; } } };
       try {
         if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
         if (!loadedAll) { await webmap.loadAll(); loadedAll = true; }
-        const layer = webmap.allLayers.find((l) => l.title === CFG.editLayer);
-        if (!layer) throw new Error('no layer titled "' + CFG.editLayer + '" in the web map');
+        const layer = webmap.allLayers.find((l) => l.title === tab.layer);
+        if (!layer) throw new Error('no layer titled "' + tab.layer + '" in the web map');
         await layer.load();
-        if (!layer.formTemplate) throw new Error(CFG.editLayer + " has no Map Viewer form");
+        if (!layer.formTemplate) throw new Error(tab.layer + " has no Map Viewer form");
         const q = await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
         if (my !== token || ed !== e) return;
-        if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + r.id + " in " + CFG.editLayer);
+        if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + r.id + " in " + tab.layer);
         const feature = q.features[0], tmpl = layer.formTemplate.clone();           // always a copy of the form
         e.original = { ...feature.attributes };
         guard(e);
         const keys = new Map(); let n = 0;
-        S = { id: r.id, layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
+        S = { id: r.id, tabKey, openCards: new Set(), layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
               fields: lower(layer.fields), els: flatten(tmpl), labels: {}, vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, stash: {}, exec: new Map(), memo: new Map(), deps: new Map(),
               attrKeys: Object.fromEntries(Object.keys(feature.attributes).map((k) => [k.toLowerCase(), k])), runs: 0, dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(), locked: false,
               key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
@@ -1196,11 +1240,11 @@
         const got = (await layer.queryFeatures({ objectIds: [s.oid], outFields: ["*"] })).features[0].attributes;      // read back and verify
         const bad = keys.filter((k) => !same(got[k], attrs[k])).map((k) => labelOf(k) + ": wrote " + dispV(k, attrs[k]) + ", the layer holds " + dispV(k, got[k]));
         const id = s.id, text = keys.map((k) => labelOf(k) + " = " + dispV(k, attrs[k])).join(" · ");
-        saveNote = bad.length ? { id, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
-                              : { id, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + text };
+        saveNote = bad.length ? { id, tab: s.tabKey, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
+                              : { id, tab: s.tabKey, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + text };
         closeEdit();
         try { await reloadRows(); } catch (err) { saveNote.text += "\nThe lists could not be refreshed; reload the page. (" + mask(err.message || err) + ")"; }
-        curTab = EDIT_TAB; renderWork(id);
+        curTab = saveNote.tab; renderWork(id);
       } catch (err) {
         if (S === s) { look.on = true; S.locked = false; S.plan = null; if ($("edBtns")) $("edBtns").hidden = false; render();
           st("error", "Save stopped – " + (err.message || err) + ". Nothing was written unless stated above."); }
