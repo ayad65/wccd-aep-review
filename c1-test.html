@@ -64,7 +64,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.3, 11 Nov 2026.</p></div>
+    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.4, 11 Nov 2026.</p></div>
     <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
   </header>
   <div class="bar">
@@ -99,6 +99,11 @@
   const log = []; const note = (t) => { log.push(mask(t)); };
 
   let webmap, Graphic, arcade, portalUser = "";
+  // Lookup memory: while a record is open, an identical read request to the feature service is answered from memory (reads only; this page never writes).
+  const look = { on: false, map: new Map(), hits: 0, misses: 0 };
+  const lookKey = (p) => { const q = { ...((p.requestOptions && p.requestOptions.query) || {}) }; delete q.token; return String(p.url).split("?")[0] + "|" + JSON.stringify(Object.keys(q).sort().map((k) => [k, q[k]])); };
+  const isRead = (url) => /\/FeatureServer\/\d+\/query$/i.test(String(url).split("?")[0]);
+  const copy = (d) => { try { return structuredClone(d); } catch { return d; } };
   try {
     const t0 = Date.now();
     while (!(window.$arcgis && window.$arcgis.import)) { if (Date.now() - t0 > 30000) throw new Error("the ArcGIS SDK did not load"); await new Promise((r) => setTimeout(r, 100)); }
@@ -108,6 +113,10 @@
     Graphic = G; arcade = A;
     $("sdk").textContent = "SDK " + (kernel && (kernel.fullVersion || kernel.version) || "?");
     esriConfig.portalUrl = CFG.portalUrl;
+    esriConfig.request.interceptors.push({
+      before(p) { if (!look.on || !isRead(p.url)) return; const k = lookKey(p); if (look.map.has(k)) { look.hits++; return copy(look.map.get(k)); } },
+      after(r) { if (!look.on || !isRead(r.url) || r.data == null) return; const k = lookKey({ url: r.url, requestOptions: r.requestOptions }); if (!look.map.has(k)) { look.misses++; look.map.set(k, copy(r.data)); } }
+    });
     esriId.registerOAuthInfos([new OAuthInfo({ appId: CFG.clientId, portalUrl: CFG.portalUrl, popup: false })]);
     const sharing = CFG.portalUrl + "/sharing";
     try { await esriId.checkSignInStatus(sharing); } catch { await esriId.getCredential(sharing); }
@@ -310,6 +319,7 @@
     const errs = Object.entries(S.errors);
     $("diag").textContent = ["Form " + S.layer.title + " · record " + S.id + " · user " + portalUser + " · " + $("sdk").textContent,
       "Settled in " + S.passes + " pass(es), " + S.ms + " ms, " + S.lastRuns + " rule runs this time (" + S.runs + " since opening); rules re-run on every change: " + ([...S.deps].filter(([, d]) => !d).map(([n]) => title(n)).join(", ") || "none") + " · $datastore mode: " + (S.dsMode || "not needed yet"),
+      "Lookup memory: " + look.misses + " fetched from ArcGIS Online, " + look.hits + " answered from memory",
       "Expression errors: " + (errs.length ? errs.length : "none"), ...errs.map(([k, v]) => "  ✗ " + k + " → " + v),
       "Changed: " + (diffs.join(", ") || "nothing"), "", "Structure:",
       ...S.els.map((x) => (x.grp ? "    " : "  ") + (x.isGroup ? "GROUP " + JSON.stringify(x.el.label) : x.el.type === "field"
@@ -321,6 +331,7 @@
 
   async function openRecord() {
     const my = ++token;
+    look.on = false; look.map.clear(); look.hits = 0; look.misses = 0;
     $("own").innerHTML = ""; $("changedBox").hidden = true; $("refHost").innerHTML = ""; $("refChanged").textContent = "Not opened yet."; $("refBox").open = false;
     const lt = $("pickForm").value, id = $("pickRec").value;
     try {
@@ -338,6 +349,7 @@
       S = { id, layer, tmpl, feature, original: { ...feature.attributes }, values: { ...feature.attributes }, fields: Object.fromEntries(layer.fields.map((f) => [f.name.toLowerCase(), f])),
             els: flatten(tmpl), vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, exec: new Map(), memo: new Map(), deps: new Map(), attrKeys: Object.fromEntries(Object.keys(feature.attributes).map((k) => [k.toLowerCase(), k])), runs: 0, dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(),
             key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
+      look.on = true;                      // from here on, repeated reads for this record come from memory
       status("notice", "Running the form's rules…");
       await settle();
       if (my !== token) return;
