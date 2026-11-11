@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WCCD AEP – Lime applications</title>
+  <!--
+    WCCD AEP custom app – Home page (build B1a, 11 Nov 2026). READ-ONLY: this page never saves.
+    ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+  <style>
+    :root { --ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
+            --red:#8A1515; --red-bg:#FBE4E4; --amber:#E08A1E; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Inter, system-ui, "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--bg); font-variant-numeric: tabular-nums; }
+    a { color: var(--blue); } a:hover { color: #0E2C50; }
+    .wrap { max-width: 1392px; margin: 0 auto; padding: 0 24px; }
+    .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    h1, h2 { font-family: "Space Grotesk", Inter, sans-serif; margin: 0; }
+
+    header.top { background: #fff; border-bottom: 1px solid var(--line); }
+    .util { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); padding-top: 8px; }
+    .util button { border: 0; background: none; color: var(--blue); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; min-height: 32px; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 6px 0 14px; }
+    .brand small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .brand span { font-family: "Space Grotesk", Inter, sans-serif; font-size: 26px; font-weight: 700; }
+    .right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; }
+    nav.menu { display: flex; gap: 20px; }
+    nav.menu a { color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 500; padding: 12px 0; border-bottom: 3px solid transparent; }
+    nav.menu a[aria-current="page"] { font-weight: 700; border-bottom-color: var(--blue); }
+    input[type="search"], select { height: 44px; padding: 0 12px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; background: #fff; color: var(--ink); }
+    #q { width: 240px; max-width: 100%; }
+
+    main { padding: 24px 0 48px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    main > section, main > section > div, .box { min-width: 0; max-width: 100%; }
+    .start { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+    .start h1 { font-size: 22px; }
+    .start p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+    .primary { height: 52px; padding: 0 24px; border: 0; border-radius: 4px; background: var(--blue); color: #fff; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 12px 16px; }
+    .filters label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; min-height: 44px; }
+    .filters input[type="checkbox"] { width: 20px; height: 20px; }
+
+    .box { background: #fff; border: 1px solid var(--line); border-radius: 4px; overflow-x: auto; position: relative; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 700; padding: 12px 16px; border-bottom: 2px solid var(--ink); }
+    td { padding: 14px 16px; font-size: 14px; vertical-align: top; border-top: 1px solid var(--soft); }
+    td.app a { font-weight: 700; font-size: 15px; } td.app span { display: block; margin-top: 2px; }
+    .track { display: flex; gap: 3px; } .track i { width: 26px; height: 10px; background: var(--soft); display: block; }
+    .track i.done { background: var(--blue); } .track i.now { background: var(--amber); } .track i.end { background: #6B747E; }
+    .stage { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .tag { display: inline-block; font-size: 13px; font-weight: 600; background: var(--soft); color: #2B3138; padding: 4px 10px; border-radius: 4px; }
+    .tag + .tag { margin-top: 6px; }
+    td.att { max-width: 420px; }
+    .msg { display: flex; align-items: flex-start; gap: 8px; }
+    .msg + .msg { margin-top: 8px; }
+    .msg svg { flex: none; margin-top: 1px; }
+    .msg.red { background: var(--red-bg); color: var(--red); padding: 8px 10px; border-radius: 4px; font-weight: 600; }
+    .msg.note { color: var(--blue); }
+    .msg.plain, .none { color: var(--muted); }
+    .open { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; color: var(--ink); font-weight: 600; font-size: 14px; text-decoration: none; white-space: nowrap; }
+    details.closed { background: #fff; border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+    details.closed > summary { cursor: pointer; padding: 14px 16px; font-family: "Space Grotesk", Inter, sans-serif; font-size: 16px; font-weight: 700; min-height: 44px; }
+    details.closed[open] > summary { border-bottom: 1px solid var(--line); }
+    .legend, .diag { font-size: 13px; color: var(--muted); margin: 0; }
+    .diag summary { cursor: pointer; min-height: 32px; }
+    .notice { background: var(--blue-bg); color: #0E2C50; border: 1px solid var(--blue); border-radius: 4px; padding: 12px 16px; font-size: 14px; }
+    .error { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); border-radius: 4px; padding: 12px 16px; font-size: 14px; font-weight: 600; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
+    <div class="bar">
+      <div class="brand"><small>Washington County Conservation District · AEP</small><span>Lime applications</span></div>
+      <div class="right">
+        <nav class="menu" aria-label="Main">
+          <a href="#/" id="navHome">Home</a>
+          <a href="#/work" id="navWork">Worklist</a>
+        </nav>
+        <div><label for="q" class="vh">Find an application</label><input id="q" type="search" placeholder="Find AEP ID or applicant"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main>
+    <div id="status" class="notice">Signing in and loading the applications…</div>
+
+    <!-- HOME -->
+    <section id="home" hidden>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="start">
+          <div><h1>All applications</h1><p id="summary"></p></div>
+          <button type="button" class="primary" id="newApp">New application</button>
+        </div>
+        <div id="newAppNote" class="notice" hidden>The intake survey will open here. It is the next part to be built; for now, new applications are still entered in Survey123.</div>
+        <div class="filters">
+          <label for="fy">Fiscal year <select id="fy"></select></label>
+          <label for="st">Stage <select id="st"></select></label>
+          <label><input type="checkbox" id="onlyAtt"> Only those needing attention</label>
+        </div>
+        <div class="box"><table aria-label="Open applications">
+          <thead><tr><th>Application</th><th>Year</th><th>Progress</th><th>Status</th><th>Attention</th><th><span class="vh">Open</span></th></tr></thead>
+          <tbody id="openRows"></tbody>
+        </table></div>
+        <details class="closed" id="closedBox">
+          <summary id="closedSum">Closed</summary>
+          <div class="box" style="border:0;border-radius:0"><table aria-label="Closed applications">
+            <thead><tr><th>Application</th><th>Year</th><th>Progress</th><th>Status</th><th>Attention</th><th><span class="vh">Open</span></th></tr></thead>
+            <tbody id="closedRows"></tbody>
+          </table></div>
+        </details>
+        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. This page only reads; it never changes a record.</p>
+        <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
+      </div>
+    </section>
+
+    <!-- WORKLIST (placeholder until the next build) -->
+    <section id="work" hidden>
+      <div class="card">
+        <a href="#/">← All applications</a>
+        <h1 id="workTitle" style="font-size:22px">Worklist</h1>
+        <div id="workBody"></div>
+        <div class="notice">The Worklist (stage forms, map and fields, documents) is the next part to be built.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script type="module">
+  // ---------------- Settings ----------------
+  const CFG = {
+    clientId: "GgRGSkyzcLuMKcSS",                     // public OAuth Client ID
+    portalUrl: "https://clarion.maps.arcgis.com",
+    mapTitle: "WCCD AEP Review (EB)",
+    layerTitle: "Applications",
+    viewOnly: ["AEP63-25-002"]                        // Campbell: never saved from this app
+  };
+  const STAGES = ["Intake", "Ranking", "Approval", "Agreement", "Reimbursement", "Closed"];
+  const NEXT   = ["next: rank it", "next: finish the ranking", "next: record the decision", "next: record the signatures", "next: check the CVF", "paid"];
+  const ENDED  = ["NotFunded", "Ineligible", "Withdrawn"];
+  // Field names are looked up from these candidates, so a renamed field shows up in "Data check" instead of breaking the page.
+  const WANT = {
+    id: ["AEPID"], applicant: ["ApplicantLegalName", "FarmName"], fy: ["FiscalYear", "f_FiscalYear", "ProgramYear", "FY"],
+    stage: ["Stage"], status: ["AppStatus"], reason: ["StatusReason"],
+    farmNo: ["FarmID", "FarmNumber", "FarmNo", "FSAFarmNumber"],
+    awarded: ["AwardedTotalScore"], calc: ["TotalApplicationScore"],
+    reqAcres: ["TotalTreatedAcres"], rankTons: ["TotalTonsRanked"],
+    apprAcres: ["ApprovedAcres"], apprTons: ["ApprovedTons"],
+    ovr: ["ApprovalOverride"], capOvr: ["CapOverride"], tyOvr: ["ThreeYearOverride"], blocked: ["BlockedFieldCount"],
+    paid: ["TotalReimbursementPaid"], request: ["TotalReimbursementRequest"]
+  };
+
+  // ---------------- Helpers ----------------
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••");
+  const num = (v) => (typeof v === "number" && isFinite(v) ? v : null);
+  const fmt = (n) => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+  const money = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const yes = (v) => String(v ?? "").toLowerCase() === "yes";
+  function fail(text, err) {
+    const el = $("status"); el.className = "error"; el.hidden = false;
+    el.textContent = mask(text + (err ? " – " + (err.message || err) : ""));
+    console.error(text, err);
+  }
+  const ICON = {
+    red:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v5"/><path d="M12 17.5v.5"/></svg>',
+    note: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5v.5"/></svg>'
+  };
+
+  // ---------------- Load the SDK modules, sign in ----------------
+  let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "";
+  try {
+    const t0 = Date.now();
+    while (!(window.$arcgis && window.$arcgis.import)) {
+      if (Date.now() - t0 > 30000) throw new Error("the ArcGIS SDK did not load");
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
+      "@arcgis/core/config.js", "@arcgis/core/identity/IdentityManager.js", "@arcgis/core/identity/OAuthInfo.js",
+      "@arcgis/core/portal/Portal.js", "@arcgis/core/WebMap.js"
+    ]);
+    esriConfig.portalUrl = CFG.portalUrl;
+    esriId.registerOAuthInfos([new OAuthInfo({ appId: CFG.clientId, portalUrl: CFG.portalUrl, popup: false })]);
+    const sharing = CFG.portalUrl + "/sharing";
+    try { await esriId.checkSignInStatus(sharing); } catch { await esriId.getCredential(sharing); }
+    const portal = new Portal({ url: CFG.portalUrl, authMode: "immediate" });
+    await portal.load();
+    $("user").textContent = "Signed in as " + portal.user.fullName;
+    $("signOut").hidden = false;
+    $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
+
+    // ---------------- Read the applications (read-only) ----------------
+    const res = await portal.queryItems({ query: 'title:"' + CFG.mapTitle + '" AND type:"Web Map"', num: 20 });
+    const hits = res.results.filter((i) => i.title === CFG.mapTitle);
+    if (hits.length !== 1) throw new Error(hits.length + ' web maps titled "' + CFG.mapTitle + '"');
+    const webmap = new WebMap({ portalItem: hits[0] });
+    await webmap.load();
+    const layer = webmap.allLayers.find((l) => l.title === CFG.layerTitle);
+    if (!layer) throw new Error('no layer titled "' + CFG.layerTitle + '" in the web map');
+    await layer.load();
+
+    const names = layer.fields.map((f) => f.name);
+    for (const [key, cands] of Object.entries(WANT)) {
+      const found = cands.map((c) => names.find((n) => n.toLowerCase() === c.toLowerCase())).find(Boolean);
+      if (found) F[key] = found; else missing.push(key + " (" + cands.join(" / ") + ")");
+    }
+    if (!F.id || !F.stage) throw new Error("the layer has no AEPID or Stage field");
+    const sf = F.status && layer.fields.find((f) => f.name === F.status);
+    if (sf && sf.domain && sf.domain.codedValues) for (const cv of sf.domain.codedValues) statusLabel[cv.code] = cv.name;
+
+    const q = await layer.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: false });
+    rows = q.features.map((f) => toRow(f.attributes));
+    crossChecks(rows);
+    layerInfo = q.features.length + ' records read from the layer "' + CFG.layerTitle + '"' + (q.exceededTransferLimit ? " (more exist than one request returns)" : "");
+  } catch (e) { fail("Could not load the applications", e); throw e; }
+
+  // ---------------- One application → one row model ----------------
+  function toRow(a) {
+    const g = (k) => (F[k] ? a[F[k]] : undefined);
+    const id = String(g("id") ?? "");
+    const stageN = Math.min(6, Math.max(1, parseInt(String(g("stage") ?? ""), 10) || 1));
+    const status = String(g("status") ?? "");
+    const ended = ENDED.includes(status);
+    let fy = g("fy");
+    if (fy == null || fy === "") { const m = /-(\d\d)-/.exec(id); fy = m ? "FY20" + m[1] : "—"; }
+    else { fy = String(fy); if (/^\d{4}$/.test(fy)) fy = "FY" + fy; }
+    const r = { id, applicant: String(g("applicant") ?? ""), fy, stageN, ended, closed: ended || stageN === 6,
+                status, statusText: statusLabel[status] || status || "No status", viewOnly: CFG.viewOnly.some((v) => id.includes(v)),
+                red: [], notes: [], plain: [] };
+
+    const reqAc = num(g("reqAcres")), rankT = num(g("rankTons")), apAc = num(g("apprAcres")), apT = num(g("apprTons"));
+    const approved = status === "Approved";
+    // RED: approved above requested or ranked
+    if (approved && apAc != null && reqAc != null && apAc > reqAc + 0.005) r.red.push("Approved for more acres than requested: " + fmt(apAc) + " approved, " + fmt(reqAc) + " requested.");
+    if (approved && apT != null && rankT != null && apT > Math.ceil(rankT - 1e-9) + 0.005) r.red.push("Approved for more tons than ranked: " + fmt(apT) + " approved, " + fmt(rankT) + " ranked.");
+    // RED: three-year rule
+    const blocked = num(g("blocked"));
+    if (blocked != null && blocked > 0) r.red.push(blocked + (blocked === 1 ? " field is" : " fields are") + " blocked by the three-year rule.");
+    if (F.farmNo && !r.closed && String(g("farmNo") ?? "").trim() === "") r.red.push("No Farm #, so the three-year check cannot run.");
+    // RED: paid differs from the request
+    const paid = num(g("paid")), reqst = num(g("request"));
+    if (paid != null && reqst != null && Math.round(paid * 100) !== Math.round(reqst * 100)) r.red.push("Paid " + money(paid) + ", but the reimbursement request is " + money(reqst) + ".");
+    // RED: overrides and score gaps
+    if (yes(g("ovr"))) r.red.push("The approved figures were overridden at approval.");
+    if (yes(g("capOvr"))) r.red.push("A program limit was overridden.");
+    if (yes(g("tyOvr"))) r.red.push("Approved despite the three-year rule.");
+    const aw = num(g("awarded")), calc = num(g("calc"));
+    if (aw != null && calc != null && Math.round(aw * 100) !== Math.round(calc * 100)) r.red.push("Awarded score " + fmt(aw) + " differs from the calculated " + fmt(calc) + ".");
+    // NOTE: fewer acres approved than requested
+    if (approved && apAc != null && reqAc != null && apAc < reqAc - 0.005) r.notes.push(fmt(apAc) + " of the " + fmt(reqAc) + " requested acres were approved. Check the split per field.");
+    // Plain lines for closed applications
+    if (ended) { const why = String(g("reason") ?? "").trim(); r.plain.push(why ? "Reason: " + why : "No reason recorded."); }
+    else if (stageN === 6 && paid != null) r.plain.push("Paid " + money(paid) + ".");
+    return r;
+  }
+  function crossChecks(list) {   // NOTE: the same applicant twice in one fiscal year
+    const seen = {};
+    for (const r of list) { const k = r.applicant.trim().toLowerCase() + "|" + r.fy; if (r.applicant.trim()) (seen[k] = seen[k] || []).push(r); }
+    for (const grp of Object.values(seen)) if (grp.length > 1) for (const r of grp)
+      r.notes.push("Another application from this applicant in " + r.fy + ": " + grp.filter((o) => o !== r).map((o) => o.id).join(", ") + ".");
+  }
+
+  // ---------------- Rendering ----------------
+  function rowHtml(r) {
+    const segs = STAGES.map((_, i) => { const k = i + 1;
+      const cls = r.ended ? (k <= r.stageN ? "end" : "") : (k < r.stageN || r.stageN === 6 ? "done" : (k === r.stageN ? "now" : ""));
+      return '<i class="' + cls + '"></i>'; }).join("");
+    // At Approval, the next step depends on whether the decision has been recorded.
+    const nextStep = (r.stageN === 3 && r.status === "Approved") ? "approved · next: record the signatures" : NEXT[r.stageN - 1];
+    const stageLine = r.ended ? "Ended at " + STAGES[r.stageN - 1] : STAGES[r.stageN - 1] + " · " + nextStep;
+    const href = "#/work/" + encodeURIComponent(r.id);
+    const att = r.red.map((m) => '<div class="msg red">' + ICON.red + "<span>" + esc(m) + "</span></div>").join("") +
+                r.notes.map((m) => '<div class="msg note">' + ICON.note + "<span>" + esc(m) + "</span></div>").join("") +
+                r.plain.map((m) => '<div class="msg plain"><span>' + esc(m) + "</span></div>").join("");
+    return "<tr>" +
+      '<td class="app"><a href="' + href + '">' + esc(r.id) + "</a><span>" + esc(r.applicant) + "</span></td>" +
+      "<td>" + esc(r.fy) + "</td>" +
+      '<td><span class="track" role="img" aria-label="Stage ' + r.stageN + " of 6, " + STAGES[r.stageN - 1] + '">' + segs + '</span><span class="stage">' + esc(stageLine) + "</span></td>" +
+      '<td><span class="tag">' + esc(r.statusText) + "</span>" + (r.viewOnly ? '<br><span class="tag">View only</span>' : "") + "</td>" +
+      '<td class="att">' + (att || '<span class="none">Nothing to flag</span>') + "</td>" +
+      '<td style="text-align:right"><a class="open" href="' + href + '">' + (r.closed || r.viewOnly ? "View" : "Open") + "</a></td></tr>";
+  }
+  function renderHome() {
+    const fy = $("fy").value, st = Number($("st").value), only = $("onlyAtt").checked, text = $("q").value.trim().toLowerCase();
+    const pass = (r) => (fy === "all" || r.fy === fy) && (!st || r.stageN === st) && (!only || r.red.length > 0) &&
+                        (!text || r.id.toLowerCase().includes(text) || r.applicant.toLowerCase().includes(text));
+    const order = (a, b) => (b.red.length > 0) - (a.red.length > 0) || a.stageN - b.stageN || a.id.localeCompare(b.id);
+    const open = rows.filter((r) => !r.closed && pass(r)).sort(order);
+    const closed = rows.filter((r) => r.closed && pass(r)).sort((a, b) => b.fy.localeCompare(a.fy) || a.id.localeCompare(b.id));
+    $("openRows").innerHTML = open.map(rowHtml).join("") || '<tr><td colspan="6" class="none">No open applications match.</td></tr>';
+    $("closedRows").innerHTML = closed.map(rowHtml).join("") || '<tr><td colspan="6" class="none">No closed applications match.</td></tr>';
+    $("closedSum").textContent = "Closed (" + closed.length + ") – paid, not funded, ineligible or withdrawn";
+    const allOpen = rows.filter((r) => !r.closed);
+    $("summary").textContent = rows.length + " applications · " + allOpen.length + " open · " + allOpen.filter((r) => r.red.length).length + " need attention";
+  }
+  function renderWork(id) {
+    const r = rows.find((x) => x.id === id);
+    $("workTitle").textContent = r ? r.id + " · " + r.applicant : "Worklist";
+    $("workBody").innerHTML = r
+      ? "<p>" + esc(r.fy) + " · " + esc(r.statusText) + " · " + esc(r.ended ? "ended at " + STAGES[r.stageN - 1] : "at " + STAGES[r.stageN - 1]) + "</p>" +
+        r.red.map((m) => '<div class="msg red">' + ICON.red + "<span>" + esc(m) + "</span></div>").join("") +
+        r.notes.map((m) => '<div class="msg note">' + ICON.note + "<span>" + esc(m) + "</span></div>").join("")
+      : "<p>Pick an application on the Home page to open it here.</p>";
+  }
+  function route() {
+    const h = decodeURIComponent(window.location.hash || "#/");
+    const isWork = h.startsWith("#/work");
+    $("home").hidden = isWork; $("work").hidden = !isWork;
+    for (const [el, on] of [[$("navHome"), !isWork], [$("navWork"), isWork]]) {
+      if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+    }
+    if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else renderHome();
+  }
+
+  // ---------------- Wire up ----------------
+  const years = [...new Set(rows.map((r) => r.fy))].sort().reverse();
+  $("fy").innerHTML = '<option value="all">All years</option>' + years.map((y) => '<option value="' + esc(y) + '">' + esc(y) + "</option>").join("");
+  $("st").innerHTML = '<option value="0">All stages</option>' + STAGES.map((s, i) => '<option value="' + (i + 1) + '">' + s + "</option>").join("");
+  for (const id of ["fy", "st", "onlyAtt"]) $(id).addEventListener("change", renderHome);
+  $("q").addEventListener("input", () => { if (!$("home").hidden) renderHome(); else window.location.hash = "#/"; });
+  $("newApp").addEventListener("click", () => { $("newAppNote").hidden = !$("newAppNote").hidden; });
+  $("diag").innerHTML = "<p>" + esc(layerInfo) + ".</p><p>" +
+    (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p>";
+  window.addEventListener("hashchange", route);
+  $("status").hidden = true;
+  route();
+</script>
+</body>
+</html>
