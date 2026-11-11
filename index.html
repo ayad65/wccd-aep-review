@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B3a, 11 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B3b, 11 Nov 2026).
     Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
@@ -153,6 +153,8 @@
     .ecard.two > .ebody { display: block; columns: 2; column-gap: 28px; }
     .ecard.two > .ebody > * { break-inside: avoid; margin-bottom: 12px; }
     .ecard .strip { border: 0; padding: 0; }
+    .col.tintcol { background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; padding: 12px; }
+    .col.tintcol .einfo { background: #fff; }
     details.ecard > summary { cursor: pointer; min-height: 44px; padding: 12px 14px; font-size: 15px; font-weight: 700; }
     details.ecard[open] > summary { border-bottom: 1px solid var(--soft); }
     .fld .lab { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
@@ -1063,9 +1065,9 @@
         const r = q.rule, title = r.title || (q.grp ? q.name : "");
         let body;
         if (r.strip) body = '<div class="strip">' + items.filter((el) => el.type === "field").map((el) => '<div class="fig"><small>' + esc(labelOf(el.fieldName)) + "</small><b>" + esc(show(fieldOf(el.fieldName), normV(S.values[el.fieldName])) ?? "—") + "</b></div>").join("") + "</div>";
-        else if (r.textsRight) body = '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field").map(elHtml).join("") + '</div><div class="col">' + items.filter((el) => el.type !== "field").map(elHtml).join("") + "</div></div>";
+        else if (r.textsRight) body = '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field").map(elHtml).join("") + '</div><div class="col tintcol">' + items.filter((el) => el.type !== "field").map(elHtml).join("") + "</div></div>";
         else if (r.splitRight) { const isR = (el) => el.type === "field" && r.splitRight.test(labelOf(el.fieldName));
-          body = items.filter((el) => el.type !== "field").map(elHtml).join("") + '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field" && !isR(el)).map(elHtml).join("") + '</div><div class="col">' + items.filter(isR).map(elHtml).join("") + "</div></div>"; }
+          body = items.filter((el) => el.type !== "field").map(elHtml).join("") + '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field" && !isR(el)).map(elHtml).join("") + '</div><div class="col tintcol">' + items.filter(isR).map(elHtml).join("") + "</div></div>"; }
         else body = items.map(elHtml).join("");
         const cls = "ecard" + (r.col === "R" ? " tint" : "") + (r.two ? " two" : "");
         const card = r.closed
