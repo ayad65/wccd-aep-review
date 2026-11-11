@@ -26,7 +26,7 @@
 <calcite-shell>
   <calcite-navigation slot="header">
     <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 13 – safe save · TEST AEP63-26-999 only · writes only what you changed, after you review and confirm"></calcite-navigation-logo>
+      description="Run 14 – safe save, refinement 1 · TEST AEP63-26-999 only · writes only what you changed, after you review and confirm"></calcite-navigation-logo>
     <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
       <span id="user" class="hdr-user">Not signed in</span>
       <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
@@ -49,6 +49,8 @@
         <div id="review">
           <h4 class="bad">Review before saving to TEST AEP63-26-999</h4>
           <div><b>Will save:</b></div><div id="willSave" class="mono"></div>
+          <div style="margin-top:6px;"><b>Will empty</b> (shown when the record opened, hidden by your change – as EB does):</div><div id="willEmpty" class="mono"></div>
+          <div style="margin-top:6px;"><b>Check</b> (visibility could not be worked out – tick to empty it, otherwise it is NOT written):</div><div id="checkList" style="font-size:12px;"></div>
           <div style="margin-top:6px;"><b>Ignored</b> (the form reports a different value, but you didn't change it, so it is NOT written):</div>
           <div id="ignored" class="mono"></div>
           <div class="row" style="border:none;padding:8px 0 0;">
@@ -89,13 +91,14 @@
   }
   const show = (v) => JSON.stringify(v);
 
-  const [esriConfig, esriId, OAuthInfo, Portal, WebMap, Graphic] = await $arcgis.import([
+  const [esriConfig, esriId, OAuthInfo, Portal, WebMap, Graphic, arcade] = await $arcgis.import([
     "@arcgis/core/config.js",
     "@arcgis/core/identity/IdentityManager.js",
     "@arcgis/core/identity/OAuthInfo.js",
     "@arcgis/core/portal/Portal.js",
     "@arcgis/core/WebMap.js",
-    "@arcgis/core/Graphic.js"
+    "@arcgis/core/Graphic.js",
+    "@arcgis/core/arcade.js"
   ]);
   esriConfig.portalUrl = PORTAL_URL;
 
@@ -122,7 +125,8 @@
   } catch (e) { setStatus("s-load", "bad", "Load failed – " + (e.message || e)); throw e; }
 
   // ---------- State for the open form ----------
-  let layer, form, feature, original, oid, calcFields, touched;
+  let layer, form, feature, original, oid, calcFields, touched, tmplCopy;
+  let lastUserInput = 0;
   let reviewPlan = null;
 
   async function openForm(title) {
@@ -160,9 +164,17 @@
       form.layer = layer;
       form.formTemplate = tmpl;
       form.feature = feature;
+      tmplCopy = tmpl;
+      // a typed-field change counts as yours only right after a real click/keystroke in the form
+      for (const ev of ["pointerdown", "keydown", "input", "change"]) {
+        $("formHost").addEventListener(ev, () => { lastUserInput = Date.now(); }, true);
+      }
       form.addEventListener("arcgisValueChange", (e) => {
         const f = e.detail && e.detail.fieldName;
-        if (f) { touched.add(f); setStatus("s-touched", "wait", "You changed: " + [...touched].join(", ")); }
+        if (!f || calcFields.has(f)) return;                       // calculations are never "your" changes
+        if (Date.now() - lastUserInput > 1500) return;             // automatic signal, not you
+        touched.add(f);
+        setStatus("s-touched", "wait", "You changed: " + [...touched].join(", "));
       });
       form.addEventListener("arcgisSubmit", onSubmit);
       $("formPanel").heading = title + " – " + aepid;
@@ -178,33 +190,84 @@
       .filter(Boolean).map(s => s.toLowerCase());
     return !fld || fld.editable === false || sys.includes(fld.name.toLowerCase());
   }
-  async function buildPlan() {
+  // ---------- Visibility worked out by the page itself (refinement 1) ----------
+  const execCache = new Map();
+  async function evalExpr(name, g, gOrig) {
+    const info = (tmplCopy.expressionInfos || []).find(e => e.name === name);
+    if (!info) throw new Error("expression " + name + " not found");
+    let ex = execCache.get(name);
+    if (!ex) { ex = await arcade.createArcadeExecutor(info.expression, arcade.createArcadeProfile("form-calculation")); execCache.set(name, ex); }
+    return await ex.executeAsync(
+      { "$feature": g, "$originalFeature": gOrig, "$layer": layer, "$datastore": layer, "$map": webmap, "$editcontext": { editType: "UPDATE" } },
+      { spatialReference: layer.spatialReference });
+  }
+  // returns { fieldName: true | false | "error" } for every field element
+  async function visibilityMap(attrs) {
+    const g = new Graphic({ attributes: attrs, geometry: feature.geometry });
+    const gOrig = new Graphic({ attributes: { ...original }, geometry: feature.geometry });
+    const out = {};
+    async function vis(el) {
+      if (!el.visibilityExpression) return true;
+      try { return (await evalExpr(el.visibilityExpression, g, gOrig)) === true; } catch (e) { console.warn("visibility", el.visibilityExpression, e); return "error"; }
+    }
+    async function walk(els, parentVis) {
+      for (const el of els || []) {
+        let v = await vis(el);
+        if (parentVis === false) v = false; else if (parentVis === "error" && v !== false) v = "error";
+        if (el.type === "group") await walk(el.elements, v);
+        else if (el.type === "field") out[el.fieldName] = v;
+      }
+    }
+    await walk(tmplCopy.elements, true);
+    return out;
+  }
+
+  // ---------- The safe-save plan (approved rule 10 Nov + refinement 1) ----------
+  async function buildPlan(withVisibility) {
     const vals = await form.getValues();
-    const will = [], ign = [];
+    const will = [], empty = [], check = [], ign = [];
+    const userChanged = touched.size > 0;
+    const diffs = [];
     for (const k of Object.keys(vals)) {
       if (!(k in original)) continue;
       const fld = layer.fields.find(f => f.name === k);
       if (skipField(fld)) continue;
       const a = norm(original[k]), b = norm(vals[k]);
-      if (a === b) continue;
-      if (touched.has(k))                                 will.push({ k, a, b, why: "you changed it" });
-      else if (calcFields.has(k) && touched.size > 0)     will.push({ k, a, b, why: "calculated" });
-      else                                                ign.push({ k, a, b });
+      if (a !== b) diffs.push({ k, a, b });
     }
-    return { will, ign };
+    let visOpen = null, visNow = null;
+    const candidates = diffs.filter(d => !touched.has(d.k) && !calcFields.has(d.k) && d.a !== null && d.b === null);
+    if (withVisibility && userChanged && candidates.length) {
+      const nowAttrs = { ...original };
+      for (const d of diffs) if (touched.has(d.k) || calcFields.has(d.k)) nowAttrs[d.k] = vals[d.k] instanceof Date ? vals[d.k].getTime() : vals[d.k];
+      visOpen = await visibilityMap({ ...original });
+      visNow  = await visibilityMap(nowAttrs);
+    }
+    for (const d of diffs) {
+      if (touched.has(d.k))                          will.push({ ...d, why: "you changed it" });
+      else if (calcFields.has(d.k))                  { if (userChanged) will.push({ ...d, why: "calculated" }); else ign.push(d); }
+      else if (visOpen && candidates.includes(d)) {
+        const o = visOpen[d.k], n = visNow[d.k];
+        if (o === true && n === false)               empty.push(d);
+        else if (o === "error" || n === "error")     check.push(d);
+        else                                          ign.push(d);
+      }
+      else                                            ign.push(d);
+    }
+    return { will, empty, check, ign };
   }
 
   // live "changed since opening" view, marking what the rule would ignore
   setInterval(async () => {
     if (!form) return;
     try {
-      const p = await buildPlan();
+      const p = await buildPlan(false);                         // quick view; visibility is worked out at review time
       const n = p.will.length + p.ign.length;
       if (!n) { setStatus("s-dirty", "ok", "Changed since opening: nothing"); $("changed").textContent = ""; }
       else {
-        setStatus("s-dirty", p.will.length ? "bad" : "wait", "Changed since opening: " + p.will.length + " to save, " + p.ign.length + " would be ignored");
+        setStatus("s-dirty", p.will.length ? "bad" : "wait", "Changed since opening: " + p.will.length + " to save, " + p.ign.length + " not yours (checked at review)");
         $("changed").textContent = p.will.map(x => "SAVE   " + x.k + ": " + show(x.a) + " → " + show(x.b) + "  (" + x.why + ")")
-          .concat(p.ign.map(x => "IGNORE " + x.k + ": " + show(x.a) + " → " + show(x.b))).join("\n");
+          .concat(p.ign.map(x => "OTHER  " + x.k + ": " + show(x.a) + " → " + show(x.b))).join("\n");
       }
       $("saveBtn").disabled = !p.will.length || $("review").style.display === "block";
     } catch (e) { /* form still calculating */ }
@@ -215,13 +278,23 @@
   async function onSubmit(evt) {
     const inv = (evt.detail && evt.detail.invalid) || [];
     if (inv.length) { setStatus("s-save", "bad", "Not saved – required/invalid: " + inv.join(", ")); return; }
-    const p = await buildPlan();
-    if (!p.will.length) { setStatus("s-save", "wait", "Nothing to save."); return; }
+    setStatus("s-save", "wait", "Preparing the review (working out visibility)…");
+    const p = await buildPlan(true);
+    if (!p.will.length && !p.empty.length) { setStatus("s-save", "wait", "Nothing to save."); return; }
     reviewPlan = p;
-    $("willSave").textContent = p.will.map(x => x.k + ": " + show(x.a) + " → " + show(x.b) + "  (" + x.why + ")").join("\n");
+    $("willSave").textContent = p.will.length ? p.will.map(x => x.k + ": " + show(x.a) + " → " + show(x.b) + "  (" + x.why + ")").join("\n") : "(none)";
+    $("willEmpty").textContent = p.empty.length ? p.empty.map(x => x.k + ": " + show(x.a) + " → null").join("\n") : "(none)";
+    $("checkList").innerHTML = p.check.length ? "" : "<span class='mono'>(none)</span>";
+    p.check.forEach((x, i) => {
+      const lab = document.createElement("label"); lab.style.display = "block";
+      lab.innerHTML = `<input type="checkbox" data-i="${i}"> <span class="mono"></span>`;
+      lab.querySelector("span").textContent = x.k + ": stored " + show(x.a) + " · empty it?";
+      $("checkList").appendChild(lab);
+    });
     $("ignored").textContent = p.ign.length ? p.ign.map(x => x.k + ": stored " + show(x.a) + " · form reports " + show(x.b)).join("\n") : "(none)";
     $("review").style.display = "block";
     $("saveBtn").disabled = true;
+    setStatus("s-save", "wait", "");
   }
   $("cancelSave").addEventListener("click", () => { $("review").style.display = "none"; reviewPlan = null; setStatus("s-save", "wait", "Save cancelled."); });
 
@@ -246,7 +319,11 @@
       const vals = await form.getValues();
       const attrs = { [layer.objectIdField]: oid };
       for (const x of plan.will) { let v = vals[x.k]; if (v instanceof Date) v = v.getTime(); if (v === "") v = null; attrs[x.k] = v; }
-      setStatus("s-save", "wait", "Saving " + plan.will.length + " field(s)…");
+      for (const x of plan.empty) attrs[x.k] = null;
+      const ticked = [...$("checkList").querySelectorAll("input[type=checkbox]")].filter(c => c.checked).map(c => plan.check[Number(c.dataset.i)]);
+      for (const x of ticked) attrs[x.k] = null;
+      const nWrite = Object.keys(attrs).length - 1;
+      setStatus("s-save", "wait", "Saving " + nWrite + " field(s)…");
       const res = await layer.applyEdits({ updateFeatures: [ new Graphic({ attributes: attrs }) ] });
       const r = res.updateFeatureResults && res.updateFeatureResults[0];
       if (!r || r.error) throw new Error(r && r.error ? r.error.message : "no result returned");
@@ -260,7 +337,7 @@
         if (norm(original[k]) !== norm(v)) bad.push(k + ": wrote " + show(norm(v)) + ", service holds " + show(norm(original[k])));
       }
       if (bad.length) setStatus("s-save", "bad", "Saved, but verification found differences:\n" + bad.join("\n"));
-      else setStatus("s-save", "ok", "Saved, reopened and verified. Written: " + plan.will.map(x => x.k + " = " + show(norm(attrs[x.k]))).join(" · ") +
+      else setStatus("s-save", "ok", "Saved, reopened and verified. Written: " + Object.keys(attrs).filter(k => k !== layer.objectIdField).map(k => k + " = " + show(norm(attrs[k]))).join(" · ") +
                      (plan.ign.length ? " · Ignored (not written): " + plan.ign.map(x => x.k).join(", ") : ""));
     } catch (e) { setStatus("s-save", "bad", "Save stopped – " + (e.message || e)); console.error(e); }
   });
