@@ -56,7 +56,7 @@
     details.blk > summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-weight: 700; }
     arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; border: 1px solid var(--line); }
     .btn { min-height: 44px; padding: 0 16px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-    #own.busy { opacity: .6; pointer-events: none; }
+    #own.running .info, #own.running .calcfld { opacity: .5; }
     @media (max-width: 800px) { .cols { grid-template-columns: minmax(0, 1fr); } }
     [hidden] { display: none !important; }
   </style>
@@ -64,7 +64,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.2, 11 Nov 2026.</p></div>
+    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.3, 11 Nov 2026.</p></div>
     <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
   </header>
   <div class="bar">
@@ -137,12 +137,24 @@
     return out;
   }
   const findInfo = (name) => { const list = S.tmpl.expressionInfos || []; return list.find((x) => x.name === name) || list.find((x) => x.name === "expr/" + name); };
-  // One run per expression per set of values: the same rule used by several fields is run once, and rules run side by side.
+  // A rule is re-run only when a field it mentions has changed. Rules that mention $feature in any other way are re-run every time.
+  function depsOf(name) {
+    if (S.deps.has(name)) return S.deps.get(name);
+    const info = findInfo(name); let d = null;
+    if (info) {
+      const src = String(info.expression);
+      const all = (src.match(/\$feature\b/gi) || []).length;
+      const named = [...src.matchAll(/\$feature\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*["']([^"']+)["']\s*\])/gi)].map((m) => (m[1] || m[2]).toLowerCase());
+      if (named.length === all) d = [...new Set(named)].map((n) => S.attrKeys[n] || n).sort();
+    }
+    S.deps.set(name, d);
+    return d;
+  }
   function exec(name, attrs) {
-    const sig = JSON.stringify(attrs);
-    if (S.memoSig !== sig) { S.memoSig = sig; S.memo = new Map(); }
-    if (!S.memo.has(name)) { S.runs++; S.memo.set(name, execNow(name, attrs)); }
-    return S.memo.get(name);
+    const d = depsOf(name);
+    const key = name + "|" + (d ? JSON.stringify(d.map((k) => normV(attrs[k]))) : JSON.stringify(attrs));
+    if (!S.memo.has(key)) { S.runs++; S.memo.set(key, execNow(name, attrs)); }
+    return S.memo.get(key);
   }
   async function execNow(name, attrs) {
     const info = findInfo(name);
@@ -170,7 +182,7 @@
   }
   // Run the form's rules until the values settle.
   async function settle() {
-    const t0 = performance.now(); let pass = 0; S.runs = 0;
+    const t0 = performance.now(); let pass = 0; const runs0 = S.runs;
     const fieldEls = S.els.filter((x) => !x.isGroup && x.el.type === "field").map((x) => x.el);
     for (; pass < 8; pass++) {
       let changed = false;
@@ -220,7 +232,7 @@
         S.texts[key] = txt;
       }
     }));
-    S.ms = Math.round(performance.now() - t0); S.passes = pass + 1;
+    S.ms = Math.round(performance.now() - t0); S.passes = pass + 1; S.lastRuns = S.runs - runs0;
   }
 
   // ---------------- Drawing our own inputs ----------------
@@ -254,7 +266,7 @@
     if (el.type === "text") return '<div class="info">' + md(S.texts[key] ?? "") + "</div>";
     if (el.type !== "field") return "";
     const f = fieldOf(el.fieldName), id = "f_" + el.fieldName;
-    return '<div class="fld"><label id="l_' + id + '" for="' + id + '">' + esc(el.label || (f && f.alias) || el.fieldName) + (S.req[el.fieldName] ? ' <span class="req">* required</span>' : "") +
+    return '<div class="fld' + (S.calc[el.fieldName] ? " calcfld" : "") + '"><label id="l_' + id + '" for="' + id + '">' + esc(el.label || (f && f.alias) || el.fieldName) + (S.req[el.fieldName] ? ' <span class="req">* required</span>' : "") +
       (S.calc[el.fieldName] ? '<span class="calc">calculated</span>' : "") + "</label>" + inputHtml(el) + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
   }
   function render() {
@@ -277,7 +289,16 @@
       if (left) { L.push(card); hl += body.length; } else { R.push(card); hr += body.length; }
     }
     flush();
+    const act = document.activeElement, keep = act && $("own").contains(act) ? { id: act.id, name: act.name, val: act.value, type: act.type, a: act.selectionStart, f: act.dataset.f } : null;
     $("own").innerHTML = '<div style="display:flex;flex-direction:column;gap:12px">' + html + "</div>";
+    if (keep) {      // keep the cursor, and anything being typed, where it was
+      const el = keep.type === "radio" ? [...$("own").querySelectorAll('input[type="radio"]')].find((x) => x.name === keep.name && x.value === keep.val) : (keep.id && document.getElementById(keep.id));
+      if (el && !el.disabled) {
+        if (/^(text|number|textarea|date|datetime-local)$/.test(keep.type) && !S.calc[keep.f]) el.value = keep.val;
+        el.focus({ preventScroll: true });
+        if (keep.type === "text" || keep.type === "textarea") { try { el.setSelectionRange(keep.a, keep.a); } catch {} }
+      }
+    }
     // changed since opening
     const diffs = Object.keys(S.values).filter((k) => !same(S.values[k], S.original[k]));
     const missing = S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.req[x.el.fieldName] && S.values[x.el.fieldName] == null).map((x) => x.el.label || x.el.fieldName);
@@ -288,7 +309,7 @@
       (missing.length ? "\nA save would be refused. Required and empty: " + missing.join(", ") : "");
     const errs = Object.entries(S.errors);
     $("diag").textContent = ["Form " + S.layer.title + " · record " + S.id + " · user " + portalUser + " · " + $("sdk").textContent,
-      "Settled in " + S.passes + " pass(es), " + S.ms + " ms, " + S.runs + " expression runs · $datastore mode: " + (S.dsMode || "not needed yet"),
+      "Settled in " + S.passes + " pass(es), " + S.ms + " ms, " + S.lastRuns + " rule runs this time (" + S.runs + " since opening); rules re-run on every change: " + ([...S.deps].filter(([, d]) => !d).map(([n]) => title(n)).join(", ") || "none") + " · $datastore mode: " + (S.dsMode || "not needed yet"),
       "Expression errors: " + (errs.length ? errs.length : "none"), ...errs.map(([k, v]) => "  ✗ " + k + " → " + v),
       "Changed: " + (diffs.join(", ") || "nothing"), "", "Structure:",
       ...S.els.map((x) => (x.grp ? "    " : "  ") + (x.isGroup ? "GROUP " + JSON.stringify(x.el.label) : x.el.type === "field"
@@ -315,7 +336,7 @@
       const feature = q.features[0], tmpl = layer.formTemplate.clone();
       const keys = new Map(); let n = 0;
       S = { id, layer, tmpl, feature, original: { ...feature.attributes }, values: { ...feature.attributes }, fields: Object.fromEntries(layer.fields.map((f) => [f.name.toLowerCase(), f])),
-            els: flatten(tmpl), vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, exec: new Map(), dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(),
+            els: flatten(tmpl), vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, exec: new Map(), memo: new Map(), deps: new Map(), attrKeys: Object.fromEntries(Object.keys(feature.attributes).map((k) => [k.toLowerCase(), k])), runs: 0, dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(),
             key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
       status("notice", "Running the form's rules…");
       await settle();
@@ -327,9 +348,9 @@
   }
 
   // one handler for every input we drew
-  let busy = false;
+  let running = false, pending = false;
   $("own").addEventListener("change", async (evt) => {
-    const t = evt.target, name = t.dataset && t.dataset.f; if (!name || !S || busy) return;
+    const t = evt.target, name = t.dataset && t.dataset.f; if (!name || !S) return;
     const f = fieldOf(name), kind = t.dataset.kind; let v;
     if (kind === "switch") v = t.checked ? t.dataset.on : t.dataset.off;
     else if (kind === "date") { v = t.value ? new Date(t.value.length > 10 ? t.value : t.value + "T00:00").getTime() : null; }
@@ -337,10 +358,15 @@
     else v = t.value === "" ? null : t.value;
     if ((kind === "choice" || kind === "switch") && v != null && isNum(f)) v = Number(v);
     S.values[name] = v; S.touched.add(name);
-    busy = true; $("own").classList.add("busy"); status("notice", "Running the form's rules…");
-    try { await settle(); status("notice", "Rules run in " + (S.ms / 1000).toFixed(1) + " s. This page cannot save."); render(); }
-    catch (e) { status("error", "The rules could not be run – " + (e.message || e)); }
-    busy = false; $("own").classList.remove("busy");
+    pending = true;
+    if (running) return;                 // the run in progress is followed by another one
+    running = true; const my = token, t0 = performance.now();
+    $("own").classList.add("running"); status("notice", "Running the form's rules… you can keep working.");
+    try {
+      while (pending && my === token) { pending = false; await settle(); }
+      if (my === token) { status("notice", "Rules run in " + ((performance.now() - t0) / 1000).toFixed(1) + " s (" + S.lastRuns + " rule runs). This page cannot save."); render(); }
+    } catch (e) { status("error", "The rules could not be run – " + (e.message || e)); }
+    running = false; $("own").classList.remove("running");
   });
 
   // ---------------- Reference: Esri's own form on the same record (read-only use; this page has no save) ----------------
