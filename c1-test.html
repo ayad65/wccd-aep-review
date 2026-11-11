@@ -3,297 +3,361 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WCCD AEP – C1 form test</title>
-
-  <!-- ArcGIS Maps SDK for JavaScript, PINNED to 5.1 (core + map components + Calcite) -->
-  <script>
-    // Run 15: the SDK version is chosen with the buttons on the page (remembered in this browser only).
-    // Default and pinned version is 5.1; 5.2 is for this read-only test.
-    (function () {
-      var v = "5.1";
-      try { var c = localStorage.getItem("wccdSdk"); if (c === "5.2" || c === "5.1") v = c; } catch (e) {}
-      window.WCCD_SDK = v;
-      var sc = document.createElement("script");
-      sc.type = "module"; sc.src = "https://js.arcgis.com/" + v + "/";
-      document.head.appendChild(sc);
-    })();
-  </script>
-
+  <title>WCCD AEP – test D1</title>
+  <!--
+    Feasibility test D1 (11 Nov 2026): our own inputs and layout, running the Map Viewer form's own rules.
+    THIS PAGE CANNOT SAVE: it contains no save code. TEST records only; Campbell is refused.
+    ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
   <style>
-    html, body { margin: 0; height: 100%; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
-    calcite-shell { height: 100%; }
-    #main { padding: 16px; overflow: auto; height: 100%; box-sizing: border-box; }
-    #controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
-    #controls calcite-label { margin: 0; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
-    th { background: #eef3f8; }
-    .diff { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
-    #status { font-size: 13px; margin: 8px 0; }
-    .ok { color: #2e7d32; } .bad { color: #c62828; } .wait { color: #777; }
-    #formHost arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; }
-    .hdr-user { font-size: 13px; margin-right: 8px; }
+    :root { --ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7; --red:#8A1515; --red-bg:#FBE4E4; --amber-bg:#FCE9CF; --amber:#5E3A00; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Inter, system-ui, "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--bg); font-variant-numeric: tabular-nums; font-size: 14px; }
+    h1, h2 { font-family: "Space Grotesk", Inter, sans-serif; margin: 0; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px 24px 48px; display: flex; flex-direction: column; gap: 14px; }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; }
+    header h1 { font-size: 22px; } header p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+    .util { font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+    .util button { border: 0; background: none; color: var(--blue); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; min-height: 32px; }
+    .bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; }
+    .bar label { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    select, input[type="text"], input[type="number"], input[type="date"], input[type="datetime-local"], textarea {
+      min-height: 44px; padding: 8px 12px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; background: #fff; color: var(--ink); width: 100%; max-width: 100%; }
+    .bar select { width: auto; }
+    textarea { min-height: 72px; }
+    :disabled { background: var(--soft) !important; color: #2B3138; }
+    .notice { background: var(--blue-bg); color: #0E2C50; border: 1px solid var(--blue); border-radius: 4px; padding: 10px 14px; }
+    .error { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); border-radius: 4px; padding: 10px 14px; font-weight: 600; white-space: pre-wrap; }
+    .ok { background: #E3F1E6; color: #1E4D2B; border: 1px solid #1E4D2B; border-radius: 4px; padding: 10px 14px; font-weight: 600; }
+    .warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); border-radius: 4px; padding: 10px 14px; white-space: pre-wrap; }
+    .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+    .card.tint { background: #F1F5FA; border-color: #B9CBE0; }
+    .card > h2 { font-family: inherit; font-size: 15px; padding: 12px 14px; border-bottom: 1px solid var(--soft); }
+    .card > div { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .fld > label, .fld > .lab { display: block; font-weight: 600; margin-bottom: 4px; }
+    .fld .req { color: var(--red); }
+    .fld small { display: block; color: var(--muted); margin-top: 4px; }
+    .fld .calc { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+    .opts { display: flex; flex-direction: column; }
+    .opts label { display: flex; align-items: center; gap: 8px; min-height: 36px; font-weight: 400; }
+    .opts input, .sw input { width: 20px; height: 20px; }
+    .sw { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    .info { background: var(--bg); border-left: 4px solid var(--blue); padding: 8px 12px; border-radius: 0 4px 4px 0; overflow-wrap: anywhere; }
+    .missing { border-color: var(--red) !important; outline: 1px solid var(--red); }
+    pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, Consolas, monospace; }
+    details.blk { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 0 14px; }
+    details.blk[open] { padding-bottom: 14px; }
+    details.blk > summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-weight: 700; }
+    arcgis-feature-form { display: block; max-width: 100%; overflow-x: hidden; overflow-wrap: anywhere; border: 1px solid var(--line); }
+    .btn { min-height: 44px; padding: 0 16px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    #own.busy { opacity: .6; pointer-events: none; }
+    @media (max-width: 800px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-<calcite-shell>
-  <calcite-navigation slot="header">
-    <calcite-navigation-logo slot="logo" heading="WCCD AEP – C1 form test"
-      description="Run 15 – every form × every TEST record, on SDK 5.1 or 5.2 · field comparison · read-only, this page cannot save"></calcite-navigation-logo>
-    <div slot="content-end" style="display:flex;align-items:center;padding-right:12px;">
-      <span id="user" class="hdr-user">Not signed in</span>
-      <calcite-button id="signOut" appearance="outline" scale="s" disabled>Sign out</calcite-button>
-    </div>
-  </calcite-navigation>
-
-  <div id="main">
-    <div style="font-size:14px;margin-bottom:6px;"><b>SDK in use: <span id="sdkVer">…</span></b>
-      &nbsp; <calcite-button id="use51" scale="s" appearance="outline">Reload with SDK 5.1</calcite-button>
-      <calcite-button id="use52" scale="s" appearance="outline">Reload with SDK 5.2</calcite-button></div>
-    <div id="status" class="wait">○ Loading…</div>
-    <details style="margin:8px 0;"><summary style="cursor:pointer;font-size:13px;">CVF field comparison (working field vs. empty ones)</summary>
-      <calcite-button id="copyCmp" scale="s" appearance="outline" style="margin:6px 0;">Copy comparison text</calcite-button>
-      <div id="cmp" class="diff"></div></details>
-    <div id="controls">
-      <calcite-button id="runAll" disabled>Run all combinations</calcite-button>
-      <calcite-label>Form
-        <calcite-select id="pickForm" disabled></calcite-select>
-      </calcite-label>
-      <calcite-label>Record
-        <calcite-select id="pickRec" disabled></calcite-select>
-      </calcite-label>
-      <calcite-button id="openOne" appearance="outline" disabled>Open this one</calcite-button>
-    </div>
-    <table>
-      <thead><tr><th>Form</th><th>Record</th><th>Opens unchanged?</th></tr></thead>
-      <tbody id="results"></tbody>
-    </table>
+<div class="wrap">
+  <header>
+    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.1, 11 Nov 2026.</p></div>
+    <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
+  </header>
+  <div class="bar">
+    <label for="pickForm">Form <select id="pickForm" disabled>
+      <option value="App-Approval">Approval</option><option value="App-Ranking">Ranking</option>
+      <option value="App-Agreement">Agreement</option><option value="App-CVF">Cost verification</option></select></label>
+    <label for="pickRec">Record <select id="pickRec" disabled>
+      <option>AEP63-26-999</option><option>AEP63-26-998</option><option>AEP63-26-997</option></select></label>
+    <button type="button" class="btn" id="reopen" disabled>Reopen (discard changes)</button>
+    <span id="sdk" style="color:var(--muted);font-size:13px"></span>
   </div>
-
-  <calcite-shell-panel slot="panel-end" width="l" resizable>
-    <calcite-panel id="formPanel" heading="Form">
-      <div id="formHost"></div>
-      <div slot="footer" style="width:100%;padding:8px 12px;font-size:13px;" id="formStatus" class="wait"></div>
-    </calcite-panel>
-  </calcite-shell-panel>
-</calcite-shell>
+  <div id="status" class="notice">Signing in…</div>
+  <div id="changedBox" class="ok" hidden></div>
+  <div id="own"></div>
+  <details class="blk" id="refBox"><summary>Reference: Esri's form on the same record (opens when you expand this)</summary>
+    <p id="refChanged" style="color:var(--muted)">Not opened yet.</p><div id="refHost"></div></details>
+  <details class="blk"><summary>Diagnostics (for Claude)</summary>
+    <p><button type="button" class="btn" id="copyDiag">Copy diagnostics</button> <span id="copied" style="color:var(--muted)"></span></p><pre id="diag"></pre></details>
+</div>
 
 <script type="module">
-  // ---------- Settings ----------
-  const CLIENT_ID  = "GgRGSkyzcLuMKcSS";
-  const PORTAL_URL = "https://clarion.maps.arcgis.com";
-  const MAP_TITLE  = "WCCD AEP Review (EB)";
-  const PARENT_FORMS = ["App-Ranking", "App-Approval", "App-Agreement", "App-CVF"];
-  const ROWS_TABLE   = "Field Rows";
-  const TEST_IDS   = ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"];   // the ONLY records this page opens
-  const FORBIDDEN  = "AEP63-25-002";                                      // Campbell – never open
-
+  // ---------------- Settings ----------------
+  const CFG = { clientId: "GgRGSkyzcLuMKcSS", portalUrl: "https://clarion.maps.arcgis.com", mapTitle: "WCCD AEP Review (EB)",
+                allowed: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"], forbidden: "AEP63-25-002" };
+  const LEFT = /decision|internal|question|signature/i;      // groups that go in the left column; the rest go right or balance
   const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const mask = (t) => String(t).replace(/(token=)[^&\s]+/gi, "$1•••");
-  function setStatus(el, state, text) { el.className = state; el.textContent = mask(text); }
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const normV = (v) => (v === undefined || v === null || v === "") ? null : (v instanceof Date ? v.getTime() : v);
+  const same = (a, b) => { a = normV(a); b = normV(b); return a === b || (typeof a === "number" && typeof b === "number" && Math.abs(a - b) < 1e-9); };
+  const status = (cls, text) => { $("status").className = cls; $("status").textContent = mask(text); };
+  const log = []; const note = (t) => { log.push(mask(t)); };
 
-  // SDK switch buttons (work even if the SDK fails to load)
-  const setSdk = (v) => { try { localStorage.setItem("wccdSdk", v); } catch (e) {} window.location.href = window.location.pathname; };
-  $("use51").addEventListener("click", () => setSdk("5.1"));
-  $("use52").addEventListener("click", () => setSdk("5.2"));
-  $("sdkVer").textContent = window.WCCD_SDK + " (loading…)";
-  {
-    const t0 = Date.now();
-    while (!(window.$arcgis && window.$arcgis.import)) {
-      if (Date.now() - t0 > 30000) { setStatus($("status"), "bad", "SDK " + window.WCCD_SDK + " did not load from js.arcgis.com"); throw new Error("SDK load timeout"); }
-      await sleep(100);
-    }
-  }
-  const kernel = await $arcgis.import("@arcgis/core/kernel.js");
-  $("sdkVer").textContent = (kernel.fullVersion || kernel.version || "?") + " (asked for " + window.WCCD_SDK + ")";
-
-  const [esriConfig, esriId, OAuthInfo, Portal, WebMap] = await $arcgis.import([
-    "@arcgis/core/config.js",
-    "@arcgis/core/identity/IdentityManager.js",
-    "@arcgis/core/identity/OAuthInfo.js",
-    "@arcgis/core/portal/Portal.js",
-    "@arcgis/core/WebMap.js"
-  ]);
-  esriConfig.portalUrl = PORTAL_URL;
-
-  // ---------- Sign in ----------
-  const info = new OAuthInfo({ appId: CLIENT_ID, portalUrl: PORTAL_URL, popup: false });
-  esriId.registerOAuthInfos([info]);
-  const sharingUrl = PORTAL_URL + "/sharing";
-  try { await esriId.checkSignInStatus(sharingUrl); } catch { await esriId.getCredential(sharingUrl); }
-  const portal = new Portal({ url: PORTAL_URL, authMode: "immediate" });
-  await portal.load();
-  $("user").textContent = portal.user.fullName + " (" + portal.user.username + ")";
-  $("signOut").disabled = false;
-  $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
-
-  // ---------- Load the web map, the four layer copies, the Field Rows table, and the TEST records ----------
-  const combos = [];   // { formTitle, layer, feature, label }
-  let webmap;
+  let webmap, Graphic, arcade, portalUser = "";
   try {
-    const res = await portal.queryItems({ query: 'title:"' + MAP_TITLE + '" AND type:"Web Map"', num: 20 });
-    const hits = res.results.filter(i => i.title === MAP_TITLE);
-    if (hits.length !== 1) throw new Error(hits.length + " web maps with that exact title");
+    const t0 = Date.now();
+    while (!(window.$arcgis && window.$arcgis.import)) { if (Date.now() - t0 > 30000) throw new Error("the ArcGIS SDK did not load"); await new Promise((r) => setTimeout(r, 100)); }
+    const [esriConfig, esriId, OAuthInfo, Portal, WebMap, G, A, kernel] = await $arcgis.import([
+      "@arcgis/core/config.js", "@arcgis/core/identity/IdentityManager.js", "@arcgis/core/identity/OAuthInfo.js",
+      "@arcgis/core/portal/Portal.js", "@arcgis/core/WebMap.js", "@arcgis/core/Graphic.js", "@arcgis/core/arcade.js", "@arcgis/core/kernel.js"]);
+    Graphic = G; arcade = A;
+    $("sdk").textContent = "SDK " + (kernel && (kernel.fullVersion || kernel.version) || "?");
+    esriConfig.portalUrl = CFG.portalUrl;
+    esriId.registerOAuthInfos([new OAuthInfo({ appId: CFG.clientId, portalUrl: CFG.portalUrl, popup: false })]);
+    const sharing = CFG.portalUrl + "/sharing";
+    try { await esriId.checkSignInStatus(sharing); } catch { await esriId.getCredential(sharing); }
+    const portal = new Portal({ url: CFG.portalUrl, authMode: "immediate" });
+    await portal.load();
+    portalUser = portal.user.username;
+    $("user").textContent = "Signed in as " + portal.user.fullName; $("signOut").hidden = false;
+    $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
+    status("notice", "Loading the web map…");
+    const res = await portal.queryItems({ query: 'title:"' + CFG.mapTitle + '" AND type:"Web Map"', num: 20 });
+    const hits = res.results.filter((i) => i.title === CFG.mapTitle);
+    if (hits.length !== 1) throw new Error(hits.length + ' web maps titled "' + CFG.mapTitle + '"');
     webmap = new WebMap({ portalItem: hits[0] });
     await webmap.loadAll();
+  } catch (e) { status("error", "Could not start – " + (e.message || e)); throw e; }
 
-    const where = TEST_IDS.map(id => "AEPID LIKE '%" + id + "'").join(" OR ");
-    const parentGids = {};   // AEPID -> GlobalID
-    const missing = [];
+  // ---------------- The engine: one open record ----------------
+  let S = null;      // { layer, tmpl, fields, feature, original, values, els[], vis{}, req{}, edit{}, calc{}, texts{}, errors{}, dsMode, ms, passes }
+  let token = 0;
 
-    for (const title of PARENT_FORMS) {
-      const lyr = webmap.allLayers.find(l => l.title === title);
-      if (!lyr) { missing.push(title); continue; }
-      await lyr.load();
-      if (!lyr.formTemplate) { missing.push(title + " (no form)"); continue; }
-      const q = await lyr.queryFeatures({ where, outFields: ["*"], returnGeometry: false });
-      const feats = q.features
-        .filter(f => !String(f.attributes.AEPID || "").includes(FORBIDDEN))
-        .sort((a, b) => String(b.attributes.AEPID).localeCompare(String(a.attributes.AEPID)));
-      for (const f of feats) {
-        const id = String(f.attributes.AEPID);
-        parentGids[id] = f.attributes[lyr.globalIdField || "GlobalID"];
-        combos.push({ formTitle: title, layer: lyr, feature: f, label: id });
-      }
-    }
-
-    const tbl = webmap.allTables.find(t => t.title === ROWS_TABLE);
-    if (!tbl) missing.push(ROWS_TABLE);
-    else {
-      await tbl.load();
-      if (!tbl.formTemplate) missing.push(ROWS_TABLE + " (no form)");
-      else {
-        for (const [id, gid] of Object.entries(parentGids)) {
-          if (!gid) continue;
-          const q = await tbl.queryFeatures({ where: "parentglobalid = '" + gid + "'", outFields: ["*"] });
-          for (const f of q.features) {
-            const a = f.attributes;
-            const rowName = a.FieldLabelResolved || a.FieldName || a.FieldID || ("row " + a[tbl.objectIdField]);
-            combos.push({ formTitle: ROWS_TABLE, layer: tbl, feature: f, label: id + " · " + rowName });
-          }
-        }
-      }
-    }
-
-    // fill the pickers and the table
-    const forms = [...new Set(combos.map(c => c.formTitle))];
-    $("pickForm").innerHTML = forms.map(f => `<calcite-option value="${f}">${f}</calcite-option>`).join("");
-    const fillRecs = () => {
-      const f = $("pickForm").value || forms[0];
-      $("pickRec").innerHTML = combos.map((c, i) => c.formTitle === f ? `<calcite-option value="${i}">${c.label}</calcite-option>` : "").join("");
-    };
-    $("pickForm").addEventListener("calciteSelectChange", fillRecs);
-    fillRecs();
-    $("results").innerHTML = combos.map((c, i) =>
-      `<tr><td>${c.formTitle}</td><td>${c.label}</td><td id="r${i}" class="wait">not run</td></tr>`).join("");
-    // ---------- CVF field comparison ----------
-    try {
-      const cvf = webmap.allLayers.find(l => l.title === "App-CVF");
-      const rec = combos.find(c => c.formTitle === "App-CVF" && c.label.endsWith("999"));
-      const names = ["TonsPurchased", "ActualCostPerTon", "TotalReimbursementPaid", "CheckedBy", "CheckNumber", "SpotCheckDone", "CVFReceivedDate", "VendorName"];
-      const j = cvf.formTemplate.toJSON();
-      const els = {};
-      (function walk(a, grp) { for (const el of a || []) {
-        if (el.fieldName) els[el.fieldName] = { group: grp || "(top level)", el };
-        walk(el.formElements || el.elements, el.label || grp);
-      } })(j.formElements || j.elements, "");
-      const exprs = {};
-      for (const e of j.expressionInfos || []) exprs[e.name] = e;
-      const out = ["SDK " + (kernel.fullVersion || kernel.version), "typeIdField: " + cvf.typeIdField + " · types: " + (cvf.types || []).length + " · subtypeField: " + cvf.subtypeField, ""];
-      for (const n of names) {
-        const f = cvf.fields.find(x => x.name === n);
-        const fj = f ? f.toJSON() : null;
-        const v = rec ? rec.feature.attributes[n] : undefined;
-        out.push("== " + n + (n === "TonsPurchased" ? "   (LOADS)" : "   (empty in the form)"));
-        out.push("stored value: " + JSON.stringify(v) + " (" + typeof v + ")");
-        out.push("field: " + JSON.stringify(fj));
-        out.push("in group: " + (els[n] ? els[n].group : "NOT IN FORM"));
-        out.push("element: " + JSON.stringify(els[n] ? els[n].el : null));
-        for (const key of ["visibilityExpression", "editableExpression", "requiredExpression", "valueExpression"]) {
-          const en = els[n] && els[n].el[key];
-          if (en) out.push("  " + key + " " + en + " = " + JSON.stringify(exprs[en] ? { title: exprs[en].title, returnType: exprs[en].returnType, expression: exprs[en].expression } : "MISSING"));
-        }
-        out.push("");
-      }
-      $("cmp").textContent = out.join("\n");
-    } catch (e) { $("cmp").textContent = "comparison failed: " + (e.message || e); }
-    $("copyCmp").addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText($("cmp").textContent); $("copyCmp").textContent = "Copied"; } catch (e) { $("copyCmp").textContent = "Copy failed – select the text by hand"; }
-    });
-
-    ["runAll", "pickForm", "pickRec", "openOne"].forEach(id => $(id).disabled = false);
-    setStatus($("status"), missing.length ? "bad" : "ok",
-      "Signed in as " + portal.user.username + " · " + combos.length + " form/record combinations found" +
-      (missing.length ? " · missing: " + missing.join(", ") : ""));
-  } catch (e) { setStatus($("status"), "bad", "Load failed – " + (e.message || e)); console.error(e); throw e; }
-
-  // ---------- Open one combination in a brand-new form, wait for it to settle, compare with the stored values ----------
-  function norm(v) {
-    if (v === undefined || v === null || v === "") return null;
-    if (v instanceof Date) return v.getTime();
-    return v;
+  function flatten(tmpl) {       // every element with its group, in form order
+    const out = [];
+    const walk = (els, grp) => { for (const el of els || []) {
+      if (el.type === "group") { out.push({ el, grp: null, isGroup: true }); walk(el.elements, el); } else out.push({ el, grp });
+    } };
+    walk(tmpl.elements, null);
+    return out;
   }
-  async function openAndCheck(i) {
-    const c = combos[i];
-    const cell = $("r" + i);
-    setStatus(cell, "wait", "opening…");
-    $("formPanel").heading = c.formTitle + " – " + c.label;
-    // a fresh component for every combination, like opening the record anew
-    $("formHost").innerHTML = "";
-    const form = document.createElement("arcgis-feature-form");
-    $("formHost").appendChild(form);
-    await form.componentOnReady();
-    const original = { ...c.feature.attributes };
-    form.map = webmap;
-    form.layer = c.layer;
-    form.formTemplate = c.layer.formTemplate.clone();    // the Run 6 fix: always a copy
-    form.feature = c.feature.clone();
-
-    // settle: same result 4 checks in a row (about 3 s), at most 20 s
-    let last = null, same = 0, diffs = [];
-    const t0 = Date.now();
-    await sleep(1500);
-    while (Date.now() - t0 < 20000) {
+  async function exec(name, attrs) {
+    const info = (S.tmpl.expressionInfos || []).find((x) => x.name === name);
+    if (!info) throw new Error("expression not found in the form");
+    let ex = S.exec.get(name);
+    if (!ex) { ex = await arcade.createArcadeExecutor(info.expression, arcade.createArcadeProfile("form-calculation")); S.exec.set(name, ex); }
+    const g = new Graphic({ attributes: { ...attrs }, geometry: S.feature.geometry, layer: S.layer });
+    const gO = new Graphic({ attributes: { ...S.original }, geometry: S.feature.geometry, layer: S.layer });
+    const modes = S.dsMode === "layer" ? ["layer", "url"] : ["url", "layer"];
+    let last;
+    for (const m of modes) {
       try {
-        const vals = await form.getValues();
-        diffs = [];
-        for (const k of Object.keys(vals)) {
-          if (!(k in original)) continue;
-          const a = norm(original[k]), b = norm(vals[k]);
-          if (a !== b) {
-            const r = form.feature && form.feature.attributes ? norm(form.feature.attributes[k]) : "n/a";
-            diffs.push(k + ": stored " + JSON.stringify(a) + " · form reports " + JSON.stringify(b) + " · form's record " + JSON.stringify(r));
-          }
+        const r = await ex.executeAsync({ "$feature": g, "$originalFeature": gO, "$layer": S.layer, "$datastore": m === "url" ? S.layer.url : S.layer, "$map": webmap, "$editcontext": { editType: "UPDATE" } },
+                                         { spatialReference: S.layer.spatialReference });
+        if (S.dsMode !== m) { S.dsMode = m; note("$datastore works as: " + m); }
+        return r;
+      } catch (e) { last = e; }
+    }
+    throw last;
+  }
+  const title = (name) => { const i = (S.tmpl.expressionInfos || []).find((x) => x.name === name); return i ? (i.title || name) : name; };
+  async function tryExec(name, attrs, fallback, where) {
+    try { const r = await exec(name, attrs); delete S.errors[where + " · " + title(name)]; return r; }
+    catch (e) { S.errors[where + " · " + title(name)] = mask(e.message || String(e)); return fallback; }
+  }
+  // Run the form's rules until the values settle.
+  async function settle() {
+    const t0 = performance.now(); let pass = 0;
+    for (; pass < 8; pass++) {
+      let changed = false;
+      const snap = { ...S.values };
+      // 1. calculations: run when the field has one and is not editable (rule 1 in eb-form-logic.md). Hidden fields are still calculated (rule 7).
+      for (const { el, isGroup } of S.els) {
+        if (isGroup || el.type !== "field" || !el.valueExpression) continue;
+        const editable = el.editableExpression ? (await tryExec(el.editableExpression, snap, false, el.fieldName + " editable")) === true : false;
+        S.edit[el.fieldName] = editable; S.calc[el.fieldName] = !editable;
+        if (editable) continue;
+        const cur = S.values[el.fieldName];
+        let v = await tryExec(el.valueExpression, snap, cur, el.fieldName + " value");     // a failing calculation keeps the value (rule 6)
+        v = normV(v);
+        if (!same(v, cur)) { S.values[el.fieldName] = v; changed = true; }
+      }
+      // 2. visibility; a typed field that goes from shown to hidden is emptied, as Esri's form does
+      const now = { ...S.values }, groupVis = new Map();
+      for (const { el, grp, isGroup } of S.els) {
+        let v = el.visibilityExpression ? (await tryExec(el.visibilityExpression, now, true, (el.fieldName || el.label || el.type) + " visible")) === true : true;
+        if (isGroup) { groupVis.set(el, v); continue; }
+        if (grp && groupVis.get(grp) === false) v = false;
+        const key = S.key(el);
+        const was = S.vis[key];
+        S.vis[key] = v;
+        if (el.type === "field" && was === true && v === false && !S.calc[el.fieldName] && S.values[el.fieldName] != null) {
+          S.values[el.fieldName] = null; S.emptied.add(el.fieldName); changed = true;
         }
-        const sig = diffs.join("|");
-        same = (sig === last) ? same + 1 : 0;
-        last = sig;
-        if (same >= 4) break;
-      } catch (e) { /* still calculating */ }
-      await sleep(700);
+      }
+      S.groupVis = groupVis;
+      if (!changed) break;
     }
-    if (!diffs.length) { setStatus(cell, "ok", "✔ nothing changed"); }
-    else {
-      cell.className = "bad";
-      cell.innerHTML = "✖ " + diffs.length + " field(s)<div class='diff'></div>";
-      cell.querySelector(".diff").textContent = diffs.join("\n");
+    // 3. required, editable (fields without a calculation) and the message lines
+    const fin = { ...S.values };
+    for (const { el, isGroup } of S.els) {
+      if (isGroup) continue;
+      const key = S.key(el);
+      if (el.type === "field") {
+        S.req[el.fieldName] = el.requiredExpression ? (await tryExec(el.requiredExpression, fin, false, el.fieldName + " required")) === true : false;
+        if (!el.valueExpression) S.edit[el.fieldName] = el.editableExpression ? (await tryExec(el.editableExpression, fin, true, el.fieldName + " editable")) === true : true;
+      } else if (el.type === "text" && S.vis[key] !== false) {
+        let txt = String(el.text ?? "");
+        const refs = [...txt.matchAll(/\{(?:expr|expression)\/([^}]+)\}/g)];
+        for (const m of refs) { const r = await tryExec(m[1], fin, "⚠", "text"); txt = txt.replace(m[0], r == null ? "" : String(r)); }
+        txt = txt.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (all, f) => (f in fin ? (fin[f] ?? "") : all));
+        S.texts[key] = txt;
+      }
     }
-    setStatus($("formStatus"), diffs.length ? "bad" : "ok",
-      c.formTitle + " · " + c.label + " · changed since opening: " + (diffs.length ? diffs.length + " field(s)" : "nothing"));
-    return diffs.length;
+    S.ms = Math.round(performance.now() - t0); S.passes = pass + 1;
   }
 
-  $("openOne").addEventListener("click", () => openAndCheck(Number($("pickRec").value)));
-  $("runAll").addEventListener("click", async () => {
-    ["runAll", "openOne"].forEach(id => $(id).disabled = true);
-    let bad = 0;
-    for (let i = 0; i < combos.length; i++) { bad += (await openAndCheck(i)) ? 1 : 0; }
-    setStatus($("status"), bad ? "bad" : "ok",
-      "SDK " + (kernel.fullVersion || kernel.version) + " · Run all finished: " + (combos.length - bad) + " of " + combos.length + " combinations open unchanged" +
-      (bad ? " · " + bad + " changed (see table)" : ""));
-    ["runAll", "openOne"].forEach(id => $(id).disabled = false);
+  // ---------------- Drawing our own inputs ----------------
+  const fieldOf = (name) => S.fields[name.toLowerCase()];
+  const isNum = (f) => f && /integer|single|double|long/.test(f.type || "");
+  function inputHtml(el) {
+    const f = fieldOf(el.fieldName), name = el.fieldName, v = S.values[name], locked = S.calc[name] || S.edit[name] === false || (f && f.editable === false);
+    const dis = locked ? " disabled" : "", it = (el.input && el.input.type) || "", id = "f_" + name;
+    const cvs = (el.domain && el.domain.codedValues) || (f && f.domain && f.domain.codedValues) || null;
+    const miss = S.req[name] && v == null ? " missing" : "";
+    if (it === "switch") { const on = el.input.onValue, off = el.input.offValue;
+      return '<span class="sw"><input type="checkbox" role="switch" id="' + id + '" data-f="' + esc(name) + '" data-kind="switch" data-on="' + esc(on) + '" data-off="' + esc(off) + '"' + (String(v) === String(on) ? " checked" : "") + dis + "> <span>" +
+        (String(v) === String(on) ? "On" : "Off") + (v == null ? " (no value stored)" : "") + "</span></span>"; }
+    if (cvs && it === "radio-buttons") {
+      const opts = cvs.map((c) => '<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " checked" : "") + dis + "> " + esc(c.name) + "</label>");
+      if (el.input.showNoValueOption) opts.unshift('<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value=""' + (v == null ? " checked" : "") + dis + "> " + esc(el.input.noValueOptionLabel || "No value") + "</label>");
+      return '<span class="opts' + miss + '" role="radiogroup" aria-labelledby="l_' + id + '">' + opts.join("") + "</span>"; }
+    if (cvs) return '<select id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="choice"' + dis + '><option value="">' + esc((el.input && el.input.noValueOptionLabel) || "No value") + "</option>" +
+      cvs.map((c) => '<option value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " selected" : "") + ">" + esc(c.name) + "</option>").join("") + "</select>";
+    if (f && f.type === "date") { const withTime = el.input && el.input.includeTime;
+      let val = ""; if (v != null) { const d = new Date(v), p = (n) => String(n).padStart(2, "0"); val = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + (withTime ? "T" + p(d.getHours()) + ":" + p(d.getMinutes()) : ""); }
+      return '<input type="' + (withTime ? "datetime-local" : "date") + '" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="date" value="' + val + '"' + dis + ">"; }
+    if (isNum(f)) return '<input type="number" step="any" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="number" value="' + esc(v ?? "") + '"' + dis + ">";
+    if (it === "text-area") return '<textarea id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="text"' + dis + ">" + esc(v ?? "") + "</textarea>";
+    return '<input type="text" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="text" value="' + esc(v ?? "") + '"' + dis + ">";
+  }
+  const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+  function elHtml(el) {
+    const key = S.key(el);
+    if (S.vis[key] === false) return "";
+    if (el.type === "text") return '<div class="info">' + md(S.texts[key] ?? "") + "</div>";
+    if (el.type !== "field") return "";
+    const f = fieldOf(el.fieldName), id = "f_" + el.fieldName;
+    return '<div class="fld"><label id="l_' + id + '" for="' + id + '">' + esc(el.label || (f && f.alias) || el.fieldName) + (S.req[el.fieldName] ? ' <span class="req">* required</span>' : "") +
+      (S.calc[el.fieldName] ? '<span class="calc">calculated</span>' : "") + "</label>" + inputHtml(el) + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
+  }
+  function render() {
+    // sections: runs of loose elements, and groups
+    const secs = []; let loose = null;
+    for (const x of S.els) {
+      if (x.isGroup) { secs.push({ name: x.el.label || "Group", grp: x.el, items: [] }); loose = null; }
+      else if (x.grp) secs.find((s) => s.grp === x.grp).items.push(x.el);
+      else { if (!loose) { loose = { name: "", items: [] }; secs.push(loose); } loose.items.push(x.el); }
+    }
+    let html = "", L = [], R = [], hl = 0, hr = 0;
+    const flush = () => { if (L.length || R.length) html += '<div class="cols"><div class="col">' + L.join("") + '</div><div class="col">' + R.join("") + "</div></div>"; L = []; R = []; hl = hr = 0; };
+    for (const s of secs) {
+      if (s.grp && S.groupVis.get(s.grp) === false) continue;
+      const body = s.items.map(elHtml).filter(Boolean);
+      if (!body.length) continue;
+      if (!s.grp) { flush(); html += '<div class="card"><div>' + body.join("") + "</div></div>"; continue; }      // loose elements: full width, in form order
+      const left = LEFT.test(s.name) ? true : (L.length && !R.length ? false : hl <= hr);
+      const card = '<div class="card' + (left ? "" : " tint") + '"><h2>' + esc(s.name) + "</h2><div>" + body.join("") + "</div></div>";
+      if (left) { L.push(card); hl += body.length; } else { R.push(card); hr += body.length; }
+    }
+    flush();
+    $("own").innerHTML = '<div style="display:flex;flex-direction:column;gap:12px">' + html + "</div>";
+    // changed since opening
+    const diffs = Object.keys(S.values).filter((k) => !same(S.values[k], S.original[k]));
+    const missing = S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.req[x.el.fieldName] && S.values[x.el.fieldName] == null).map((x) => x.el.label || x.el.fieldName);
+    const box = $("changedBox"); box.hidden = false;
+    box.className = diffs.length ? "warn" : "ok";
+    box.textContent = (diffs.length ? "Changed since opening: " + diffs.length + " field(s)\n" + diffs.map((k) => "• " + k + ": " + JSON.stringify(normV(S.original[k])) + " → " + JSON.stringify(normV(S.values[k])) +
+        (S.touched.has(k) ? "  (you)" : S.emptied.has(k) ? "  (emptied: hidden)" : "  (calculated)")).join("\n") : "Changed since opening: nothing") +
+      (missing.length ? "\nA save would be refused. Required and empty: " + missing.join(", ") : "");
+    const errs = Object.entries(S.errors);
+    $("diag").textContent = ["Form " + S.layer.title + " · record " + S.id + " · user " + portalUser + " · " + $("sdk").textContent,
+      "Settled in " + S.passes + " pass(es), " + S.ms + " ms · $datastore mode: " + (S.dsMode || "not needed yet"),
+      "Expression errors: " + (errs.length ? errs.length : "none"), ...errs.map(([k, v]) => "  ✗ " + k + " → " + v),
+      "Changed: " + (diffs.join(", ") || "nothing"), "", "Structure:",
+      ...S.els.map((x) => (x.grp ? "    " : "  ") + (x.isGroup ? "GROUP " + JSON.stringify(x.el.label) : x.el.type === "field"
+        ? x.el.fieldName + " [" + ((x.el.input && x.el.input.type) || "?") + "]" + (x.el.valueExpression ? " calc=" + title(x.el.valueExpression) : "") + (x.el.editableExpression ? " edit=" + title(x.el.editableExpression) : "") + (x.el.requiredExpression ? " req=" + title(x.el.requiredExpression) : "")
+        : x.el.type.toUpperCase() + " " + JSON.stringify(String(x.el.text ?? "").slice(0, 90))) + (x.el.visibilityExpression ? " vis=" + title(x.el.visibilityExpression) : "") + (x.isGroup ? "" : " → " + (S.vis[S.key(x.el)] === false ? "hidden" : "shown"))),
+      "", "Log:", ...log].join("\n");
+    if (errs.length) status("error", errs.length + " rule(s) could not be run by this page. See Diagnostics. The values they control are not reliable here.");
+  }
+
+  async function openRecord() {
+    const my = ++token;
+    $("own").innerHTML = ""; $("changedBox").hidden = true; $("refHost").innerHTML = ""; $("refChanged").textContent = "Not opened yet."; $("refBox").open = false;
+    const lt = $("pickForm").value, id = $("pickRec").value;
+    try {
+      if (!CFG.allowed.includes(id) || id.includes(CFG.forbidden)) throw new Error("refused: not a TEST record");
+      status("notice", "Opening " + id + "…");
+      const layer = webmap.allLayers.find((l) => l.title === lt);
+      if (!layer) throw new Error('no layer titled "' + lt + '"');
+      await layer.load();
+      if (!layer.formTemplate) throw new Error(lt + " has no Map Viewer form");
+      const q = await layer.queryFeatures({ where: "AEPID = '" + id + "'", outFields: ["*"], returnGeometry: true });
+      if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + id);
+      if (my !== token) return;
+      const feature = q.features[0], tmpl = layer.formTemplate.clone();
+      const keys = new Map(); let n = 0;
+      S = { id, layer, tmpl, feature, original: { ...feature.attributes }, values: { ...feature.attributes }, fields: Object.fromEntries(layer.fields.map((f) => [f.name.toLowerCase(), f])),
+            els: flatten(tmpl), vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, exec: new Map(), dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(),
+            key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
+      status("notice", "Running the form's rules…");
+      await settle();
+      if (my !== token) return;
+      const diffs = Object.keys(S.values).filter((k) => !same(S.values[k], S.original[k]));
+      status(diffs.length ? "error" : "notice", diffs.length ? "The page's own rule run changed " + diffs.length + " value(s) on opening. See the list below." : "Opened with nothing changed. This page cannot save.");
+      render();
+    } catch (e) { status("error", "Could not open – " + (e.message || e)); console.error(e); }
+  }
+
+  // one handler for every input we drew
+  let busy = false;
+  $("own").addEventListener("change", async (evt) => {
+    const t = evt.target, name = t.dataset && t.dataset.f; if (!name || !S || busy) return;
+    const f = fieldOf(name), kind = t.dataset.kind; let v;
+    if (kind === "switch") v = t.checked ? t.dataset.on : t.dataset.off;
+    else if (kind === "date") { v = t.value ? new Date(t.value.length > 10 ? t.value : t.value + "T00:00").getTime() : null; }
+    else if (kind === "number") v = t.value === "" ? null : Number(t.value);
+    else v = t.value === "" ? null : t.value;
+    if ((kind === "choice" || kind === "switch") && v != null && isNum(f)) v = Number(v);
+    S.values[name] = v; S.touched.add(name);
+    busy = true; $("own").classList.add("busy"); status("notice", "Running the form's rules…");
+    try { await settle(); status("notice", "Rules run (" + S.passes + " pass(es), " + S.ms + " ms). This page cannot save."); render(); }
+    catch (e) { status("error", "The rules could not be run – " + (e.message || e)); }
+    busy = false; $("own").classList.remove("busy");
   });
+
+  // ---------------- Reference: Esri's own form on the same record (read-only use; this page has no save) ----------------
+  let refTimer = null;
+  $("refBox").addEventListener("toggle", async () => {
+    if (!$("refBox").open || !S || $("refHost").firstChild) return;
+    const my = token, s = S;
+    try {
+      const form = document.createElement("arcgis-feature-form");
+      $("refHost").appendChild(form);
+      await form.componentOnReady();
+      form.map = webmap; form.layer = s.layer; form.formTemplate = s.layer.formTemplate.clone();
+      form.feature = new Graphic({ attributes: { ...s.original }, geometry: s.feature.geometry, layer: s.layer });
+      clearInterval(refTimer);
+      refTimer = setInterval(async () => {
+        if (my !== token) { clearInterval(refTimer); return; }
+        try { const vals = await form.getValues();
+          const d = Object.keys(vals).filter((k) => k in s.original && !same(vals[k], s.original[k]));
+          $("refChanged").textContent = "Esri's form, changed since opening: " + (d.length ? d.map((k) => k + ": " + JSON.stringify(normV(s.original[k])) + " → " + JSON.stringify(normV(vals[k]))).join(" · ") : "nothing");
+        } catch { /* still loading */ }
+      }, 1000);
+    } catch (e) { $("refChanged").textContent = mask("Esri's form could not be opened – " + (e.message || e)); }
+  });
+
+  $("copyDiag").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("diag").textContent); $("copied").textContent = "Copied."; } catch { $("copied").textContent = "Select the text and copy it by hand."; } });
+  for (const id of ["pickForm", "pickRec"]) { $(id).disabled = false; $(id).addEventListener("change", openRecord); }
+  $("reopen").disabled = false; $("reopen").addEventListener("click", openRecord);
+  await openRecord();
 </script>
 </body>
 </html>
