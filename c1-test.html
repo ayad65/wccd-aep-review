@@ -64,7 +64,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.5, 11 Nov 2026.</p></div>
+    <div><h1>Test D1 – our layout, the form's rules</h1><p>This page cannot save. TEST records only. Build D1.6, 11 Nov 2026.</p></div>
     <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
   </header>
   <div class="bar">
@@ -103,7 +103,7 @@
   const look = { on: false, map: new Map(), hits: 0, misses: 0, log: [] };
   const tail = (u) => String(u).split("?")[0].split("/").slice(-3).join("/");
   const lookKey = (p) => { const q = { ...((p.requestOptions && p.requestOptions.query) || {}) }; delete q.token; return String(p.url).split("?")[0] + "|" + JSON.stringify(Object.keys(q).sort().map((k) => [k, q[k]])); };
-  const isRead = (url) => /\/FeatureServer\/\d+\/query$/i.test(String(url).split("?")[0]);
+  const isRead = (url) => /\/FeatureServer(\/\d+)?(\/query)?$/i.test(String(url).split("?")[0]);     // queries, and the service and layer descriptions
   const copy = (d) => { try { return structuredClone(d); } catch { return d; } };
   try {
     const t0 = Date.now();
