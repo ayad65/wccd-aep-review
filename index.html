@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B1b, 11 Nov 2026). READ-ONLY: this page never saves.
+    WCCD AEP custom app – Home + Worklist (build B1c, 11 Nov 2026). READ-ONLY: this page never saves.
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,15 +119,32 @@
     .pane p { margin: 0; font-size: 13px; color: var(--muted); }
     .pane label { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
     .pane input[type="checkbox"] { width: 20px; height: 20px; }
-    .vals { display: grid; grid-template-columns: minmax(140px, 300px) minmax(0, 1fr); margin: 0; font-size: 14px; }
-    .vals dt { color: var(--muted); padding: 8px 12px 8px 0; border-top: 1px solid var(--soft); }
-    .vals dd { margin: 0; padding: 8px 0; border-top: 1px solid var(--soft); font-weight: 500; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .cards { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    details.gcard { border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
+    details.gcard.tint { background: #F1F5FA; border-color: #B9CBE0; }
+    details.gcard > summary { cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; min-height: 44px; padding: 8px 14px; font-size: 15px; font-weight: 700; }
+    details.gcard > summary .cnt { font-size: 13px; font-weight: 500; color: var(--muted); }
+    details.gcard[open] > summary { border-bottom: 1px solid var(--soft); }
+    details.gcard.tint[open] > summary { border-bottom-color: #B9CBE0; }
+    .vals { margin: 0; padding: 4px 14px 8px; font-size: 14px; }
+    .vals.two { columns: 2; column-gap: 32px; }
+    .pair { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--soft); break-inside: avoid; }
+    .tint .pair { border-bottom-color: #D5DFEC; }
+    .vals dt { color: var(--muted); }
+    .vals dd { margin: 0; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
     .vals dd.empty { color: var(--muted); font-weight: 400; }
+    .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px 16px; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
+    .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
+    details.rowAll .cards { padding-bottom: 12px; }
     table.mini { min-width: 640px; } table.mini td, table.mini th { padding: 10px 12px; }
     details.rowAll { border: 1px solid var(--line); border-radius: 4px; padding: 0 12px; }
     details.rowAll > summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-size: 14px; font-weight: 600; }
     @media (max-width: 1000px) { .todo { max-width: none; } .detail { order: -1; flex-basis: 100%; } }
-    @media (max-width: 600px) { .vals { grid-template-columns: minmax(0, 1fr); } .vals dd { border-top: 0; padding-top: 0; } .steps { padding: 14px 12px; } .steps li { font-size: 11px; } }
+    @media (max-width: 1200px) { .vals.two { columns: 1; } }
+    @media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 600px) { .steps { padding: 14px 12px; } .steps li { font-size: 11px; } }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -361,6 +378,8 @@
     if (yes(g("tyOvr"))) r.red.push("Approved despite the three-year rule.");
     const aw = num(g("awarded")), calc = num(g("calc"));
     if (aw != null && calc != null && Math.round(aw * 100) !== Math.round(calc * 100)) r.red.push("Awarded score " + fmt(aw) + " differs from the calculated " + fmt(calc) + ".");
+    // RED: past Approval without a recorded decision
+    if (stageN >= 4 && !ended && !approved) r.red.push("Past Approval, but no decision is recorded (status is " + (statusLabel[status] || status || "empty") + ").");
     // NOTE: fewer acres approved than requested
     if (approved && apAc != null && reqAc != null && apAc < reqAc - 0.005) r.notes.push(fmt(apAc) + " of the " + fmt(reqAc) + " requested acres were approved. Check the split per field.");
     // Plain lines for closed applications
@@ -421,17 +440,57 @@
     return String(v);
   }
   function attr(a, name) { if (name in a) return a[name]; const k = Object.keys(a).find((x) => x.toLowerCase() === name.toLowerCase()); return k ? a[k] : undefined; }
-  function valsHtml(list, a, fields) {
-    let html = "", grp = null, open = false, filled = 0;
-    for (const it of list) {
-      const f = fields[it.field.toLowerCase()], text = show(f, attr(a, it.field));
-      if (text != null) filled++;
-      if (text == null && !showEmpty) continue;
-      if (it.group !== grp) { if (open) html += "</dl>"; grp = it.group; html += (grp ? "<h3>" + esc(grp) + "</h3>" : "") + '<dl class="vals">'; open = true; }
-      html += "<dt>" + esc(it.label || (f && f.alias) || it.field) + "</dt>" + (text == null ? '<dd class="empty">—</dd>' : "<dd>" + esc(text) + "</dd>");
+  // ---- Stored values as cards in two columns. Each form group is a card; RULES place the known groups, the rest fall in automatically. ----
+  // w: "L" / "R" = left or right column, "full" = full width with the values in two columns, "figs" = a strip of figures. open:false = starts collapsed.
+  const RULES = {
+    cvf:  [{ re: /^General$/, w: "figs", title: "Lime and cost" }, { re: /internal/i, w: "L" }, { re: /payment|invoice/i, w: "R", tint: true }],
+    appr: [{ re: /^General$/ }, { re: /decision/i, w: "L" }, { re: /sign/i, w: "R", tint: true }],
+    agr:  [{ re: /^General$/ }, { re: /landowner|applicant|owner/i, w: "L" }, { re: /wccd|district/i, w: "R", tint: true }],
+    rank: [{ re: /^General$/ }, { re: /total/i, w: "full" }, { re: /awarded/i }, { re: /question|criteri|scor|rank/i, w: "full", open: false, score: true }],
+    rows: [{ re: /^Field$/i, w: "L" }, { re: /lime rec/i, w: "L" }, { re: /^Soil test results$/i, w: "R" }, { re: /soil test lab/i, w: "R", tint: true },
+           { re: /^Other$/, title: "Notes" }, { re: /more soil/i, w: "full", open: false }, { re: /lab report/i, w: "full", open: false },
+           { re: /crop/i, w: "full", open: false }, { re: /optimal/i, w: "full", open: false }, { re: /name/i, w: "L", open: false }, { re: /acreage/i, w: "R", open: false }]
+  };
+  function groupsOf(list) {       // consecutive fields of the same form group; fields outside any group become "General" (first) or "Other"
+    const out = [];
+    for (const it of list) { const last = out[out.length - 1];
+      if (last && last.raw === it.group) last.items.push(it); else out.push({ raw: it.group, name: it.group || (out.length ? "Other" : "General"), items: [it], pos: out.length }); }
+    return out;
+  }
+  function cardsHtml(tabKey, list, a, fields, scoreNote) {
+    const rules = RULES[tabKey] || [];
+    let filled = 0;
+    const cards = [];
+    for (const g of groupsOf(list)) {
+      const ri = rules.findIndex((x) => x.re.test(g.name)), rule = ri >= 0 ? rules[ri] : {};
+      const rowsShown = [];
+      for (const it of g.items) { const f = fields[it.field.toLowerCase()], text = show(f, attr(a, it.field));
+        if (text != null) filled++;
+        if (text != null || showEmpty) rowsShown.push({ label: it.label || (f && f.alias) || it.field, text }); }
+      if (rowsShown.length) cards.push({ g, rule, order: ri >= 0 ? ri : 100 + g.pos, rows: rowsShown });
     }
-    if (open) html += "</dl>";
-    return { html, filled, total: list.length };
+    cards.sort((x, y) => x.order - y.order);
+    const card = (c, two) => { const n = c.rows.filter((x) => x.text != null).length;
+      if (c.rule.w === "figs") return '<div class="strip" role="group" aria-label="' + esc(c.rule.title || c.g.name) + '">' +
+        c.rows.map((x) => '<div class="fig"><small>' + esc(x.label) + "</small><b>" + esc(x.text ?? "—") + "</b></div>").join("") + "</div>";
+      return '<details class="gcard' + (c.rule.tint ? " tint" : "") + '"' + (c.rule.open === false ? "" : " open") + "><summary><span>" + esc(c.rule.title || c.g.name) + '</span><span class="cnt">' +
+        n + (n === 1 ? " value" : " values") + (c.rule.score && scoreNote ? " · " + esc(scoreNote) : "") + '</span></summary><dl class="vals' + (two ? " two" : "") + '">' +
+        c.rows.map((x) => '<div class="pair"><dt>' + esc(x.label) + "</dt>" + (x.text == null ? '<dd class="empty">—</dd>' : "<dd>" + esc(x.text) + "</dd>") + "</div>").join("") + "</dl></details>"; };
+    let html = "", pend = [];
+    const flush = () => {
+      if (pend.length === 1) html += card(pend[0], pend[0].rows.length > 3);
+      else if (pend.length) { const col = { L: [], R: [] }, h = { L: 0, R: 0 };
+        for (const c of pend) { const side = c.rule.w === "L" || c.rule.w === "R" ? c.rule.w : (h.L <= h.R ? "L" : "R");
+          col[side].push(card(c, false)); h[side] += (c.rule.open === false ? 0 : c.rows.length) + 2; }
+        html += '<div class="cols"><div class="col">' + col.L.join("") + '</div><div class="col">' + col.R.join("") + "</div></div>"; }
+      pend = [];
+    };
+    for (const c of cards) {
+      const full = c.rule.w === "full" || c.rule.w === "figs" || (!c.rule.w && c.rows.length > 8);
+      if (full) { flush(); html += card(c, true); } else pend.push(c);
+    }
+    flush();
+    return { html: html ? '<div class="cards">' + html + "</div>" : "", filled, total: list.length };
   }
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
@@ -447,16 +506,16 @@
       if (!mine.length) return h;
       h += '<div class="box"><table class="mini" aria-label="Field rows"><thead><tr>' + cols.map(([, lab]) => "<th>" + esc(lab) + "</th>").join("") + "</tr></thead><tbody>" +
         mine.map((x) => "<tr>" + cols.map(([n]) => "<td>" + esc(show(fr.fields[n.toLowerCase()], attr(x, n)) ?? "—") + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" + emptyToggle();
-      for (const x of mine) { const v = valsHtml(fr.list, x, fr.fields);
-        h += '<details class="rowAll"><summary>Field ' + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – all stored values (" + v.filled + " of " + v.total + " filled)</summary>" + v.html + "</details>"; }
+      for (const x of mine) { const v = cardsHtml("rows", fr.list, x, fr.fields);
+        h += '<details class="rowAll"' + (mine.length === 1 ? " open" : "") + "><summary>Field " + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – details (" + v.filled + " of " + v.total + " filled)</summary>" + v.html + "</details>"; }
       return h;
     }
     const fm = forms[t.key] || { list: [], error: "not loaded" };
     if (fm.error) return "<h2>" + esc(t.label) + '</h2><div class="error">This form\'s layout could not be read: ' + esc(fm.error) + "</div>";
-    const v = valsHtml(fm.list, r.a, appFields);
-    return "<h2>" + esc(t.label) + "</h2><p>Stored values, " + (fm.noForm ? "listed field by field because this layer has no form" : "in the order of the " + esc(t.label) + " form") +
-      ". " + v.filled + " of " + v.total + " fields have a value. Messages and totals that the form works out on screen are not shown here. Editing comes in a later build.</p>" +
-      (t.key === "cvf" ? '<div class="notice">Cost verification stays view only in this app for now.</div>' : "") +
+    const calc = num(F.calc ? r.a[F.calc] : null);
+    const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
+    return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
+      " fields have a value. Messages the form works out on screen are not shown. " + (t.key === "cvf" ? "Cost verification stays view only in this app for now." : "Editing comes in a later build.") + "</p>" +
       emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>');
   }
   function itemHtml(r) {
@@ -523,7 +582,7 @@
   $("newApp").addEventListener("click", () => { $("newAppNote").hidden = !$("newAppNote").hidden; });
   $("diag").innerHTML = "<p>" + esc(layerInfo) + ".</p><p>" +
     (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p><p>Worklist: " +
-    esc(TABS.filter((t) => t.layer).map((t) => t.label + (forms[t.key].error ? " – NOT READ (" + forms[t.key].error + ")" : " – " + forms[t.key].list.length + " form fields" + (forms[t.key].noForm ? " (no form; all fields)" : ""))).join("; ")) +
+    esc(TABS.filter((t) => t.layer).map((t) => t.label + (forms[t.key].error ? " – NOT READ (" + forms[t.key].error + ")" : " – " + forms[t.key].list.length + " form fields" + (forms[t.key].noForm ? " (no form; all fields)" : " in groups [" + groupsOf(forms[t.key].list).map((g) => g.name + " " + g.items.length).join(", ") + "]"))).join("; ")) +
     "; Field rows – " + esc(fr.rows ? fr.rows.length + " rows read" : "NOT READ (" + fr.error + ")") + ".</p>";
   window.addEventListener("hashchange", route);
   $("status").hidden = true;
