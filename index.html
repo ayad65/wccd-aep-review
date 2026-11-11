@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B2a, 11 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B2b, 11 Nov 2026).
     Saves ONLY from the Approval tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
   -->
@@ -142,6 +142,26 @@
     .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px 16px; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
     .strip .fig { display: flex; flex-direction: column; justify-content: space-between; }
     .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
+    /* Editing with our own inputs */
+    #own { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    #own.running .einfo, #own.running .calcfld { opacity: .5; }
+    .ecard { border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
+    .ecard.tint { background: #F1F5FA; border-color: #B9CBE0; }
+    .ecard > h3 { margin: 0; font-size: 15px; padding: 12px 14px; border-bottom: 1px solid var(--soft); }
+    .ecard.tint > h3 { border-bottom-color: #B9CBE0; }
+    .ecard > div { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .pane .fld > label { display: block; min-height: 0; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .fld .req { color: var(--red); font-weight: 600; } .fld small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .fld input[type="text"], .fld input[type="date"], .fld input[type="datetime-local"], .fld textarea, .fld select {
+      width: 100%; max-width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; background: #fff; color: var(--ink); }
+    .fld textarea { min-height: 72px; }
+    .fld input:disabled, .fld select:disabled, .fld textarea:disabled { background: var(--soft); color: #2B3138; }
+    .fld .missing { border-color: var(--red) !important; outline: 1px solid var(--red); border-radius: 4px; }
+    .opts { display: flex; flex-direction: column; } .pane .opts label { font-weight: 400; display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 14px; }
+    .opts input, .sw input { width: 20px; height: 20px; } .sw { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; }
+    .einfo { background: var(--bg); border-left: 4px solid var(--blue); padding: 8px 12px; border-radius: 0 4px 4px 0; font-size: 14px; overflow-wrap: anywhere; }
+    .linkbtn { border: 0; background: none; padding: 0; margin-top: 6px; min-height: 32px; color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; text-align: left; }
+    #edDiag { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, Consolas, monospace; }
     /* Editing */
     .edBar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
     .btn { height: 44px; padding: 0 18px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; }
@@ -238,7 +258,8 @@
     layerTitle: "Applications",
     viewOnly: ["AEP63-25-002"],                       // Campbell: never saved from this app
     editable: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"],   // the only records this app may save, while both apps are evaluated
-    editLayer: "App-Approval"
+    editLayer: "App-Approval",
+    editEngine: "own"                                 // "own" = our layout running the form's rules (test D1); "esri" = Esri's form component (fallback, build B2a)
   };
   const STAGES = ["Intake", "Ranking", "Approval", "Agreement", "Reimbursement", "Closed"];
   const NEXT   = ["next: rank it", "next: finish the ranking", "next: record the decision", "next: record the signatures", "next: check the CVF", "paid"];
@@ -285,6 +306,10 @@
 
   // ---------------- Load the SDK modules, sign in ----------------
   let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "", webmap = null, appLayer = null;
+  const look = { on: false, map: new Map(), hits: 0, misses: 0 };
+  const lookKey = (p) => { const q = { ...((p.requestOptions && p.requestOptions.query) || {}) }; delete q.token; return String(p.url).split("?")[0] + "|" + JSON.stringify(Object.keys(q).sort().map((k) => [k, q[k]])); };
+  const isRead = (url) => /\/FeatureServer(\/\d+)?(\/query)?$/i.test(String(url).split("?")[0]);     // queries, and the service and layer descriptions
+  const copyData = (d) => { try { return structuredClone(d); } catch { return d; } };
   let appFields = {}, gidField = null, forms = {}, fr = { rows: null, fields: {}, list: [], parent: null, error: "" };
   const lower = (list) => Object.fromEntries((list || []).map((f) => [f.name.toLowerCase(), f]));
   const normId = (v) => String(v ?? "").replace(/[{}]/g, "").toLowerCase();
@@ -309,6 +334,10 @@
       "@arcgis/core/portal/Portal.js", "@arcgis/core/WebMap.js"
     ]);
     esriConfig.portalUrl = CFG.portalUrl;
+    esriConfig.request.interceptors.push({      // lookup memory, active only while a record is being edited (reads only)
+      before(p) { if (!look.on || !isRead(p.url)) return; const k = lookKey(p); if (look.map.has(k)) { look.hits++; return copyData(look.map.get(k)); } },
+      after(r) { if (!look.on || !isRead(r.url) || r.data == null) return; const k = lookKey({ url: r.url, requestOptions: r.requestOptions }); if (!look.map.has(k)) { look.misses++; look.map.set(k, copyData(r.data)); } }
+    });
     esriId.registerOAuthInfos([new OAuthInfo({ appId: CFG.clientId, portalUrl: CFG.portalUrl, popup: false })]);
     const sharing = CFG.portalUrl + "/sharing";
     try { await esriId.checkSignInStatus(sharing); } catch { await esriId.getCredential(sharing); }
@@ -596,11 +625,13 @@
     const b = e.target.closest("[data-tab]");
     if (b) { if (!leaveEdit()) return; curTab = b.dataset.tab; renderWork(curId); return; }
     const id = e.target.id, r = rows.find((x) => x.id === curId);
-    if (id === "edOpen" && r) openEdit(r);
+    const rs = e.target.closest("[data-restore]");
+    if (rs && ed && ed.own) { OWN.restore(rs.dataset.restore); return; }
+    if (id === "edOpen" && r) { if (CFG.editEngine === "esri") openEdit(r); else OWN.open(r); }
     else if (id === "edCancel") { if (leaveEdit()) renderWork(curId); }
-    else if (id === "edSave" && ed && ed.ready) ed.form.submit();
-    else if (id === "edBack" && ed) { ed.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; $("edForm").classList.remove("locked"); }
-    else if (id === "edConfirm" && ed) confirmSave(ed);
+    else if (id === "edSave" && ed && ed.ready) { if (ed.own) OWN.review(); else ed.form.submit(); }
+    else if (id === "edBack" && ed) { if (ed.own) OWN.back(); else { ed.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; $("edForm").classList.remove("locked"); } }
+    else if (id === "edConfirm" && ed) { if (ed.own) OWN.confirm(); else confirmSave(ed); }
   });
 
   // ---------------- Editing: Approval tab only, TEST records only (safe save, as proven on the test page, Run 14) ----------------
@@ -610,7 +641,7 @@
   const normV = (v) => (v === undefined || v === null || v === "") ? null : (v instanceof Date ? v.getTime() : v);
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
   const dirty = () => !!(ed && ed.touched.size);
-  function closeEdit() { if (ed) { clearInterval(ed.timer); ed = null; } }
+  function closeEdit() { if (ed) { clearInterval(ed.timer); if (ed.own) OWN.reset(); ed = null; } }
   function leaveEdit() {
     if (!ed) return true;
     if (dirty() && !window.confirm("You have changes that are not saved. Leave without saving?")) return false;
@@ -811,6 +842,362 @@
       edStatus("error", "Save stopped – " + (err.message || err) + ". Nothing was written unless stated above."); console.error(err);
     }
   }
+  // ================= Editing with our own layout, running the Map Viewer form's own rules (proven on test page D1, 11 Nov) =================
+  const OWN = (() => {
+    let S = null, token = 0, running = false, pending = false, typeTimer = null;
+    const LEFT = /decision/i;                       // the group on the left; the other groups go right, tinted
+    const same = (a, b) => { a = normV(a); b = normV(b); return a === b || (typeof a === "number" && typeof b === "number" && Math.abs(a - b) < 1e-9); };
+    const st = (cls, text) => edStatus(cls, text);
+    const fieldOf = (name) => S.fields[name.toLowerCase()];
+    const isNum = (f) => f && /integer|single|double|long/.test(f.type || "");
+    const labelOf = (k) => S.labels[k] || (fieldOf(k) && fieldOf(k).alias) || k;
+    const dispV = (k, v) => show(fieldOf(k), normV(v)) ?? "(empty)";
+
+    function flatten(tmpl) {
+      const out = [];
+      const walk = (els, grp) => { for (const el of els || []) {
+        if (el.type === "group") { out.push({ el, grp: null, isGroup: true }); walk(el.elements, el); } else out.push({ el, grp });
+      } };
+      walk(tmpl.elements, null);
+      return out;
+    }
+    const findInfo = (name) => { const list = S.tmpl.expressionInfos || []; return list.find((x) => x.name === name) || list.find((x) => x.name === "expr/" + name); };
+    const title = (name) => { const i = findInfo(name); return i ? (i.title || name) : name; };
+    // A rule is re-run only when a field it names has changed. A rule that uses $feature any other way is re-run every time.
+    function depsOf(name) {
+      if (S.deps.has(name)) return S.deps.get(name);
+      const info = findInfo(name); let d = null;
+      if (info) {
+        const src = String(info.expression);
+        const all = (src.match(/\$feature\b/gi) || []).length;
+        const named = [...src.matchAll(/\$feature\s*(?:\.\s*([A-Za-z_][A-Za-z0-9_]*)|\[\s*["']([^"']+)["']\s*\])/gi)].map((m) => (m[1] || m[2]).toLowerCase());
+        if (named.length === all) d = [...new Set(named)].map((n) => S.attrKeys[n] || n).sort();
+      }
+      S.deps.set(name, d);
+      return d;
+    }
+    function exec(name, attrs) {
+      const d = depsOf(name);
+      const key = name + "|" + (d ? JSON.stringify(d.map((k) => normV(attrs[k]))) : JSON.stringify(attrs));
+      if (!S.memo.has(key)) { S.runs++; S.memo.set(key, execNow(name, attrs)); }
+      return S.memo.get(key);
+    }
+    async function execNow(name, attrs) {
+      const info = findInfo(name);
+      if (!info) throw new Error("expression not found in the form");
+      if (!S.exec.has(name)) S.exec.set(name, arcade.createArcadeExecutor(info.expression, arcade.createArcadeProfile("form-calculation")));
+      const ex = await S.exec.get(name);
+      const g = new Graphic({ attributes: { ...attrs }, geometry: S.feature.geometry, layer: S.layer });
+      const gO = new Graphic({ attributes: { ...S.original }, geometry: S.feature.geometry, layer: S.layer });
+      const modes = S.dsMode === "layer" ? ["layer", "url"] : ["url", "layer"];
+      let last;
+      for (const m of modes) {
+        try {
+          const r = await ex.executeAsync({ "$feature": g, "$originalFeature": gO, "$layer": S.layer, "$datastore": m === "url" ? S.layer.url : S.layer, "$map": webmap, "$editcontext": { editType: "UPDATE" } },
+                                           { spatialReference: S.layer.spatialReference });
+          S.dsMode = m;
+          return r;
+        } catch (e) { last = e; }
+      }
+      throw last;
+    }
+    async function tryExec(name, attrs, fallback, where) {
+      try { const r = await exec(name, attrs); delete S.errors[where + " · " + title(name)]; return r; }
+      catch (e) { S.errors[where + " · " + title(name)] = mask(e.message || String(e)); return fallback; }
+    }
+    // Run the form's rules until the values settle.
+    async function settle() {
+      const t0 = performance.now(); let pass = 0; const runs0 = S.runs;
+      const fieldEls = S.els.filter((x) => !x.isGroup && x.el.type === "field").map((x) => x.el);
+      for (; pass < 8; pass++) {
+        let changed = false;
+        const snap = { ...S.values };
+        // 1. calculations: run when the field has one and is not editable; hidden fields are still calculated (eb-form-logic.md rules 1 and 7)
+        await Promise.all(fieldEls.filter((el) => el.valueExpression).map(async (el) => {
+          const editable = el.editableExpression ? (await tryExec(el.editableExpression, snap, false, el.fieldName + " editable")) === true : false;
+          S.edit[el.fieldName] = editable; S.calc[el.fieldName] = !editable;
+          if (editable) return;
+          const cur = snap[el.fieldName];
+          const v = normV(await tryExec(el.valueExpression, snap, cur, el.fieldName + " value"));     // a failing calculation keeps the value (rule 6)
+          if (!same(v, cur)) { S.values[el.fieldName] = v; changed = true; }
+        }));
+        // 2. visibility; a typed field that goes from shown to hidden is emptied, as in EB. Its value is kept aside so it can be restored.
+        const now = { ...S.values }, groupVis = new Map();
+        const visRaw = await Promise.all(S.els.map(({ el }) => el.visibilityExpression
+          ? tryExec(el.visibilityExpression, now, true, (el.fieldName || el.label || el.type) + " visible").then((r) => r === true) : true));
+        S.els.forEach(({ el, grp, isGroup }, i) => {
+          let v = visRaw[i];
+          if (isGroup) { groupVis.set(el, v); return; }
+          if (grp && groupVis.get(grp) === false) v = false;
+          const key = S.key(el), was = S.vis[key];
+          S.vis[key] = v;
+          if (el.type === "field" && was === true && v === false && !S.calc[el.fieldName] && S.values[el.fieldName] != null) {
+            S.stash[el.fieldName] = S.values[el.fieldName];
+            S.values[el.fieldName] = null; S.emptied.add(el.fieldName); changed = true;
+          }
+        });
+        S.groupVis = groupVis;
+        if (!changed) break;
+      }
+      // 3. required, editable (fields without a calculation) and the message lines
+      const fin = { ...S.values };
+      await Promise.all(S.els.filter((x) => !x.isGroup).map(async ({ el }) => {
+        const key = S.key(el);
+        if (el.type === "field") {
+          const [rq, edt] = await Promise.all([
+            el.requiredExpression ? tryExec(el.requiredExpression, fin, false, el.fieldName + " required") : false,
+            !el.valueExpression && el.editableExpression ? tryExec(el.editableExpression, fin, true, el.fieldName + " editable") : true]);
+          S.req[el.fieldName] = rq === true;
+          if (!el.valueExpression) S.edit[el.fieldName] = edt === true;
+        } else if (el.type === "text" && S.vis[key] !== false) {
+          let txt = String(el.text ?? "");
+          const refs = [...txt.matchAll(/\{((?:expr|expression)\/[^}]+)\}/g)];
+          const vals = await Promise.all(refs.map((m) => tryExec(m[1], fin, "⚠", "text")));
+          refs.forEach((m, i) => { txt = txt.replace(m[0], vals[i] == null ? "" : String(vals[i])); });
+          txt = txt.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (all, f) => (f in fin ? (fin[f] ?? "") : all));
+          S.texts[key] = txt;
+        }
+      }));
+      S.ms = Math.round(performance.now() - t0); S.passes = pass + 1; S.lastRuns = S.runs - runs0;
+    }
+
+    // ---- drawing ----
+    function inputHtml(el) {
+      const f = fieldOf(el.fieldName), name = el.fieldName, v = S.values[name], locked = S.calc[name] || S.edit[name] === false || (f && f.editable === false);
+      const dis = locked ? " disabled" : "", it = (el.input && el.input.type) || "", id = "f_" + name;
+      const cvs = (el.domain && el.domain.codedValues) || (f && f.domain && f.domain.codedValues) || null;
+      const miss = S.req[name] && v == null ? " missing" : "";
+      if (it === "switch") { const on = el.input.onValue, off = el.input.offValue;
+        return '<span class="sw"><input type="checkbox" role="switch" id="' + id + '" data-f="' + esc(name) + '" data-kind="switch" data-on="' + esc(on) + '" data-off="' + esc(off) + '"' + (String(v) === String(on) ? " checked" : "") + dis + "> <span>" +
+          (String(v) === String(on) ? "On" : "Off") + "</span></span>"; }
+      if (cvs && it === "radio-buttons") {
+        const opts = cvs.map((c) => '<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " checked" : "") + dis + "> " + esc(c.name) + "</label>");
+        if (el.input.showNoValueOption) opts.unshift('<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value=""' + (v == null ? " checked" : "") + dis + "> " + esc(el.input.noValueOptionLabel || "No value") + "</label>");
+        return '<span class="opts' + miss + '" role="radiogroup" aria-labelledby="l_' + id + '">' + opts.join("") + "</span>"; }
+      if (cvs) return '<select id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="choice"' + dis + '><option value="">' + esc((el.input && el.input.noValueOptionLabel) || "No value") + "</option>" +
+        cvs.map((c) => '<option value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " selected" : "") + ">" + esc(c.name) + "</option>").join("") + "</select>";
+      if (f && f.type === "date") { const withTime = el.input && el.input.includeTime;
+        let val = ""; if (v != null) { const d = new Date(v), p2 = (n) => String(n).padStart(2, "0"); val = d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + (withTime ? "T" + p2(d.getHours()) + ":" + p2(d.getMinutes()) : ""); }
+        return '<input type="' + (withTime ? "datetime-local" : "date") + '" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="date" value="' + val + '"' + dis + ">"; }
+      if (isNum(f)) return '<input type="text" inputmode="decimal" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="number" value="' + esc(v ?? "") + '"' + dis + ">";
+      if (it === "text-area") return '<textarea id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="text"' + dis + ">" + esc(v ?? "") + "</textarea>";
+      return '<input type="text" id="' + id + '" class="' + miss + '" data-f="' + esc(name) + '" data-kind="text" value="' + esc(v ?? "") + '"' + dis + ">";
+    }
+    const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+    const restorable = () => S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.values[x.el.fieldName] == null && S.stash[x.el.fieldName] != null).map((x) => x.el.fieldName);
+    function elHtml(el) {
+      const key = S.key(el);
+      if (S.vis[key] === false) return "";
+      if (el.type === "text") return '<div class="einfo">' + md(S.texts[key] ?? "") + "</div>";
+      if (el.type !== "field") return "";
+      const name = el.fieldName, id = "f_" + name;
+      const back = S.values[name] == null && S.stash[name] != null
+        ? '<button type="button" class="linkbtn" data-restore="' + esc(name) + '">Restore the earlier value: ' + esc(dispV(name, S.stash[name])) + "</button>" : "";
+      return '<div class="fld' + (S.calc[name] ? " calcfld" : "") + '"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
+        inputHtml(el) + back + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
+    }
+    function skip(k) {            // never written: system fields and fields the layer does not let anyone edit
+      const fld = fieldOf(k), efi = S.layer.editFieldsInfo || {};
+      const sys = [S.layer.objectIdField, S.layer.globalIdField, efi.creatorField, efi.creationDateField, efi.editorField, efi.editDateField].filter(Boolean).map((x) => x.toLowerCase());
+      return !fld || fld.editable === false || sys.includes(k.toLowerCase());
+    }
+    const diffs = () => (S ? Object.keys(S.values).filter((k) => !same(S.values[k], S.original[k]) && !skip(k)) : []);
+    const missingReq = () => S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.req[x.el.fieldName] && S.values[x.el.fieldName] == null).map((x) => labelOf(x.el.fieldName));
+    function plan() {
+      const you = [], calc = [], emptied = [];
+      for (const k of diffs()) {
+        const x = { k, a: S.original[k], b: S.values[k] };
+        if (S.calc[k]) calc.push(x); else if (S.emptied.has(k) && S.values[k] == null) emptied.push(x); else you.push(x);
+      }
+      return { you, calc, emptied };
+    }
+    function render() {
+      const host = $("own"); if (!host || !S) return;
+      const secs = []; let loose = null;
+      for (const x of S.els) {
+        if (x.isGroup) { secs.push({ name: x.el.label || "Group", grp: x.el, items: [] }); loose = null; }
+        else if (x.grp) secs.find((q) => q.grp === x.grp).items.push(x.el);
+        else { if (!loose) { loose = { name: "", items: [] }; secs.push(loose); } loose.items.push(x.el); }
+      }
+      let html = "", L = [], R = [];
+      const flush = () => { if (L.length && R.length) html += '<div class="cols"><div class="col">' + L.join("") + '</div><div class="col">' + R.join("") + "</div></div>"; else html += L.join("") + R.join(""); L = []; R = []; };
+      for (const q of secs) {
+        if (q.grp && S.groupVis.get(q.grp) === false) continue;
+        const body = q.items.map(elHtml).filter(Boolean);
+        if (!body.length) continue;
+        if (!q.grp) { flush(); html += '<div class="ecard"><div>' + body.join("") + "</div></div>"; continue; }
+        const left = LEFT.test(q.name);
+        const card = '<div class="ecard' + (left ? "" : " tint") + '"><h3>' + esc(q.name) + "</h3><div>" + body.join("") + "</div></div>";
+        (left ? L : R).push(card);
+      }
+      flush();
+      const act = document.activeElement, keep = act && host.contains(act) ? { id: act.id, name: act.name, val: act.value, type: act.type, a: act.selectionStart, f: act.dataset.f } : null;
+      host.innerHTML = html;
+      if (keep) {      // keep the cursor, and anything being typed, where it was
+        const el = keep.type === "radio" ? [...host.querySelectorAll('input[type="radio"]')].find((x) => x.name === keep.name && x.value === keep.val) : (keep.id && document.getElementById(keep.id));
+        if (el && !el.disabled) {
+          if (/^(text|textarea|date|datetime-local)$/.test(keep.type) && !S.calc[keep.f]) el.value = keep.val;
+          el.focus({ preventScroll: true });
+          if (keep.type === "text" || keep.type === "textarea") { try { el.setSelectionRange(keep.a, keep.a); } catch {} }
+        }
+      }
+      // the bar under the form
+      const p = plan(), miss = missingReq(), errs = Object.entries(S.errors), n = p.you.length + p.calc.length + p.emptied.length, back = restorable();
+      const parts = [];
+      if (!n) parts.push("Nothing changed yet.");
+      if (p.you.length) parts.push("You changed: " + p.you.map((x) => labelOf(x.k)).join(", ") + ".");
+      if (p.calc.length) parts.push(p.calc.length + " calculated value" + (p.calc.length === 1 ? "" : "s") + " will follow.");
+      if (p.emptied.length) parts.push(p.emptied.length + " value" + (p.emptied.length === 1 ? " was" : "s were") + " emptied by hiding: " + p.emptied.map((x) => labelOf(x.k)).join(", ") + ".");
+      if (miss.length) parts.push("Required and still empty: " + miss.join(", ") + ".");
+      if ($("edChanged")) $("edChanged").textContent = parts.join(" ");
+      if ($("edSave")) $("edSave").disabled = !n || miss.length > 0 || errs.length > 0;
+      if ($("edRestore")) { $("edRestore").hidden = back.length < 2; $("edRestore").textContent = "Restore all " + back.length + " earlier values"; }
+      if ($("edDiag")) $("edDiag").textContent = ["Rules settled in " + S.passes + " pass(es), " + S.ms + " ms, " + S.lastRuns + " rule runs (" + S.runs + " since opening). $datastore: " + (S.dsMode || "not used"),
+        "Lookup memory: " + look.misses + " fetched, " + look.hits + " from memory", "Rule errors: " + (errs.length ? "" : "none"), ...errs.map(([k, v]) => "  ✗ " + k + " → " + v),
+        "Changed: " + (diffs().join(", ") || "nothing")].join("\n");
+      if (errs.length) st("error", errs.length + " of the form's rules could not be run, so saving is switched off. Click Cancel and send Claude the editing diagnostics.");
+    }
+
+    // ---- input handling: every keystroke is recorded at once; rules run when typing pauses or the box is left ----
+    function readInput(t) {
+      const name = t.dataset.f, f = fieldOf(name), kind = t.dataset.kind; let v;
+      if (kind === "switch") v = t.checked ? t.dataset.on : t.dataset.off;
+      else if (kind === "date") v = t.value ? new Date(t.value.length > 10 ? t.value : t.value + "T00:00").getTime() : null;
+      else if (kind === "number") { const n = Number(String(t.value).replace(/,/g, "").trim()); v = t.value.trim() === "" || !isFinite(n) ? null : n; }
+      else v = t.value === "" ? null : t.value;
+      if ((kind === "choice" || kind === "switch") && v != null && isNum(f)) v = Number(v);
+      return v;
+    }
+    async function runRules() {
+      clearTimeout(typeTimer); typeTimer = null;
+      pending = true;
+      if (running) return;
+      running = true; const my = token;
+      if ($("own")) $("own").classList.add("running");
+      try {
+        while (pending && my === token && S) { pending = false; await settle(); }
+        if (my === token && S) { if (!Object.keys(S.errors).length) st("notice", "Editing " + S.id + ". Nothing is saved until you review and confirm."); render(); }
+      } catch (e) { if (my === token) st("error", "The form's rules could not be run – " + (e.message || e)); }
+      running = false; if ($("own")) $("own").classList.remove("running");
+    }
+    function onEdit(evt) {
+      const t = evt.target, name = t.dataset && t.dataset.f; if (!name || !S || S.locked) return;
+      const v = readInput(t), changed = !same(v, S.values[name]);
+      if (!changed && evt.type === "input") return;
+      S.values[name] = v; if (changed) { S.touched.add(name); S.emptied.delete(name); }
+      if (evt.type === "change") { if (changed || typeTimer) runRules(); }
+      else { clearTimeout(typeTimer); typeTimer = setTimeout(runRules, 600); }
+    }
+    const idle = async () => { if (typeTimer) await runRules(); while (running || pending) await sleep(50); };
+
+    // ---- open, review, save ----
+    async function open(r) {
+      if (!canEdit(r) || ed) return;
+      const my = ++token;
+      document.querySelector("#detail .pane").innerHTML =
+        "<h2>Approval – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
+        '<div class="edBtns" id="edBtns"><span id="edChanged"></span><button type="button" class="btn" id="edRestore" data-restore="*" hidden></button>' +
+        '<button type="button" class="btn" id="edCancel">Cancel</button><button type="button" class="btn go" id="edSave" disabled>Review and save</button></div>' +
+        '<details class="diag"><summary>Editing diagnostics (for Claude)</summary><pre id="edDiag"></pre></details>';
+      $("own").addEventListener("input", (evt) => { const k = evt.target.dataset && evt.target.dataset.kind; if (k === "text" || k === "number") onEdit(evt); });
+      $("own").addEventListener("change", onEdit);
+      const e = ed = { r, own: true, ready: false, timer: null, original: null, touched: { get size() { return e.ready ? diffs().length : 0; } } };
+      try {
+        if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
+        if (!loadedAll) { await webmap.loadAll(); loadedAll = true; }
+        const layer = webmap.allLayers.find((l) => l.title === CFG.editLayer);
+        if (!layer) throw new Error('no layer titled "' + CFG.editLayer + '" in the web map');
+        await layer.load();
+        if (!layer.formTemplate) throw new Error(CFG.editLayer + " has no Map Viewer form");
+        const q = await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
+        if (my !== token || ed !== e) return;
+        if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + r.id + " in " + CFG.editLayer);
+        const feature = q.features[0], tmpl = layer.formTemplate.clone();           // always a copy of the form
+        e.original = { ...feature.attributes };
+        guard(e);
+        const keys = new Map(); let n = 0;
+        S = { id: r.id, layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
+              fields: lower(layer.fields), els: flatten(tmpl), labels: {}, vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, stash: {}, exec: new Map(), memo: new Map(), deps: new Map(),
+              attrKeys: Object.fromEntries(Object.keys(feature.attributes).map((k) => [k.toLowerCase(), k])), runs: 0, dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(), locked: false,
+              key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
+        for (const x of S.els) if (!x.isGroup && x.el.type === "field" && x.el.label) S.labels[x.el.fieldName] = x.el.label;
+        look.map.clear(); look.hits = 0; look.misses = 0; look.on = true;          // repeated reads for this record now come from memory
+        st("notice", "Running the form's rules on the stored record…");
+        await settle();
+        if (my !== token || ed !== e) return;
+        const d = diffs(), errs = Object.entries(S.errors);
+        if (d.length || errs.length) {             // opening check: the rules alone must not change anything, and all of them must run
+          $("edSave").hidden = true;
+          st("error", "Editing is blocked. " + (d.length ? "The form's rules changed " + d.length + " value(s) on the stored record before anything was typed:\n" + d.map((k) => "• " + labelOf(k) + ": " + dispV(k, S.original[k]) + " → " + dispV(k, S.values[k])).join("\n") + "\n" : "") +
+            (errs.length ? errs.length + " rule(s) could not be run:\n" + errs.map(([k, v]) => "• " + k + " → " + v).join("\n") + "\n" : "") + "Nothing was saved. Click Cancel to go back.");
+          S.locked = true; return;
+        }
+        e.ready = true;
+        st("notice", "Editing " + r.id + ". The form opened in step with the stored record. Nothing is saved until you review and confirm.");
+        render();
+      } catch (err) { if (ed === e) { st("error", "The form could not be opened – " + (err.message || err)); const b = $("edSave"); if (b) b.hidden = true; } console.error(err); }
+    }
+    function reset() { token++; clearTimeout(typeTimer); typeTimer = null; pending = false; S = null; look.on = false; look.map.clear(); }
+    function restore(name) {
+      if (!S || S.locked) return;
+      for (const k of name === "*" ? restorable() : [name]) if (S.stash[k] != null && S.values[k] == null) { S.values[k] = S.stash[k]; delete S.stash[k]; S.emptied.delete(k); S.touched.add(k); }
+      runRules();
+    }
+    async function review() {
+      if (!S || S.locked) return;
+      await idle();
+      const p = plan(), miss = missingReq();
+      if (Object.keys(S.errors).length || miss.length || !(p.you.length + p.calc.length + p.emptied.length)) { render(); return; }
+      S.locked = true; S.plan = p;
+      const ul = (items, f) => items.length ? "<ul>" + items.map((x) => "<li>" + esc(f(x)) + "</li>").join("") + "</ul>" : '<p class="small">None.</p>';
+      const line = (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → " + dispV(x.k, x.b);
+      $("edReview").innerHTML = "<h3>Review before saving " + esc(S.id) + "</h3>" +
+        "<div><b>You changed</b>" + ul(p.you, line) + "</div>" +
+        "<div><b>Calculated from your change</b>" + ul(p.calc, line) + "</div>" +
+        '<div><b>Emptied because your change hid them</b> <span class="small">(go back to the form to restore any of these)</span>' + ul(p.emptied, (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → (empty)") + "</div>" +
+        '<div class="edBtns"><span>This writes to the real record. Nothing else is written.</span><button type="button" class="btn" id="edBack">Back to the form</button><button type="button" class="btn go" id="edConfirm">Confirm and save</button></div>';
+      $("edReview").hidden = false; $("edBtns").hidden = true;
+      for (const el of $("own").querySelectorAll("input, select, textarea, button")) el.disabled = true;
+      st("notice", "Review the changes below. Nothing has been saved yet.");
+    }
+    function back() { if (!S) return; S.locked = false; S.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; render(); st("notice", "Editing " + S.id + ". Nothing is saved until you review and confirm."); }
+    async function confirm() {
+      const e = ed; if (!S || !S.plan || !e) return;
+      const p = S.plan, layer = S.layer, s = S;
+      $("edReview").hidden = true;
+      try {
+        guard(e);
+        const efi = layer.editFieldsInfo || {};
+        look.on = false;                    // the checks around a save always go to ArcGIS Online, never to memory
+        if (efi.editDateField) {            // has anyone saved this record since it was opened?
+          const q = await layer.queryFeatures({ objectIds: [s.oid], outFields: [efi.editDateField] });
+          if (normV(q.features[0].attributes[efi.editDateField]) !== normV(s.original[efi.editDateField])) throw new Error("someone saved this record since you opened it. Cancel, reopen it and enter the change again");
+        }
+        const attrs = { [layer.objectIdField]: s.oid };
+        for (const x of p.you.concat(p.calc)) attrs[x.k] = normV(s.values[x.k]);
+        for (const x of p.emptied) attrs[x.k] = null;
+        const keys = Object.keys(attrs).filter((k) => k !== layer.objectIdField);
+        st("notice", "Saving " + keys.length + " field(s)…");
+        const res = await layer.applyEdits({ updateFeatures: [new Graphic({ attributes: attrs })] });
+        const one = res.updateFeatureResults && res.updateFeatureResults[0];
+        if (!one || one.error) throw new Error(one && one.error ? one.error.message : "no result returned");
+        const got = (await layer.queryFeatures({ objectIds: [s.oid], outFields: ["*"] })).features[0].attributes;      // read back and verify
+        const bad = keys.filter((k) => !same(got[k], attrs[k])).map((k) => labelOf(k) + ": wrote " + dispV(k, attrs[k]) + ", the layer holds " + dispV(k, got[k]));
+        const id = s.id, text = keys.map((k) => labelOf(k) + " = " + dispV(k, attrs[k])).join(" · ");
+        saveNote = bad.length ? { id, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
+                              : { id, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + text };
+        closeEdit();
+        try { await reloadRows(); } catch (err) { saveNote.text += "\nThe lists could not be refreshed; reload the page. (" + mask(err.message || err) + ")"; }
+        curTab = EDIT_TAB; renderWork(id);
+      } catch (err) {
+        if (S === s) { look.on = true; S.locked = false; S.plan = null; if ($("edBtns")) $("edBtns").hidden = false; render();
+          st("error", "Save stopped – " + (err.message || err) + ". Nothing was written unless stated above."); }
+        console.error(err);
+      }
+    }
+    return { open, reset, restore, review, back, confirm };
+  })();
+
   async function reloadRows() {
     const q = await appLayer.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: false });
     rows = q.features.map((f) => toRow(f.attributes)); crossChecks(rows);
