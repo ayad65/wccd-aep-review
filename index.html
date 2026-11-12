@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B3c, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B3d, 12 Nov 2026).
     Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -152,7 +152,7 @@
     .ecard > .ebody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
     .ecard.two > .ebody { display: block; columns: 2; column-gap: 28px; }
     .ecard.two > .ebody > * { break-inside: avoid; margin-bottom: 12px; }
-    .ecard .strip { border: 0; padding: 0; }
+    .ecard .strip { border: 0; padding: 0; grid-template-columns: repeat(auto-fit, minmax(min(96px, 100%), 1fr)); }
     .col.tintcol { background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; padding: 12px; }
     .col.tintcol .einfo { background: #fff; }
     details.ecard > summary { cursor: pointer; min-height: 44px; padding: 12px 14px; font-size: 15px; font-weight: 700; }
@@ -243,7 +243,7 @@
             <tbody id="closedRows"></tbody>
           </table></div>
         </details>
-        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Only the Approval tab of a TEST record can save, and only after you review and confirm.</p>
+        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Only the stage tabs of a TEST record can save, and only after you review and confirm.</p>
         <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
       </div>
     </section>
@@ -316,6 +316,9 @@
 
   // ---------------- Load the SDK modules, sign in ----------------
   let sdkVer = "?";
+  // A readable label: the form's label, else the field's alias, else the field name spaced out (also when label or alias is just the raw field name).
+  const prettyName = (k) => String(k).replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^(\w)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
+  const niceLabel = (label, f, name) => (label && label !== name ? label : (f && f.alias && f.alias !== name ? f.alias : prettyName(name)));
   let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "", webmap = null, appLayer = null;
   const look = { on: false, map: new Map(), hits: 0, misses: 0 };
   const lookKey = (p) => { const q = { ...((p.requestOptions && p.requestOptions.query) || {}) }; delete q.token; return String(p.url).split("?")[0] + "|" + JSON.stringify(Object.keys(q).sort().map((k) => [k, q[k]])); };
@@ -531,7 +534,7 @@
       const rowsShown = [];
       for (const it of g.items) { const f = fields[it.field.toLowerCase()], text = show(f, attr(a, it.field));
         if (text != null) filled++;
-        if (text != null || showEmpty) rowsShown.push({ label: it.label || (f && f.alias) || it.field, text }); }
+        if (text != null || showEmpty) rowsShown.push({ label: niceLabel(it.label, f, it.field), text }); }
       if (rowsShown.length) cards.push({ g, rule, order: ri >= 0 ? ri : 100 + g.pos, rows: rowsShown });
     }
     cards.sort((x, y) => x.order - y.order);
@@ -874,7 +877,7 @@
     const st = (cls, text) => edStatus(cls, text);
     const fieldOf = (name) => S.fields[name.toLowerCase()];
     const isNum = (f) => f && /integer|single|double|long/.test(f.type || "");
-    const labelOf = (k) => { const f = fieldOf(k), a = f && f.alias; return S.labels[k] || (a && a !== k ? a : pretty(k)); };
+    const labelOf = (k) => niceLabel(S.labels[k], fieldOf(k), k);
     const dispV = (k, v) => { const f = fieldOf(k), n = normV(v);        // dates are shown with their time of day here, because that is what gets stored
       if (f && f.type === "date" && typeof n === "number") return new Date(n).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
       return show(f, n) ?? "(empty)"; };
