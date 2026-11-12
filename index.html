@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B6a, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B6b, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -144,7 +144,12 @@
     .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
     /* Map tab */
     .mapWrap { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: 12px; align-items: stretch; }
-    #mapHost { height: 520px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); }
+    #mapHost { position: relative; height: 520px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); }
+    #mapInfo { position: absolute; z-index: 5; max-width: 260px; background: #fff; border: 1px solid var(--ink); border-radius: 4px; padding: 10px 34px 10px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+    #mapInfo b { display: block; font-size: 14px; margin-bottom: 2px; } #mapInfo div { margin-top: 2px; }
+    #mapInfo button { position: absolute; top: 0; right: 0; width: 34px; height: 34px; border: 0; background: none; font-size: 18px; cursor: pointer; color: var(--ink); }
+    .pane .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; } .legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { display: inline-block; width: 18px; height: 13px; }
+    .mrow .ty { color: #5E3A00; } .mrow .ty.bad { color: var(--red); font-weight: 600; }
     #mapHost arcgis-map { display: block; width: 100%; height: 100%; }
     #mapList { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-height: 520px; overflow: auto; }
     #mapList h3 { margin: 4px 0 2px; font-size: 14px; }
@@ -605,8 +610,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
+      '<label><input type="checkbox" id="mapIds"> Show IDs of other fields</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
-      '<p>Blue: fields in this application. Grey outline: other fields on the farm. Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+      '<p class="legend"><span><i style="background:rgba(23,69,122,.35);border:2px solid #17457A"></i>In this application</span><span><i style="background:rgba(224,138,30,.4);border:2px solid #5E3A00"></i>Limed and paid inside the three-year window</span>' +
+      '<span><i style="background:rgba(23,69,122,.35);border:3px solid #E08A1E"></i>Both</span><span><i style="background:#fff;border:1px solid #6B747E"></i>Other fields on the farm</span></p><p>Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "rows") {
       if (!fr.rows) return "<h2>Field rows</h2><div class=\"error\">The field rows could not be read: " + esc(fr.error || "unknown reason") + "</div>";
       const mine = fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
@@ -1364,7 +1371,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("q").addEventListener("input", () => { if (!$("home").hidden) renderHome(); else window.location.hash = "#/"; });
   // ================= Map tab: the farm and its fields for the selected application (read-only) =================
   const MAPS = { ready: null, farms: [], fields: [], source: "", mods: null, el: null, byKey: new Map(), error: "" };
-  const normFarm = (v) => String(v ?? "").trim().toUpperCase().replace(/^0+(?=.)/, "");
+  // Farm and field numbers are compared the way the forms' three-year check compares them: letters and digits only, any case; leading zeros of the farm dropped.
+  const normKey = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const normFarm = (v) => normKey(v).replace(/^0+(?=.)/, "");
   const splitFieldId = (id) => { const t = String(id ?? "").trim(), i = t.indexOf("-"); return i < 0 ? [t, ""] : [t.slice(0, i), t.slice(i + 1)]; };
   async function loadPolygons() {          // once per page load: both polygon layers, whole (13 farms, about 200 fields)
     if (MAPS.ready) return MAPS.ready;
@@ -1387,10 +1396,34 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       if (!got.fields) throw new Error("no polygon layer with a FieldID field was found");
       const q = async (l) => l ? (await l.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: true, outSpatialReference: { wkid: 3857 } })).features : [];
       const A = (f, n) => attr(f.attributes, n);
-      MAPS.fields = (await q(got.fields)).map((f) => { const [pre, suf] = splitFieldId(A(f, "FieldID")); return { g: f.geometry, id: A(f, "FieldID"), farm: normFarm(A(f, "FarmID") ?? pre), pre: normFarm(pre), suf: suf.trim(), acres: A(f, "TotalAcresInField") }; });
+      MAPS.fields = (await q(got.fields)).map((f) => { const [pre, suf] = splitFieldId(A(f, "FieldID")); return { g: f.geometry, id: A(f, "FieldID"), farm: normFarm(A(f, "FarmID") ?? pre), pre: normFarm(pre), suf: suf.trim(), key: normKey(suf), acres: A(f, "TotalAcresInField") }; });
       MAPS.farms = (await q(got.farms)).map((f) => ({ g: f.geometry, farm: normFarm(A(f, "FarmID")), name: A(f, "FarmName") }));
     })().catch((e) => { MAPS.error = mask(e.message || e); MAPS.ready = null; throw e; });
     return MAPS.ready;
+  }
+  // Earlier funding of this farm's fields inside the three-year window (rule of eb-three-year-check.md, counting only applications that were limed and paid:
+  // status Approved and stage Closed; Yasser, 9 and 12 Nov). Returns field key -> { used acres, last year, AEP ID, field name as written there }.
+  function earlierFunding(r) {
+    const out = new Map(), farm = normFarm(F.farmNo ? r.a[F.farmNo] : "");
+    const yearOf = (v) => { const m = /(\d{4})/.exec(String(v ?? "")); return m ? Number(m[1]) : null; };
+    const fy = yearOf(attr(r.a, "FiscalYear")), win = Number(attr(r.a, "ThreeYearWindow")) || 3;
+    if (!farm || fy == null || !fr.rows) return { out, fy, win };
+    for (const a of rows) {
+      if (a.id === r.id || a.status !== "Approved" || a.stageN !== 6) continue;
+      if (normFarm(F.farmNo ? a.a[F.farmNo] : "") !== farm) continue;
+      const lime = attr(a.a, "LimeAppliedDate"), yr = lime != null && lime !== "" ? new Date(lime).getFullYear() : yearOf(attr(a.a, "FiscalYear"));
+      if (yr == null || isNaN(yr) || fy - yr >= win) continue;
+      const theirs = fr.rows.filter((x) => normId(x[fr.parent]) === normId(a.gid) && normId(a.gid) !== "" && attr(x, "FieldStatus") === "Included");
+      const sumReq = theirs.reduce((t, x) => t + (Number(attr(x, "TreatedAcresInField")) || 0), 0), appr = num(attr(a.a, "ApprovedAcres"));
+      const ratio = appr != null && sumReq > 0 && appr < sumReq ? appr / sumReq : 1;
+      for (const x of theirs) { const key = normKey(attr(x, "FieldNum")); if (!key) continue;
+        const man = num(attr(x, "ApprovedAcresInField")), acres = man != null ? man : (Number(attr(x, "TreatedAcresInField")) || 0) * ratio;
+        const e = out.get(key) || { used: 0, yr: null, id: "", name: "" };
+        e.used += acres; if (e.yr == null || yr > e.yr) { e.yr = yr; e.id = a.id; e.name = String(attr(x, "FieldNum") ?? ""); }
+        out.set(key, e); }
+    }
+    for (const e of out.values()) e.used = Math.round(e.used * 100) / 100;
+    return { out, fy, win };
   }
   async function initMap(r) {
     const stat = (cls, t) => { const el = $("mapStatus"); if (el) { el.className = cls; el.textContent = t; } };
@@ -1402,46 +1435,80 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       const mine = (fr.rows || []).filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
       const farmPolys = farm ? MAPS.farms.filter((f) => f.farm === farm) : [];
       const onFarm = farm ? MAPS.fields.filter((f) => f.farm === farm || f.pre === farm) : [];
-      const real = onFarm.filter((f) => f.suf !== "9999" && f.id != null && String(f.id).trim() !== "");       // skip whole-farm placeholders and unnamed polygons for matching
-      const rowsInfo = mine.map((x) => { const num = String(attr(x, "FieldNum") ?? "").trim();
-        const hits = real.filter((f) => f.suf.toLowerCase() === num.toLowerCase());
-        return { num, acres: attr(x, "TreatedAcresInField"), status: show(fr.fields.fieldstatus, attr(x, "FieldStatus")), hits }; });
+      const real = onFarm.filter((f) => f.suf !== "9999" && f.key !== "");       // whole-farm placeholders and unnamed polygons are never matched
+      const { out: prior, win } = earlierFunding(r);
+      const rowsInfo = mine.map((x) => { const numTxt = String(attr(x, "FieldNum") ?? "").trim(), key = normKey(numTxt), code = attr(x, "FieldStatus");
+        const hits = key ? real.filter((f) => f.key === key) : [], p = code === "Included" ? prior.get(key) : null;
+        const req = Number(attr(x, "TreatedAcresInField")) || 0, tot = num(attr(x, "TotalAcresInField"));
+        let ty = "", bad = false;
+        if (p) { const was = "Limed " + p.yr + " in " + p.id + (normKey(p.name) === key && p.name !== numTxt ? " as " + p.name : "") + " (" + fmt(p.used) + " ac). ";
+          if (tot == null) ty = was + "Total acres in this field are missing, so the partial-acre check cannot run.";
+          else { const rem = Math.max(0, Math.round((tot - p.used) * 100) / 100); bad = req > rem;
+            ty = was + fmt(rem) + " of " + fmt(tot) + " ac available until FY" + (p.yr + win) + "; this request asks " + fmt(req) + "."; } }
+        return { num: numTxt, key, acres: attr(x, "TreatedAcresInField"), included: code === "Included", status: show(fr.fields.fieldstatus, code), hits, ty, bad, p }; });
       const used = new Set(rowsInfo.flatMap((x) => x.hits));
-      const layer = new GraphicsLayer(), gs = [], byNum = new Map();
+      const layer = new GraphicsLayer(), idLayer = new GraphicsLayer(), gs = [], idGs = [], byNum = new Map(), info = [];
+      idLayer.visible = !!($("mapIds") && $("mapIds").checked);
       const fill = (c, o) => ({ type: "simple-fill", color: c, outline: o });
+      const text = (t, c) => ({ type: "text", text: t, color: c, haloColor: [255, 255, 255, 1], haloSize: 2, font: { size: 11, weight: "bold" } });
+      const center = (g) => g && (g.centroid || (g.extent && g.extent.center));
+      const tyLine = (p) => "Limed and paid " + p.yr + " in " + p.id + " (" + fmt(p.used) + " ac).";
       for (const f of farmPolys) gs.push(new G({ geometry: f.g, symbol: fill([0, 0, 0, 0], { color: [26, 29, 33, 1], width: 2 }) }));
-      for (const f of onFarm.filter((f) => !used.has(f))) gs.push(new G({ geometry: f.g, symbol: fill([255, 255, 255, 0.15], { color: [107, 116, 126, 1], width: 1 }), attributes: { label: f.suf || "" } }));
-      for (const x of rowsInfo) for (const f of x.hits) { const g = new G({ geometry: f.g, symbol: fill([23, 69, 122, 0.35], { color: [23, 69, 122, 1], width: 2.5 }), attributes: { num: x.num } }); gs.push(g); if (!byNum.has(x.num)) byNum.set(x.num, []); byNum.get(x.num).push(g);
-        const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: x.num + (x.acres != null ? " · " + fmt(Number(x.acres)) + " ac" : ""), color: [14, 44, 80, 1], haloColor: [255, 255, 255, 1], haloSize: 2, font: { size: 11, weight: "bold" } } })); }
-      layer.addMany(gs);
+      for (const f of onFarm.filter((f) => !used.has(f))) { const p = f.key && f.suf !== "9999" ? prior.get(f.key) : null;
+        info.push({ id: f.id, acres: f.acres, inApp: "Not in this application", ty: p ? tyLine(p) : "", num: null });
+        gs.push(new G({ geometry: f.g, symbol: p ? fill([224, 138, 30, 0.4], { color: [94, 58, 0, 1], width: 2 }) : fill([255, 255, 255, 0.15], { color: [107, 116, 126, 1], width: 1 }), attributes: { pi: info.length - 1 } }));
+        const c = center(f.g); if (c && f.suf) idGs.push(new G({ geometry: c, symbol: text(f.suf, [43, 49, 56, 1]) })); }
+      for (const x of rowsInfo) for (const f of x.hits) {
+        info.push({ id: f.id, acres: f.acres, inApp: (x.status || "In this application") + (x.acres != null ? ", " + fmt(Number(x.acres)) + " ac treated" : ""), ty: x.ty, bad: x.bad, num: x.num });
+        const g = new G({ geometry: f.g, symbol: fill([23, 69, 122, 0.35], x.p ? { color: [224, 138, 30, 1], width: 3.5 } : { color: [23, 69, 122, 1], width: 2.5 }), attributes: { pi: info.length - 1 } });
+        gs.push(g); if (!byNum.has(x.num)) byNum.set(x.num, []); byNum.get(x.num).push(g);
+        const c = center(f.g); if (c) gs.push(new G({ geometry: c, symbol: text(x.num + (x.acres != null ? " · " + fmt(Number(x.acres)) + " ac" : ""), [14, 44, 80, 1]) })); }
+      layer.addMany(gs); idLayer.addMany(idGs);
       const host = $("mapHost"); host.innerHTML = "";
       const targets = gs.filter((g) => g.geometry && g.geometry.type === "polygon");
+      const hideInfo = () => { const b = $("mapInfo"); if (b) b.remove(); };
+      const deselect = () => { for (const b of $("mapList").querySelectorAll(".mrow")) b.classList.remove("on"); };
+      let el = null;
+      const zoomAll = () => { try { el && el.goTo && el.goTo(targets).catch(() => {}); } catch { /* not ready */ } };
+      const select = (numTxt, zoom) => { for (const b of $("mapList").querySelectorAll(".mrow")) b.classList.toggle("on", b.dataset.num === numTxt && !b.dataset.all);
+        if (zoom && byNum.has(numTxt)) { try { el.goTo(byNum.get(numTxt)).catch(() => {}); } catch { /* ignore */ } } };
+      const showInfo = (it, x, y) => { hideInfo();       // our own small box, placed at the click
+        const b = document.createElement("div"); b.id = "mapInfo";
+        b.innerHTML = '<button type="button" aria-label="Close">×</button><b>' + esc(it.id ?? "(no field ID)") + "</b><div>" + (it.acres != null && it.acres !== "" ? esc(fmt(Number(it.acres))) + " ac in the field (map layer)" : "Acres not recorded on the map layer") + "</div><div>" + esc(it.inApp) + "</div>" +
+          (it.ty ? '<div style="color:' + (it.bad ? "var(--red)" : "#5E3A00") + ';font-weight:600">' + esc(it.ty) + "</div>" : "");
+        host.appendChild(b);
+        b.style.left = Math.max(4, Math.min(x + 10, host.clientWidth - b.offsetWidth - 4)) + "px"; b.style.top = Math.max(4, Math.min(y + 10, host.clientHeight - b.offsetHeight - 4)) + "px";
+        b.querySelector("button").onclick = hideInfo; };
       if (targets.length) {
-        const el = document.createElement("arcgis-map"); MAPS.el = el;
-        el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] });
+        el = document.createElement("arcgis-map"); MAPS.el = el;
+        el.map = new MapCls({ basemap: webmap.basemap, layers: [layer, idLayer] });
         host.appendChild(el);
-        const zoomAll = () => { try { el.goTo && el.goTo(targets).catch(() => {}); } catch { /* not ready */ } };
         el.addEventListener("arcgisViewReadyChange", zoomAll); setTimeout(zoomAll, 1500);
-        el.addEventListener("arcgisViewClick", async (evt) => { try { const hit = await el.hitTest(evt.detail);
-          const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.num != null);
-          if (g) select(g.attributes.num, false); } catch { /* clicking the map is optional */ } });
-        const select = (num, zoom) => { for (const b of $("mapList").querySelectorAll(".mrow")) b.classList.toggle("on", b.dataset.num === num);
-          if (zoom && byNum.has(num)) { try { el.goTo(byNum.get(num)).catch(() => {}); } catch { /* ignore */ } } };
-        $("mapList").onclick = (e) => { const b = e.target.closest(".mrow"); if (!b) return; if (b.dataset.all) { for (const x of $("mapList").querySelectorAll(".mrow")) x.classList.remove("on"); zoomAll(); } else if (!b.disabled) select(b.dataset.num, true); };
-      } else host.innerHTML = '<div style="padding:16px;font-size:14px">' + esc(farm ? "No farm or field polygon was found for Farm # " + farmNo + "." : "This application has no Farm #, so its farm cannot be looked up.") + "</div>";
-      const found = rowsInfo.filter((x) => x.hits.length).length;
+        el.addEventListener("arcgisViewClick", async (evt) => { try { const d = evt.detail, hit = await el.hitTest(d);
+          const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.pi != null);
+          if (!g) { deselect(); hideInfo(); return; }               // a click on no field clears the selection
+          const it = info[g.attributes.pi]; if (it.num != null) select(it.num, false); else deselect();
+          showInfo(it, d.x ?? (d.screenPoint && d.screenPoint.x) ?? 20, d.y ?? (d.screenPoint && d.screenPoint.y) ?? 20); } catch (e) { console.warn("map click", e); } });
+        el.addEventListener("arcgisViewDrag", hideInfo);
+      } else host.innerHTML = '<div style="padding:16px;font-size:14px">' + esc(farm ? "No farm or field polygon was found for Farm # " + farmNo + ", so the fields cannot be placed on a map." : "This application has no Farm #, so its farm cannot be looked up.") + "</div>";
+      if ($("mapIds")) $("mapIds").onchange = (e) => { idLayer.visible = e.target.checked; };
+      $("mapList").onclick = (e) => { const b = e.target.closest(".mrow"); if (!b) return; hideInfo(); if (b.dataset.all) { deselect(); zoomAll(); } else if (!b.disabled) select(b.dataset.num, true); };
+      const noFarm = !farmPolys.length && !onFarm.length, found = rowsInfo.filter((x) => x.hits.length).length;
       $("mapList").innerHTML = "<h3>Fields in this application (" + rowsInfo.length + ")</h3>" +
-        (rowsInfo.map((x) => '<button type="button" class="mrow' + (x.hits.length ? "" : " miss") + '" data-num="' + esc(x.num) + '"' + (x.hits.length ? "" : " disabled") + "><b>" + esc(x.num || "(no field number)") + "</b>" +
+        (rowsInfo.map((x) => { const miss = !x.hits.length && !noFarm;
+          return '<button type="button" class="mrow' + (miss ? " miss" : "") + '" data-num="' + esc(x.num) + '"' + (x.hits.length ? "" : " disabled") + "><b>" + esc(x.num || "(no field number)") + "</b>" +
           "<span>" + (x.acres != null ? esc(fmt(Number(x.acres))) + " ac treated" : "acres not entered") + (x.status ? " · " + esc(x.status) : "") + "</span>" +
-          "<span>" + (x.hits.length === 1 ? "On the map" : x.hits.length ? "On the map (" + x.hits.length + " polygons share this ID)" : "Not found on the map") + "</span></button>").join("") || '<span class="none">No field rows.</span>') +
+          "<span>" + (x.hits.length === 1 ? "On the map" : x.hits.length ? "On the map (" + x.hits.length + " polygons share this ID)" : noFarm ? "Farm has no polygon" : "Not found on the map") + "</span>" +
+          (x.ty ? '<span class="ty' + (x.bad ? " bad" : "") + '">' + esc(x.ty) + "</span>" : "") + "</button>"; }).join("") || '<span class="none">No field rows.</span>') +
         (targets.length ? '<button type="button" class="mrow" data-all="1"><b>Whole farm</b><span>Zoom to everything shown</span></button>' : "");
-      const unnamed = onFarm.filter((f) => f.id == null || String(f.id).trim() === "").length, place = onFarm.filter((f) => f.suf === "9999").length;
-      stat(found === rowsInfo.length && rowsInfo.length ? "notice" : "notice", farmPolys.length || onFarm.length
-        ? "Farm # " + farmNo + ": " + found + " of " + rowsInfo.length + " field row(s) found on the map. " + (onFarm.length - used.size) + " other polygon(s) on this farm" + (unnamed ? ", " + unnamed + " of them without a field ID" : "") + "."
-        : (farm ? "No polygons for Farm # " + farmNo + " in the farms layer." : "No Farm # on this application."));
+      const unnamed = onFarm.filter((f) => f.key === "").length, place = onFarm.filter((f) => f.suf === "9999").length, amber = onFarm.filter((f) => f.key && f.suf !== "9999" && prior.has(f.key)).length;
+      stat("notice", noFarm ? (farm ? "No polygons for Farm # " + farmNo + " in the farms layer. The three-year notes in the list still apply." : "No Farm # on this application.")
+        : "Farm # " + farmNo + ": " + found + " of " + rowsInfo.length + " field row(s) found on the map. " + (onFarm.length - used.size) + " other polygon(s) on this farm" + (unnamed ? ", " + unnamed + " of them without a field ID" : "") + ". " +
+          (amber ? amber + " field(s) limed and paid inside the three-year window." : "No field on this farm was limed and paid inside the three-year window."));
       $("mapDiag").textContent = ["Polygons from " + MAPS.source + ": " + MAPS.farms.length + " farms, " + MAPS.fields.length + " fields", "Farm # on the application: " + JSON.stringify(farmNo) + " → compared as " + JSON.stringify(farm),
         "Farm polygons matched: " + farmPolys.length + (farmPolys.length ? " (" + farmPolys.map((f) => f.name).join("; ") + ")" : ""), "Field polygons on this farm: " + onFarm.length + " (placeholders -9999: " + place + ", without ID: " + unnamed + ")",
-        "IDs on this farm: " + onFarm.map((f) => f.id ?? "(none)").join(", "), "Field rows: " + rowsInfo.map((x) => x.num + " → " + (x.hits.map((f) => f.id).join(" / ") || "no match")).join("; "),
+        "Field rows: " + rowsInfo.map((x) => x.num + " → " + (x.hits.map((f) => f.id).join(" / ") || "no match")).join("; "),
+        "Three-year window " + win + "; earlier funding (limed and paid) on this farm: " + ([...prior].map(([k, e]) => k + " = " + e.used + " ac in " + e.yr + ", " + e.id).join("; ") || "none"),
         "Farm IDs in the layer: " + [...new Set(MAPS.farms.map((f) => f.farm))].join(", ")].join("\n");
     } catch (e) { stat("error", "The map could not be loaded – " + mask(e.message || e)); console.error(e); }
   }
