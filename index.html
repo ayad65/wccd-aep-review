@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B3b, 11 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B3c, 12 Nov 2026).
     Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
-    ArcGIS Maps SDK for JavaScript pinned to 5.1. Components only, no SDK widgets.
+    ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+  <script type="module" src="https://js.arcgis.com/5.2/"></script>
   <style>
     :root { --ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
             --red:#8A1515; --red-bg:#FBE4E4; --amber:#E08A1E;
@@ -315,6 +315,7 @@
   };
 
   // ---------------- Load the SDK modules, sign in ----------------
+  let sdkVer = "?";
   let rows = [], F = {}, statusLabel = {}, missing = [], layerInfo = "", webmap = null, appLayer = null;
   const look = { on: false, map: new Map(), hits: 0, misses: 0 };
   const lookKey = (p) => { const q = { ...((p.requestOptions && p.requestOptions.query) || {}) }; delete q.token; return String(p.url).split("?")[0] + "|" + JSON.stringify(Object.keys(q).sort().map((k) => [k, q[k]])); };
@@ -354,6 +355,7 @@
     const portal = new Portal({ url: CFG.portalUrl, authMode: "immediate" });
     await portal.load();
     $("user").textContent = "Signed in as " + portal.user.fullName;
+    try { const k = await $arcgis.import("@arcgis/core/kernel.js"); sdkVer = (k && (k.fullVersion || k.version)) || "?"; } catch { sdkVer = "?"; }
     $("signOut").hidden = false;
     $("signOut").addEventListener("click", () => { esriId.destroyCredentials(); window.location.href = window.location.pathname; });
 
@@ -1114,15 +1116,15 @@
       if ((kind === "choice" || kind === "switch") && v != null && isNum(f)) v = Number(v);
       return v;
     }
-    // Dates are stored the way Esri's picker stores them (read on the test page, 11 Nov): changing the day keeps the stored time of day;
-    // a date typed into an empty field takes the time on the clock. One addition: if the box was emptied and refilled, the record's own time of day is used.
+    // Dates (Yasser, 12 Nov): a date without a time is stored at 12:00 noon, whatever the clock says. This differs on purpose from Esri's picker,
+    // which keeps the old time of day or uses the clock. Picking the day a field already holds leaves its stored value untouched.
     function dateValue(name, text) {
       if (!text) return null;
       const m = /^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/.exec(text); if (!m) return S.values[name] ?? null;
-      const baseMs = normV(S.values[name]) ?? normV(S.original[name]), base = baseMs != null ? new Date(baseMs) : new Date();
-      const d = m[4] != null ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], base.getSeconds(), base.getMilliseconds())
-                             : new Date(+m[1], +m[2] - 1, +m[3], base.getHours(), base.getMinutes(), base.getSeconds(), base.getMilliseconds());
-      return d.getTime();
+      if (m[4] != null) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0, 0).getTime();       // a box that has a time: exactly what was typed
+      const sameDay = (ms) => { if (ms == null) return false; const d = new Date(ms); return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3]; };
+      for (const keep of [normV(S.values[name]), normV(S.original[name])]) if (sameDay(keep)) return keep;
+      return new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0, 0).getTime();
     }
     async function runRules() {
       clearTimeout(typeTimer); typeTimer = null;
@@ -1284,7 +1286,7 @@
   $("diag").innerHTML = "<p>" + esc(layerInfo) + ".</p><p>" +
     (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p><p>Worklist: " +
     esc(TABS.filter((t) => t.layer).map((t) => t.label + (forms[t.key].error ? " – NOT READ (" + forms[t.key].error + ")" : " – " + forms[t.key].list.length + " form fields" + (forms[t.key].noForm ? " (no form; all fields)" : " in groups [" + groupsOf(forms[t.key].list).map((g) => g.name + " " + g.items.length).join(", ") + "]"))).join("; ")) +
-    "; Field rows – " + esc(fr.rows ? fr.rows.length + " rows read" : "NOT READ (" + fr.error + ")") + ".</p>";
+    "; Field rows – " + esc("SDK " + sdkVer + " · ") + esc(fr.rows ? fr.rows.length + " rows read" : "NOT READ (" + fr.error + ")") + ".</p>";
   window.addEventListener("hashchange", route);
   $("status").hidden = true;
   route();
