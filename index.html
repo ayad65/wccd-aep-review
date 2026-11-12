@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B3d, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B4a, 12 Nov 2026).
     Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -142,6 +142,14 @@
     .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px 16px; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
     .strip .fig { display: flex; flex-direction: column; justify-content: space-between; }
     .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
+    /* New application panel */
+    .intake { position: fixed; inset: 0; z-index: 50; background: rgba(26, 29, 33, .55); display: flex; justify-content: center; align-items: stretch; padding: 16px; }
+    .intakeBox { background: #fff; border-radius: 4px; width: min(1100px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; min-height: 0; }
+    .intakeHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; }
+    .intakeHead h2 { font-size: 20px; } .intakeLinks { display: flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 600; }
+    #intakeForm { flex: 1 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 4px; }
+    #intakeForm iframe { display: block; width: 100%; min-height: 100%; border: 0; }
+    #intakeDone button { margin: 8px 8px 0 0; }
     /* Editing with our own inputs */
     #own { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
     #own.running .einfo, #own.running .calcfld { opacity: .5; }
@@ -226,7 +234,7 @@
           <div><h1>All applications</h1><p id="summary"></p></div>
           <button type="button" class="primary" id="newApp">New application</button>
         </div>
-        <div id="newAppNote" class="notice" hidden>The intake survey will open here. It is the next part to be built; for now, new applications are still entered in Survey123.</div>
+        <div id="newAppNote" class="okmsg" hidden></div>
         <div class="filters">
           <label for="fy">Fiscal year <select id="fy"></select></label>
           <label for="st">Stage <select id="st"></select></label>
@@ -259,6 +267,20 @@
   </main>
 </div>
 
+<!-- New application: the intake survey in a panel -->
+<div id="intake" class="intake" role="dialog" aria-modal="true" aria-labelledby="intakeTitle" hidden>
+  <div class="intakeBox">
+    <div class="intakeHead">
+      <h2 id="intakeTitle">New application · intake survey</h2>
+      <span class="intakeLinks"><a id="intakeTab" href="#" target="_blank" rel="noopener" hidden>Open in a new tab</a>
+        <button type="button" class="btn" id="intakeClose">Close</button></span>
+    </div>
+    <div id="intakeStatus" class="notice">Opening the intake survey…</div>
+    <div id="intakeDone" class="okmsg" hidden></div>
+    <div id="intakeForm"></div>
+  </div>
+</div>
+
 <script type="module">
   // ---------------- Settings ----------------
   const CFG = {
@@ -266,6 +288,7 @@
     portalUrl: "https://clarion.maps.arcgis.com",
     mapTitle: "WCCD AEP Review (EB)",
     layerTitle: "Applications",
+    intakeTitle: "WCCD Ag Lime Applications Intake",     // the published intake survey behind "New application" (found by title)
     viewOnly: ["AEP63-25-002"],                       // Campbell: never saved from this app
     editable: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"],   // the only records this app may save, while both apps are evaluated
     editLayer: "App-Approval",
@@ -315,7 +338,7 @@
   };
 
   // ---------------- Load the SDK modules, sign in ----------------
-  let sdkVer = "?";
+  let sdkVer = "?", esriIdRef = null, portalRef = null;
   // A readable label: the form's label, else the field's alias, else the field name spaced out (also when label or alias is just the raw field name).
   const prettyName = (k) => String(k).replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^(\w)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
   const niceLabel = (label, f, name) => (label && label !== name ? label : (f && f.alias && f.alias !== name ? f.alias : prettyName(name)));
@@ -356,6 +379,7 @@
     const sharing = CFG.portalUrl + "/sharing";
     try { await esriId.checkSignInStatus(sharing); } catch { await esriId.getCredential(sharing); }
     const portal = new Portal({ url: CFG.portalUrl, authMode: "immediate" });
+    esriIdRef = esriId; portalRef = portal;
     await portal.load();
     $("user").textContent = "Signed in as " + portal.user.fullName;
     try { const k = await $arcgis.import("@arcgis/core/kernel.js"); sdkVer = (k && (k.fullVersion || k.version)) || "?"; } catch { sdkVer = "?"; }
@@ -1285,7 +1309,61 @@
   $("st").innerHTML = '<option value="0">All stages</option>' + STAGES.map((s, i) => '<option value="' + (i + 1) + '">' + s + "</option>").join("");
   for (const id of ["fy", "st", "onlyAtt"]) $(id).addEventListener("change", renderHome);
   $("q").addEventListener("input", () => { if (!$("home").hidden) renderHome(); else window.location.hash = "#/"; });
-  $("newApp").addEventListener("click", () => { $("newAppNote").hidden = !$("newAppNote").hidden; });
+  // ---------------- New application: the published intake survey, embedded with Esri's Survey123 web form script ----------------
+  const intake = { item: null, form: null, loaded: false, submitted: false, before: null };
+  const inStatus = (cls, text) => { const el = $("intakeStatus"); el.hidden = !text; el.className = cls; el.textContent = mask(text || ""); };
+  const loadScript = (src) => new Promise((res, rej) => { if (window.Survey123WebForm) return res();
+    const sc = document.createElement("script"); sc.src = src; sc.onload = () => res(); sc.onerror = () => rej(new Error("the Survey123 script did not load")); document.head.appendChild(sc); });
+  async function openIntake() {
+    $("intake").hidden = false; $("intakeDone").hidden = true; $("intakeForm").innerHTML = ""; $("newAppNote").hidden = true;
+    intake.loaded = false; intake.submitted = false; intake.before = new Set(rows.map((r) => r.id));
+    inStatus("notice", "Opening the intake survey…");
+    try {
+      if (!intake.item) {
+        const res = await portalRef.queryItems({ query: 'title:"' + CFG.intakeTitle + '" AND type:"Form"', num: 20 });
+        const hits = res.results.filter((i) => i.title === CFG.intakeTitle);
+        if (hits.length !== 1) throw new Error(hits.length + ' surveys titled "' + CFG.intakeTitle + '" were found (exactly one is needed)');
+        intake.item = hits[0];
+      }
+      const tab = $("intakeTab"); tab.href = "https://survey123.arcgis.com/share/" + intake.item.id + "?portalUrl=" + encodeURIComponent(CFG.portalUrl); tab.hidden = false;
+      await loadScript("https://survey123.arcgis.com/api/jsapi/");
+      if (!window.Survey123WebForm) throw new Error("the Survey123 script loaded but is not usable");
+      const cred = await esriIdRef.getCredential(CFG.portalUrl + "/sharing");      // the sign-in already held by this page; handed to Esri's survey page, never shown
+      if ($("intake").hidden) return;
+      intake.form = new window.Survey123WebForm({
+        clientId: CFG.clientId, container: "intakeForm", itemId: intake.item.id, portalUrl: CFG.portalUrl, token: cred.token,
+        onFormLoaded: () => { intake.loaded = true; inStatus("notice", "Survey loaded. Submitting it creates a real application record."); },
+        onFormSubmitted: (data) => { intakeSubmitted(data); }
+      });
+      setTimeout(() => { if (!$("intake").hidden && !intake.loaded && !intake.submitted) inStatus("notice", "Still loading… If the survey does not appear or asks you to sign in and cannot, use “Open in a new tab” above."); }, 12000);
+    } catch (e) { inStatus("error", "The intake survey could not be opened here – " + (e.message || e) + ". " + ($("intakeTab").hidden ? "" : "Use “Open in a new tab” above instead.")); console.error(e); }
+  }
+  async function intakeSubmitted(data) {
+    intake.submitted = true;
+    inStatus("notice", "Submitted. Refreshing the list…");
+    let made = [];
+    try { await reloadRows(); made = rows.filter((r) => !intake.before.has(r.id)); renderHome(); } catch (e) { console.error(e); }
+    let sent = ""; try { const f = data && data.surveyFeatureSet && data.surveyFeatureSet.features && data.surveyFeatureSet.features[0]; sent = (f && f.attributes && f.attributes[F.id]) || ""; } catch { /* not needed */ }
+    const id = (made[0] && made[0].id) || sent;
+    inStatus("", "");
+    const d = $("intakeDone"); d.hidden = false;
+    d.innerHTML = "<div>Application created" + (id ? ": <b>" + esc(id) + "</b>" : " (the list did not show a new record yet; close and reload the page)") + ".</div>" +
+      (made[0] ? '<button type="button" class="btn go" id="intakeOpen" data-id="' + esc(made[0].id) + '">Open it in the Worklist</button>' : "") +
+      '<button type="button" class="btn" id="intakeAgain">Enter another</button>';
+    $("intakeForm").innerHTML = "";
+    $("newAppNote").hidden = false; $("newAppNote").textContent = "Application created" + (id ? ": " + id : "") + ".";
+  }
+  function closeIntake() {
+    if (intake.loaded && !intake.submitted && !window.confirm("Close the survey? Anything typed into it and not submitted is lost.")) return;
+    $("intake").hidden = true; $("intakeForm").innerHTML = ""; intake.form = null;
+  }
+  $("newApp").addEventListener("click", openIntake);
+  $("intakeClose").addEventListener("click", closeIntake);
+  $("intake").addEventListener("click", (e) => {
+    if (e.target.id === "intakeAgain") openIntake();
+    else if (e.target.id === "intakeOpen") { const id = e.target.dataset.id; $("intake").hidden = true; window.location.hash = "#/work/" + encodeURIComponent(id); }
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("intake").hidden) closeIntake(); });
   $("diag").innerHTML = "<p>" + esc(layerInfo) + ".</p><p>" +
     (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p><p>Worklist: " +
     esc(TABS.filter((t) => t.layer).map((t) => t.label + (forms[t.key].error ? " – NOT READ (" + forms[t.key].error + ")" : " – " + forms[t.key].list.length + " form fields" + (forms[t.key].noForm ? " (no form; all fields)" : " in groups [" + groupsOf(forms[t.key].list).map((g) => g.name + " " + g.items.length).join(", ") + "]"))).join("; ")) +
