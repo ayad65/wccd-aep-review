@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B6c, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B7a, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -150,6 +150,11 @@
     #mapInfo.other { background: #EEF0F2; border-color: #9AA1A9; color: #5A626B; font-size: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.15); } #mapInfo.other b { font-weight: 400; font-size: 13px; }
     #mapInfo button { position: absolute; top: 0; right: 0; width: 34px; height: 34px; border: 0; background: none; font-size: 18px; cursor: pointer; color: var(--ink); }
     .pane .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; } .legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { display: inline-block; width: 18px; height: 13px; }
+    .docWrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin: 12px 0; } @media (max-width: 900px) { .docWrap { grid-template-columns: 1fr; } }
+    .dgrp { border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 10px 14px; margin-bottom: 12px; } .dgrp h3 { margin: 0 0 4px; font-size: 14px; } .dgrp .none { font-size: 13px; }
+    .dfile { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; } .dfile:first-of-type { border-top: 0; }
+    .dfile div { flex: 1; min-width: 0; overflow-wrap: anywhere; } .dfile small { display: block; color: var(--muted); } .dfile .btn { height: 36px; padding: 0 14px; }
+    .dcol > h3 { margin: 0 0 8px; font-size: 15px; } .dmiss { color: var(--red); font-weight: 600; font-size: 14px; margin: 8px 0 0; }
     .mrow .ty { color: #5E3A00; } .mrow .ty.bad { color: var(--red); font-weight: 600; }
     #mapHost arcgis-map { display: block; width: 100%; height: 100%; }
     #mapList { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-height: 520px; overflow: auto; }
@@ -331,7 +336,7 @@
   const TABS = [
     { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows" },
     { key: "appr", label: "Approval", layer: "App-Approval" }, { key: "agr", label: "Agreement", layer: "App-Agreement" },
-    { key: "cvf", label: "Cost verification", layer: "App-CVF" }, { key: "map", label: "Map" }
+    { key: "cvf", label: "Cost verification", layer: "App-CVF" }, { key: "map", label: "Map" }, { key: "docs", label: "Documents" }
   ];
   const ROWS_TABLE = "Field Rows";
   const ROW_COLS = [["FieldNum", "Field"], ["FieldStatus", "Status"], ["TreatedAcresInField", "Treated acres"], ["TotalAcresInField", "Total acres"],
@@ -610,6 +615,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
+    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docBody"></div>' +
+      '<p>Read-only; nothing here is saved. Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
@@ -683,13 +690,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     d.innerHTML =
       '<div class="dhead"><div><small>' + esc(r.id + " · " + r.fy + " · " + (farm ? "Farm # " + farm : "no Farm #")) + "</small><h1>" + esc(r.applicant || "(no applicant name)") + "</h1><p>" + esc(line) + "</p>" +
         (r.viewOnly ? '<p style="margin-top:8px"><span class="tag">View only</span></p>' : "") + "</div>" +
-        '<div class="later"><button type="button" disabled>Documents · later</button></div></div>' +
+        '</div>' +
       '<ol class="steps" aria-label="Stage ' + r.stageN + " of 6, " + STAGES[r.stageN - 1] + '">' + steps + "</ol>" +
       '<div class="figs">' + figs + "</div>" +
       '<div class="flags">' + (msgsHtml(r) || '<span class="none">Nothing to flag</span>') + "</div>" +
       '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + t.label + "</button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
     if (curTab === "map") initMap(r);
+    if (curTab === "docs") initDocs(r);
   }
   $("detail").addEventListener("click", (e) => {
     const b = e.target.closest("[data-tab]");
@@ -1513,6 +1521,61 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         "Farm IDs in the layer: " + [...new Set(MAPS.farms.map((f) => f.farm))].join(", ")].join("\n");
     } catch (e) { stat("error", "The map could not be loaded – " + mask(e.message || e)); console.error(e); }
   }
+
+  // ---------------- Documents tab (look only): the files attached to the application and to its field rows ----------------
+  const DOC_GROUPS = [["cvf", "Cost verification packet", /cvf|cost|invoice|receipt/i], ["agr", "Agreement", /agree/i], ["lab", "Lab reports", /lab|soil/i],
+                      ["app", "Application packet", /app|packet|intake/i], ["other", "Other files", /./]];
+  let docFiles = [];
+  const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  const canAttach = (l) => !!(l && typeof l.queryAttachments === "function" && (l.capabilities?.data?.supportsAttachment || l.hasAttachments));
+  async function initDocs(r) {
+    const stat = (cls, t) => { const el = $("docStatus"); if (el) { el.className = cls; el.textContent = t; } };
+    try {
+      const diag = [], oid = r.a[appLayer.objectIdField];
+      let appFiles = [], rowFiles = new Map(), rowsOk = false;
+      const appOk = canAttach(appLayer);
+      if (appOk && oid != null) { const res = await appLayer.queryAttachments({ objectIds: [oid] }); appFiles = (res && res[oid]) || []; }
+      const mine = (fr.rows || []).filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
+      if (canAttach(fr.table) && mine.length) { rowsOk = true; const ids = mine.map((x) => x[fr.oidField]);
+        const res = await fr.table.queryAttachments({ objectIds: ids }); for (const id of ids) rowFiles.set(String(id), (res && res[id]) || []); }
+      if (curTab !== "docs" || curId !== r.id || !$("docBody")) return;
+      docFiles = [];
+      const kw = (f) => String(Array.isArray(f.keywords) ? f.keywords.join(", ") : f.keywords ?? "").trim();
+      const fileHtml = (f) => { docFiles.push(f); return '<div class="dfile"><div>' + esc(f.name || "(no name)") + "<small>" + esc([sizeText(f.size), f.contentType, kw(f) ? "keyword " + kw(f) : "no keyword"].filter(Boolean).join(" · ")) + '</small></div><button type="button" class="btn" data-doc="' + (docFiles.length - 1) + '">Open</button></div>'; };
+      const buckets = Object.fromEntries(DOC_GROUPS.map(([k]) => [k, []]));
+      for (const f of appFiles) { const k = kw(f); buckets[k ? DOC_GROUPS.find(([, , re]) => re.test(k))[0] : "other"].push(f); }
+      const grp = (title, list) => '<div class="dgrp"><h3>' + esc(title) + " (" + list.length + ")</h3>" + (list.map(fileHtml).join("") || '<span class="none">No file attached.</span>') + "</div>";
+      const left = '<div class="dcol"><h3>Application files</h3>' + (appOk ? ["app", "agr", "cvf", "lab", "other"].filter((k) => k !== "lab" || buckets.lab.length).map((k) => grp(DOC_GROUPS.find((g) => g[0] === k)[1], buckets[k])).join("")
+        : '<div class="dgrp"><span class="none">This layer does not offer attachments.</span></div>') + "</div>";
+      const right = '<div class="dcol"><h3>Files on the field rows</h3>' + (!rowsOk ? '<div class="dgrp"><span class="none">' + (mine.length ? "The field rows table does not offer attachments; lab reports are kept with the application." : "No field rows.") + "</span></div>"
+        : mine.map((x) => grp("Field " + (attr(x, "FieldNum") ?? "(no number)"), rowFiles.get(String(x[fr.oidField])) || [])).join("")) + "</div>";
+      const miss = [];
+      if (appOk) { if (r.stageN > 4 && r.status === "Approved" && !buckets.agr.length) miss.push("Past Agreement, but no agreement file is attached.");
+        if (r.stageN >= 6 && r.status === "Approved" && !buckets.cvf.length) miss.push("Closed, but no cost verification packet is attached."); }
+      $("docBody").innerHTML = miss.map((m) => '<p class="dmiss">' + esc(m) + "</p>").join("") + '<div class="docWrap">' + left + right + "</div>";
+      const nRow = [...rowFiles.values()].reduce((t, l) => t + l.length, 0);
+      stat("notice", appFiles.length + " file(s) on the application" + (rowsOk ? ", " + nRow + " on its " + mine.length + " field row(s)." : "."));
+      diag.push("Applications layer \"" + appLayer.title + "\": attachments " + (appOk ? "offered" : "NOT offered") + "; OBJECTID " + oid,
+        "Field rows table: attachments " + (rowsOk ? "offered" : canAttach(fr.table) ? "offered (no rows)" : "NOT offered") + "; rows " + mine.length,
+        "Application files:", ...(appFiles.map((f) => "  " + f.name + " | " + f.contentType + " | " + sizeText(f.size) + " | keywords: " + (kw(f) || "(none)")).concat(appFiles.length ? [] : ["  (none)"])),
+        "Field row files:", ...mine.flatMap((x) => (rowFiles.get(String(x[fr.oidField])) || []).map((f) => "  " + attr(x, "FieldNum") + ": " + f.name + " | " + f.contentType + " | keywords: " + (kw(f) || "(none)"))));
+      $("docDiag").textContent = mask(diag.join("\n"));
+    } catch (e) { stat("error", "The files could not be read – " + mask(e.message || e)); console.error(e); }
+  }
+  // Open one file: the app fetches it (signed in) and shows the copy, so no link on the page carries a sign-in token.
+  $("detail").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-doc]"); if (!b) return;
+    const f = docFiles[Number(b.dataset.doc)]; if (!f) return;
+    const inTab = /pdf|^image\//i.test(f.contentType || ""), w = inTab ? window.open("", "_blank") : null, old = b.textContent;
+    try { b.disabled = true; b.textContent = "Opening…";
+      const esriRequest = await $arcgis.import("@arcgis/core/request.js");
+      const res = await esriRequest(f.url, { responseType: "blob" });
+      const blob = f.contentType && res.data.type !== f.contentType ? new Blob([res.data], { type: f.contentType }) : res.data, url = URL.createObjectURL(blob);
+      if (w) w.location = url; else { const a = document.createElement("a"); a.href = url; a.download = f.name || "file"; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 600000);
+    } catch (err) { if (w) w.close(); const el = $("docStatus"); if (el) { el.className = "error"; el.textContent = "That file could not be opened – " + mask(err.message || err); } }
+    finally { b.disabled = false; b.textContent = old; }
+  });
 
   // ---------------- New application: the published intake survey, embedded with Esri's Survey123 web form script ----------------
   const intake = { item: null, form: null, loaded: false, submitted: false, before: null };
