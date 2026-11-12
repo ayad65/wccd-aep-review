@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B4a, 12 Nov 2026).
-    Saves ONLY from the stage tabs (Ranking, Approval, Agreement, Cost verification), ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
+    WCCD AEP custom app – Home + Worklist (build B5a, 12 Nov 2026).
+    Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -427,6 +427,7 @@
       const tbl = (webmap.allTables || []).find((x) => x.title === ROWS_TABLE);
       if (!tbl) throw new Error('no table titled "' + ROWS_TABLE + '" in the web map');
       await tbl.load();
+      fr.table = tbl; fr.oidField = tbl.objectIdField;
       fr.fields = lower(tbl.fields); fr.list = formList(tbl);
       if (!fr.list.length) fr.list = tbl.fields.map((f) => ({ group: "", label: "", field: f.name }));
       fr.parent = (tbl.fields.find((f) => f.name.toLowerCase() === "parentglobalid") || {}).name;
@@ -593,13 +594,15 @@
       const cols = ROW_COLS.filter(([n]) => fr.fields[n.toLowerCase()]);
       const key = cols.length ? cols[0][0] : null;
       if (key) mine.sort((x, y) => String(attr(x, key) ?? "").localeCompare(String(attr(y, key) ?? ""), "en", { numeric: true }));
-      let h = "<h2>Field rows</h2><p>" + mine.length + (mine.length === 1 ? " field row is" : " field rows are") + " stored for this application. Stored values only; this page does not change them.</p>";
+      let h = "<h2>Field rows</h2><p>" + mine.length + (mine.length === 1 ? " field row is" : " field rows are") + " stored for this application." + (canEdit(r) ? " One field is edited at a time. Rows are added or removed in Survey123." : "") + "</p>";
+      if (saveNote && saveNote.id === r.id && saveNote.tab === "rows") h += '<div class="' + saveNote.cls + '">' + esc(saveNote.text) + "</div>";
       if (fr.error) h += '<div class="notice">' + esc(fr.error) + "</div>";
       if (!mine.length) return h;
       h += '<div class="box"><table class="mini" aria-label="Field rows"><thead><tr>' + cols.map(([, lab]) => "<th>" + esc(lab) + "</th>").join("") + "</tr></thead><tbody>" +
         mine.map((x) => "<tr>" + cols.map(([n]) => "<td>" + esc(show(fr.fields[n.toLowerCase()], attr(x, n)) ?? "—") + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" + emptyToggle();
       for (const x of mine) { const v = cardsHtml("rows", fr.list, x, fr.fields);
-        h += '<details class="rowAll"' + (mine.length === 1 ? " open" : "") + "><summary>Field " + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – details (" + v.filled + " of " + v.total + " filled)</summary>" + v.html + "</details>"; }
+        h += '<details class="rowAll"' + (mine.length === 1 ? " open" : "") + "><summary>Field " + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – details (" + v.filled + " of " + v.total + " filled)</summary>" +
+          (canEdit(r) && fr.table ? '<div class="edBar" style="margin:4px 0 12px"><button type="button" class="btn go" data-rowedit="' + esc(x[fr.oidField]) + '">Edit this field</button><span>TEST record. Nothing is saved until you review and confirm.</span></div>' : "") + v.html + "</details>"; }
       return h;
     }
     const fm = forms[t.key] || { list: [], error: "not loaded" };
@@ -664,6 +667,8 @@
     const b = e.target.closest("[data-tab]");
     if (b) { if (!leaveEdit()) return; curTab = b.dataset.tab; renderWork(curId); return; }
     const id = e.target.id, r = rows.find((x) => x.id === curId);
+    const re = e.target.closest("[data-rowedit]");
+    if (re && r && !ed) { OWN.open(r, "rows", re.dataset.rowedit); return; }
     const rs = e.target.closest("[data-restore]");
     if (rs && ed && ed.own) { OWN.restore(rs.dataset.restore); return; }
     if (id === "edOpen" && r) { if (CFG.editEngine === "esri" && curTab === EDIT_TAB) openEdit(r); else OWN.open(r, curTab); }
@@ -894,6 +899,10 @@
       rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", two: true, order: 3 },
              { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
       agr:  [{ re: /signature/i, col: "full", splitRight: /wccd|title|representative/i }, { re: /./, col: "full" }],
+      rows: [{ re: /^Field$/i, col: "L", order: 1 }, { re: /^Soil test results$/i, col: "R", order: 2 }, { re: /lime rec/i, col: "L", order: 3 }, { re: /soil test lab/i, col: "R", order: 4 },
+             { re: /more soil/i, col: "full", two: true, closed: true, order: 5 }, { re: /lab report/i, col: "full", two: true, closed: true, order: 6 }, { re: /crop/i, col: "full", two: true, closed: true, order: 7 },
+             { re: /optimal/i, col: "full", two: true, closed: true, order: 8 }, { re: /name/i, col: "full", two: true, closed: true, order: 9 }, { re: /acreage/i, col: "full", two: true, closed: true, order: 10 },
+             { re: /^loose/, col: "full", title: "Notes", order: 11 }, { re: /./, col: "full", order: 12 }],
       cvf:  [{ re: /^loose0$/, col: "full", title: "Lime and cost", textsRight: true }, { re: /internal/i, col: "L" }, { re: /payment|invoice/i, col: "R" }, { re: /./, col: "full" }]
     };
     const pretty = (k) => String(k).replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^(\w)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
@@ -1121,7 +1130,8 @@
       const parts = [];
       if (!n) parts.push("Nothing changed yet.");
       if (p.you.length) parts.push("You changed: " + p.you.map((x) => labelOf(x.k)).join(", ") + ".");
-      if (p.calc.length) parts.push(p.calc.length + " calculated value" + (p.calc.length === 1 ? "" : "s") + " will follow.");
+      if (p.calc.length) parts.push(p.you.length || p.emptied.length ? p.calc.length + " calculated value" + (p.calc.length === 1 ? "" : "s") + " will follow."
+        : p.calc.length + " calculated figure" + (p.calc.length === 1 ? " is" : "s are") + " out of date and will be refreshed if you save.");
       if (p.emptied.length) parts.push(p.emptied.length + " value" + (p.emptied.length === 1 ? " was" : "s were") + " emptied by hiding: " + p.emptied.map((x) => labelOf(x.k)).join(", ") + ".");
       if (miss.length) parts.push("Required and still empty: " + miss.join(", ") + ".");
       if ($("edChanged")) $("edChanged").textContent = parts.join(" ");
@@ -1161,7 +1171,7 @@
       if ($("own")) $("own").classList.add("running");
       try {
         while (pending && my === token && S) { pending = false; await settle(); }
-        if (my === token && S) { if (!Object.keys(S.errors).length) st("notice", "Editing " + S.id + ". Nothing is saved until you review and confirm."); render(); }
+        if (my === token && S) { if (!Object.keys(S.errors).length) st("notice", "Editing " + S.what + ". Nothing is saved until you review and confirm."); render(); }
       } catch (e) { if (my === token) st("error", "The form's rules could not be run – " + (e.message || e)); }
       running = false; if ($("own")) $("own").classList.remove("running");
     }
@@ -1176,51 +1186,66 @@
     const idle = async () => { if (typeTimer) await runRules(); while (running || pending) await sleep(50); };
 
     // ---- open, review, save ----
-    async function open(r, tabKey) {
-      const tab = TABS.find((x) => x.key === tabKey);
-      if (!canEdit(r) || ed || !tab || !tab.layer || !EDIT_TABS.includes(tabKey)) return;
+    // Is this record one the app may save? For a field row: its parent must be the selected TEST application.
+    function allowed(e) {
+      if (!canEdit(e.r) || CFG.viewOnly.some((v) => e.r.id.includes(v))) return false;
+      if (S && S.tabKey === "rows") return normId(S.original[fr.parent]) !== "" && normId(S.original[fr.parent]) === normId(e.r.gid);
+      return String(e.original[F.id] ?? "") === e.r.id;
+    }
+    async function open(r, tabKey, rowOid) {
+      const tab = TABS.find((x) => x.key === tabKey), isRow = tabKey === "rows";
+      if (!canEdit(r) || ed || !tab || !(isRow ? fr.table && rowOid != null : tab.layer && EDIT_TABS.includes(tabKey))) return;
       const my = ++token;
+      const rowAttrs = isRow ? (fr.rows || []).find((x) => String(x[fr.oidField]) === String(rowOid)) : null;
+      const rowName = rowAttrs ? String(attr(rowAttrs, "FieldNum") ?? rowOid) : "";
       document.querySelector("#detail .pane").innerHTML =
-        "<h2>" + esc(tab.label) + " – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
+        "<h2>" + (isRow ? "Field " + esc(rowName) : esc(tab.label)) + " – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="edStale" class="notice" hidden></div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
         '<div class="edBtns" id="edBtns"><span id="edChanged"></span><button type="button" class="btn" id="edRestore" data-restore="*" hidden></button>' +
         '<button type="button" class="btn" id="edCancel">Cancel</button><button type="button" class="btn go" id="edSave" disabled>Review and save</button></div>' +
         '<details class="diag"><summary>Editing diagnostics (for Claude)</summary><pre id="edDiag"></pre></details>';
       $("own").addEventListener("input", (evt) => { const k = evt.target.dataset && evt.target.dataset.kind; if (k === "text" || k === "number") onEdit(evt); });
       $("own").addEventListener("change", onEdit);
       $("own").addEventListener("toggle", (evt) => { const c = evt.target.dataset && evt.target.dataset.card; if (c && S) { if (evt.target.open) S.openCards.add(c); else S.openCards.delete(c); } }, true);
-      const e = ed = { r, own: true, ready: false, timer: null, original: null, touched: { get size() { return e.ready ? diffs().length : 0; } } };
+      const e = ed = { r, own: true, ready: false, timer: null, original: null, touched: { get size() { return e.ready && S ? S.touched.size : 0; } } };
       try {
         if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
         if (!loadedAll) { await webmap.loadAll(); loadedAll = true; }
-        const layer = webmap.allLayers.find((l) => l.title === tab.layer);
-        if (!layer) throw new Error('no layer titled "' + tab.layer + '" in the web map');
+        const title = isRow ? ROWS_TABLE : tab.layer;
+        const layer = isRow ? fr.table : webmap.allLayers.find((l) => l.title === tab.layer);
+        if (!layer) throw new Error('no layer titled "' + title + '" in the web map');
         await layer.load();
-        if (!layer.formTemplate) throw new Error(tab.layer + " has no Map Viewer form");
-        const q = await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
+        if (!layer.formTemplate) throw new Error(title + " has no Map Viewer form");
+        const q = isRow ? await layer.queryFeatures({ objectIds: [Number(rowOid)], outFields: ["*"] })
+                        : await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
         if (my !== token || ed !== e) return;
-        if (q.features.length !== 1) throw new Error(q.features.length + " records matched " + r.id + " in " + tab.layer);
+        if (q.features.length !== 1) throw new Error(q.features.length + " records matched in " + title);
         const feature = q.features[0], tmpl = layer.formTemplate.clone();           // always a copy of the form
         e.original = { ...feature.attributes };
-        guard(e);
         const keys = new Map(); let n = 0;
-        S = { id: r.id, tabKey, openCards: new Set(), layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
+        S = { id: r.id, what: isRow ? "field " + rowName + " of " + r.id : r.id, tabKey, openCards: new Set(), layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
               fields: lower(layer.fields), els: flatten(tmpl), labels: {}, vis: {}, req: {}, edit: {}, calc: {}, texts: {}, errors: {}, stash: {}, exec: new Map(), memo: new Map(), deps: new Map(),
               attrKeys: Object.fromEntries(Object.keys(feature.attributes).map((k) => [k.toLowerCase(), k])), runs: 0, dsMode: null, touched: new Set(), emptied: new Set(), groupVis: new Map(), locked: false,
               key: (el) => { if (!keys.has(el)) keys.set(el, "e" + (n++)); return keys.get(el); } };
+        if (!allowed(e)) { S = null; throw new Error("refused: this record may not be saved from this app"); }
         for (const x of S.els) if (!x.isGroup && x.el.type === "field" && x.el.label) S.labels[x.el.fieldName] = x.el.label;
         look.map.clear(); look.hits = 0; look.misses = 0; look.on = true;          // repeated reads for this record now come from memory
         st("notice", "Running the form's rules on the stored record…");
         await settle();
         if (my !== token || ed !== e) return;
-        const d = diffs(), errs = Object.entries(S.errors);
-        if (d.length || errs.length) {             // opening check: the rules alone must not change anything, and all of them must run
+        // Opening check. A typed value changed by the rules alone, or a rule that fails, blocks editing.
+        // A calculated figure that differs is allowed: it is out of date (for example after a field row was edited) and is offered for refreshing.
+        const d = diffs(), typed = d.filter((k) => !S.calc[k]), errs = Object.entries(S.errors);
+        const line = (k) => "• " + labelOf(k) + ": " + dispV(k, S.original[k]) + " → " + dispV(k, S.values[k]);
+        if (typed.length || errs.length) {
           $("edSave").hidden = true;
-          st("error", "Editing is blocked. " + (d.length ? "The form's rules changed " + d.length + " value(s) on the stored record before anything was typed:\n" + d.map((k) => "• " + labelOf(k) + ": " + dispV(k, S.original[k]) + " → " + dispV(k, S.values[k])).join("\n") + "\n" : "") +
+          st("error", "Editing is blocked. " + (typed.length ? "The form's rules changed " + typed.length + " typed value(s) on the stored record before anything was typed:\n" + typed.map(line).join("\n") + "\n" : "") +
             (errs.length ? errs.length + " rule(s) could not be run:\n" + errs.map(([k, v]) => "• " + k + " → " + v).join("\n") + "\n" : "") + "Nothing was saved. Click Cancel to go back.");
           S.locked = true; return;
         }
         e.ready = true;
-        st("notice", "Editing " + r.id + ". The form opened in step with the stored record. Nothing is saved until you review and confirm.");
+        if (d.length) { const el = $("edStale"); el.hidden = false; el.style.whiteSpace = "pre-wrap";
+          el.textContent = d.length + " stored figure(s) are out of date with what the form now calculates, and will be refreshed if you save:\n" + d.map(line).join("\n"); }
+        st("notice", "Editing " + S.what + ". " + (d.length ? "The typed values are in step with the stored record." : "The form opened in step with the stored record.") + " Nothing is saved until you review and confirm.");
         render();
       } catch (err) { if (ed === e) { st("error", "The form could not be opened – " + (err.message || err)); const b = $("edSave"); if (b) b.hidden = true; } console.error(err); }
     }
@@ -1238,22 +1263,22 @@
       S.locked = true; S.plan = p;
       const ul = (items, f) => items.length ? "<ul>" + items.map((x) => "<li>" + esc(f(x)) + "</li>").join("") + "</ul>" : '<p class="small">None.</p>';
       const line = (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → " + dispV(x.k, x.b);
-      $("edReview").innerHTML = "<h3>Review before saving " + esc(S.id) + "</h3>" +
+      $("edReview").innerHTML = "<h3>Review before saving " + esc(S.what) + "</h3>" +
         "<div><b>You changed</b>" + ul(p.you, line) + "</div>" +
-        "<div><b>Calculated from your change</b>" + ul(p.calc, line) + "</div>" +
+        "<div><b>Calculated by the form</b>" + ul(p.calc, line) + "</div>" +
         '<div><b>Emptied because your change hid them</b> <span class="small">(go back to the form to restore any of these)</span>' + ul(p.emptied, (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → (empty)") + "</div>" +
         '<div class="edBtns"><span>This writes to the real record. Nothing else is written.</span><button type="button" class="btn" id="edBack">Back to the form</button><button type="button" class="btn go" id="edConfirm">Confirm and save</button></div>';
       $("edReview").hidden = false; $("edBtns").hidden = true;
       for (const el of $("own").querySelectorAll("input, select, textarea, button")) el.disabled = true;
       st("notice", "Review the changes below. Nothing has been saved yet.");
     }
-    function back() { if (!S) return; S.locked = false; S.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; render(); st("notice", "Editing " + S.id + ". Nothing is saved until you review and confirm."); }
+    function back() { if (!S) return; S.locked = false; S.plan = null; $("edReview").hidden = true; $("edBtns").hidden = false; render(); st("notice", "Editing " + S.what + ". Nothing is saved until you review and confirm."); }
     async function confirm() {
       const e = ed; if (!S || !S.plan || !e) return;
       const p = S.plan, layer = S.layer, s = S;
       $("edReview").hidden = true;
       try {
-        guard(e);
+        if (!allowed(e)) throw new Error("refused: this record may not be saved from this app");
         const efi = layer.editFieldsInfo || {};
         look.on = false;                    // the checks around a save always go to ArcGIS Online, never to memory
         if (efi.editDateField) {            // has anyone saved this record since it was opened?
@@ -1273,8 +1298,10 @@
         const id = s.id, text = keys.map((k) => labelOf(k) + " = " + dispV(k, attrs[k])).join(" · ");
         saveNote = bad.length ? { id, tab: s.tabKey, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
                               : { id, tab: s.tabKey, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + text };
+        if (s.tabKey === "rows" && !bad.length) saveNote.text += "\nThe application's stored totals may now be out of date. Open Ranking, click Edit, and save to refresh them.";
         closeEdit();
-        try { await reloadRows(); } catch (err) { saveNote.text += "\nThe lists could not be refreshed; reload the page. (" + mask(err.message || err) + ")"; }
+        try { if (saveNote.tab === "rows") fr.rows = (await fr.table.queryFeatures({ where: "1=1", outFields: ["*"] })).features.map((f) => f.attributes); await reloadRows(); }
+        catch (err) { saveNote.text += "\nThe lists could not be refreshed; reload the page. (" + mask(err.message || err) + ")"; }
         curTab = saveNote.tab; renderWork(id);
       } catch (err) {
         if (S === s) { look.on = true; S.locked = false; S.plan = null; if ($("edBtns")) $("edBtns").hidden = false; render();
