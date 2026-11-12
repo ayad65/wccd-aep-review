@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B6b, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B6c, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -147,6 +147,7 @@
     #mapHost { position: relative; height: 520px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); }
     #mapInfo { position: absolute; z-index: 5; max-width: 260px; background: #fff; border: 1px solid var(--ink); border-radius: 4px; padding: 10px 34px 10px 12px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
     #mapInfo b { display: block; font-size: 14px; margin-bottom: 2px; } #mapInfo div { margin-top: 2px; }
+    #mapInfo.other { background: #EEF0F2; border-color: #9AA1A9; color: #5A626B; font-size: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.15); } #mapInfo.other b { font-weight: 400; font-size: 13px; }
     #mapInfo button { position: absolute; top: 0; right: 0; width: 34px; height: 34px; border: 0; background: none; font-size: 18px; cursor: pointer; color: var(--ink); }
     .pane .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; } .legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { display: inline-block; width: 18px; height: 13px; }
     .mrow .ty { color: #5E3A00; } .mrow .ty.bad { color: var(--red); font-weight: 600; }
@@ -610,7 +611,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
-      '<label><input type="checkbox" id="mapIds"> Show IDs of other fields</label>' +
+      '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
       '<p class="legend"><span><i style="background:rgba(23,69,122,.35);border:2px solid #17457A"></i>In this application</span><span><i style="background:rgba(224,138,30,.4);border:2px solid #5E3A00"></i>Limed and paid inside the three-year window</span>' +
       '<span><i style="background:rgba(23,69,122,.35);border:3px solid #E08A1E"></i>Both</span><span><i style="background:#fff;border:1px solid #6B747E"></i>Other fields on the farm</span></p><p>Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
@@ -1448,7 +1449,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         return { num: numTxt, key, acres: attr(x, "TreatedAcresInField"), included: code === "Included", status: show(fr.fields.fieldstatus, code), hits, ty, bad, p }; });
       const used = new Set(rowsInfo.flatMap((x) => x.hits));
       const layer = new GraphicsLayer(), idLayer = new GraphicsLayer(), gs = [], idGs = [], byNum = new Map(), info = [];
-      idLayer.visible = !!($("mapIds") && $("mapIds").checked);
+      idLayer.visible = !!($("mapIds") && $("mapIds").checked); idLayer.minScale = 10000;       // other fields' IDs only when zoomed in past about 1:10,000
       const fill = (c, o) => ({ type: "simple-fill", color: c, outline: o });
       const text = (t, c) => ({ type: "text", text: t, color: c, haloColor: [255, 255, 255, 1], haloSize: 2, font: { size: 11, weight: "bold" } });
       const center = (g) => g && (g.centroid || (g.extent && g.extent.center));
@@ -1457,7 +1458,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       for (const f of onFarm.filter((f) => !used.has(f))) { const p = f.key && f.suf !== "9999" ? prior.get(f.key) : null;
         info.push({ id: f.id, acres: f.acres, inApp: "Not in this application", ty: p ? tyLine(p) : "", num: null });
         gs.push(new G({ geometry: f.g, symbol: p ? fill([224, 138, 30, 0.4], { color: [94, 58, 0, 1], width: 2 }) : fill([255, 255, 255, 0.15], { color: [107, 116, 126, 1], width: 1 }), attributes: { pi: info.length - 1 } }));
-        const c = center(f.g); if (c && f.suf) idGs.push(new G({ geometry: c, symbol: text(f.suf, [43, 49, 56, 1]) })); }
+        const c = center(f.g); if (c && f.suf) idGs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: [107, 116, 126, 1], haloColor: [255, 255, 255, 0.9], haloSize: 1, font: { size: 9 } } })); }
       for (const x of rowsInfo) for (const f of x.hits) {
         info.push({ id: f.id, acres: f.acres, inApp: (x.status || "In this application") + (x.acres != null ? ", " + fmt(Number(x.acres)) + " ac treated" : ""), ty: x.ty, bad: x.bad, num: x.num });
         const g = new G({ geometry: f.g, symbol: fill([23, 69, 122, 0.35], x.p ? { color: [224, 138, 30, 1], width: 3.5 } : { color: [23, 69, 122, 1], width: 2.5 }), attributes: { pi: info.length - 1 } });
@@ -1473,7 +1474,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       const select = (numTxt, zoom) => { for (const b of $("mapList").querySelectorAll(".mrow")) b.classList.toggle("on", b.dataset.num === numTxt && !b.dataset.all);
         if (zoom && byNum.has(numTxt)) { try { el.goTo(byNum.get(numTxt)).catch(() => {}); } catch { /* ignore */ } } };
       const showInfo = (it, x, y) => { hideInfo();       // our own small box, placed at the click
-        const b = document.createElement("div"); b.id = "mapInfo";
+        const b = document.createElement("div"); b.id = "mapInfo"; if (it.num == null) b.className = "other";
         b.innerHTML = '<button type="button" aria-label="Close">×</button><b>' + esc(it.id ?? "(no field ID)") + "</b><div>" + (it.acres != null && it.acres !== "" ? esc(fmt(Number(it.acres))) + " ac in the field (map layer)" : "Acres not recorded on the map layer") + "</div><div>" + esc(it.inApp) + "</div>" +
           (it.ty ? '<div style="color:' + (it.bad ? "var(--red)" : "#5E3A00") + ';font-weight:600">' + esc(it.ty) + "</div>" : "");
         host.appendChild(b);
