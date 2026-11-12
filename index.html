@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B7b, 12 Nov 2026).
-    Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
+    WCCD AEP custom app – Home + Worklist (build B8a, 12 Nov 2026).
+    Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -277,7 +277,7 @@
             <tbody id="closedRows"></tbody>
           </table></div>
         </details>
-        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Only the stage tabs of a TEST record can save, and only after you review and confirm.</p>
+        <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Open applications can be edited; every save happens only after you review and confirm. Closed applications and view-only records cannot be changed here.</p>
         <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
       </div>
     </section>
@@ -619,7 +619,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
     if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="docBody"></div>' +
-      '<p>' + (canEdit(r) ? "TEST record: files can be added or removed, each after a review. " : "Look only on this record. ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+      '<p>' + (canEdit(r) ? "Files can be added or removed on the live record, each after a review. " : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
@@ -639,7 +639,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         mine.map((x) => "<tr>" + cols.map(([n]) => "<td>" + esc(show(fr.fields[n.toLowerCase()], attr(x, n)) ?? "—") + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" + emptyToggle();
       for (const x of mine) { const v = cardsHtml("rows", fr.list, x, fr.fields);
         h += '<details class="rowAll"' + (mine.length === 1 ? " open" : "") + "><summary>Field " + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – details (" + v.filled + " of " + v.total + " filled)</summary>" +
-          (canEdit(r) && fr.table ? '<div class="edBar" style="margin:4px 0 12px"><button type="button" class="btn go" data-rowedit="' + esc(x[fr.oidField]) + '">Edit this field</button><span>TEST record. Nothing is saved until you review and confirm.</span></div>' : "") + v.html + "</details>"; }
+          (canEdit(r) && fr.table ? '<div class="edBar" style="margin:4px 0 12px"><button type="button" class="btn go" data-rowedit="' + esc(x[fr.oidField]) + '">Edit this field</button><span>' + esc(editNote(r)) + '</span></div>' : "") + v.html + "</details>"; }
       return h;
     }
     const fm = forms[t.key] || { list: [], error: "not loaded" };
@@ -648,8 +648,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     let top = "";
     if (EDIT_TABS.includes(t.key)) {
       if (saveNote && saveNote.id === r.id && (saveNote.tab || EDIT_TAB) === t.key) top += '<div class="' + saveNote.cls + '">' + esc(saveNote.text) + "</div>";
-      top += canEdit(r) ? '<div class="edBar"><button type="button" class="btn go" id="edOpen">Edit</button><span>TEST record. Nothing is saved until you review and confirm.</span></div>'
-                        : '<div class="edBar"><span>' + (r.viewOnly ? "This record is view only in this app." : "Editing is switched on for the TEST records only.") + "</span></div>";
+      top += canEdit(r) ? '<div class="edBar"><button type="button" class="btn go" id="edOpen">Edit</button><span>' + esc(editNote(r)) + '</span></div>'
+                        : '<div class="edBar"><span>' + esc(lockWhy(r)) + "</span></div>";
     }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
     return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
@@ -721,7 +721,11 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const EDIT_TAB = "appr";                                  // the one tab the Esri-form fallback can edit
   const EDIT_TABS = ["rank", "appr", "agr", "cvf"];         // tabs our own layout can edit
   let ed = null, saveNote = null, loadedAll = false, Graphic = null, arcade = null;
-  const canEdit = (r) => !r.viewOnly && CFG.editable.some((t) => r.id.endsWith(t));
+  // Which records may be saved (Yasser, 12 Nov): every open application; never a view-only record (Campbell); a closed application only if it is one of the TEST records.
+  const isTest = (r) => CFG.editable.some((t) => r.id.endsWith(t));
+  const canEdit = (r) => !r.viewOnly && (isTest(r) || !r.closed);
+  const editNote = (r) => (isTest(r) ? "TEST record. " : "Live record. ") + "Nothing is saved until you review and confirm.";
+  const lockWhy = (r) => r.viewOnly ? "This record is view only in this app." : "This application is closed, so it cannot be changed here.";
   const normV = (v) => (v === undefined || v === null || v === "") ? null : (v instanceof Date ? v.getTime() : v);
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
   const dirty = () => !!(ed && ed.touched.size);
