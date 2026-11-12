@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B5c, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B6a, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -142,6 +142,16 @@
     .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px 16px; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
     .strip .fig { display: flex; flex-direction: column; justify-content: space-between; }
     .strip .fig small { font-weight: 500; } .strip .fig b { font-size: 22px; margin-top: 2px; }
+    /* Map tab */
+    .mapWrap { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: 12px; align-items: stretch; }
+    #mapHost { height: 520px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); }
+    #mapHost arcgis-map { display: block; width: 100%; height: 100%; }
+    #mapList { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-height: 520px; overflow: auto; }
+    #mapList h3 { margin: 4px 0 2px; font-size: 14px; }
+    .mrow { text-align: left; border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 8px 10px; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; min-height: 44px; display: flex; flex-direction: column; gap: 2px; }
+    .mrow b { font-size: 14px; } .mrow.on { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); background: var(--blue-bg); }
+    .mrow.miss { border-color: var(--red); } .mrow.miss span { color: var(--red); font-weight: 600; } .mrow:disabled { cursor: default; }
+    @media (max-width: 900px) { .mapWrap { grid-template-columns: minmax(0, 1fr); } #mapHost { height: 380px; } }
     /* New application panel */
     .intake { position: fixed; inset: 0; z-index: 50; background: rgba(26, 29, 33, .55); display: flex; justify-content: center; align-items: stretch; padding: 16px; }
     .intakeBox { background: #fff; border-radius: 4px; width: min(1100px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; min-height: 0; }
@@ -290,6 +300,7 @@
     portalUrl: "https://clarion.maps.arcgis.com",
     mapTitle: "WCCD AEP Review (EB)",
     layerTitle: "Applications",
+    farmsItem: "94ab476757584a6a8505004bc59e594a",         // "Washington County Farms" (farm and field polygons), used by the Map tab when the web map does not hold it
     intakeTitle: "WCCD Ag Lime Applications Intake",     // the published intake survey behind "New application" (found by title)
     viewOnly: ["AEP63-25-002"],                       // Campbell: never saved from this app
     editable: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"],   // the only records this app may save, while both apps are evaluated
@@ -314,7 +325,7 @@
   const TABS = [
     { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows" },
     { key: "appr", label: "Approval", layer: "App-Approval" }, { key: "agr", label: "Agreement", layer: "App-Agreement" },
-    { key: "cvf", label: "Cost verification", layer: "App-CVF" }
+    { key: "cvf", label: "Cost verification", layer: "App-CVF" }, { key: "map", label: "Map" }
   ];
   const ROWS_TABLE = "Field Rows";
   const ROW_COLS = [["FieldNum", "Field"], ["FieldStatus", "Status"], ["TreatedAcresInField", "Treated acres"], ["TotalAcresInField", "Total acres"],
@@ -593,6 +604,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
+    if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
+      '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
+      '<p>Blue: fields in this application. Grey outline: other fields on the farm. Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "rows") {
       if (!fr.rows) return "<h2>Field rows</h2><div class=\"error\">The field rows could not be read: " + esc(fr.error || "unknown reason") + "</div>";
       const mine = fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
@@ -661,12 +675,13 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     d.innerHTML =
       '<div class="dhead"><div><small>' + esc(r.id + " · " + r.fy + " · " + (farm ? "Farm # " + farm : "no Farm #")) + "</small><h1>" + esc(r.applicant || "(no applicant name)") + "</h1><p>" + esc(line) + "</p>" +
         (r.viewOnly ? '<p style="margin-top:8px"><span class="tag">View only</span></p>' : "") + "</div>" +
-        '<div class="later"><button type="button" disabled>Map and fields · later</button><button type="button" disabled>Documents · later</button></div></div>' +
+        '<div class="later"><button type="button" disabled>Documents · later</button></div></div>' +
       '<ol class="steps" aria-label="Stage ' + r.stageN + " of 6, " + STAGES[r.stageN - 1] + '">' + steps + "</ol>" +
       '<div class="figs">' + figs + "</div>" +
       '<div class="flags">' + (msgsHtml(r) || '<span class="none">Nothing to flag</span>') + "</div>" +
       '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + t.label + "</button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
+    if (curTab === "map") initMap(r);
   }
   $("detail").addEventListener("click", (e) => {
     const b = e.target.closest("[data-tab]");
@@ -1347,6 +1362,90 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("st").innerHTML = '<option value="0">All stages</option>' + STAGES.map((s, i) => '<option value="' + (i + 1) + '">' + s + "</option>").join("");
   for (const id of ["fy", "st", "onlyAtt"]) $(id).addEventListener("change", renderHome);
   $("q").addEventListener("input", () => { if (!$("home").hidden) renderHome(); else window.location.hash = "#/"; });
+  // ================= Map tab: the farm and its fields for the selected application (read-only) =================
+  const MAPS = { ready: null, farms: [], fields: [], source: "", mods: null, el: null, byKey: new Map(), error: "" };
+  const normFarm = (v) => String(v ?? "").trim().toUpperCase().replace(/^0+(?=.)/, "");
+  const splitFieldId = (id) => { const t = String(id ?? "").trim(), i = t.indexOf("-"); return i < 0 ? [t, ""] : [t.slice(0, i), t.slice(i + 1)]; };
+  async function loadPolygons() {          // once per page load: both polygon layers, whole (13 farms, about 200 fields)
+    if (MAPS.ready) return MAPS.ready;
+    MAPS.ready = (async () => {
+      const [MapCls, GraphicsLayer, G, Layer] = await $arcgis.import(["@arcgis/core/Map.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/Graphic.js", "@arcgis/core/layers/Layer.js"]);
+      MAPS.mods = { MapCls, GraphicsLayer, G };
+      const has = (l, n) => (l.fields || []).some((f) => f.name.toLowerCase() === n);
+      const pick = async (layers) => { let farms = null, fields = null;
+        for (const l of layers) { if (l.type !== "feature") continue; try { await l.load(); } catch { continue; }
+          if (l.geometryType !== "polygon") continue;
+          if (has(l, "fieldid")) fields = fields || l; else if (has(l, "farmid")) farms = farms || l; }
+        return { farms, fields }; };
+      let got = await pick(webmap.allLayers.toArray ? webmap.allLayers.toArray() : [...webmap.allLayers]); MAPS.source = "the web map";
+      if (!got.fields) {
+        const lyr = await Layer.fromPortalItem({ portalItem: { id: CFG.farmsItem } });
+        await lyr.load();
+        const subs = lyr.type === "group" ? (await lyr.loadAll(), lyr.allLayers.toArray()) : [lyr];
+        const g2 = await pick(subs); got = { farms: got.farms || g2.farms, fields: g2.fields }; MAPS.source = "the Washington County Farms item";
+      }
+      if (!got.fields) throw new Error("no polygon layer with a FieldID field was found");
+      const q = async (l) => l ? (await l.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: true, outSpatialReference: { wkid: 3857 } })).features : [];
+      const A = (f, n) => attr(f.attributes, n);
+      MAPS.fields = (await q(got.fields)).map((f) => { const [pre, suf] = splitFieldId(A(f, "FieldID")); return { g: f.geometry, id: A(f, "FieldID"), farm: normFarm(A(f, "FarmID") ?? pre), pre: normFarm(pre), suf: suf.trim(), acres: A(f, "TotalAcresInField") }; });
+      MAPS.farms = (await q(got.farms)).map((f) => ({ g: f.geometry, farm: normFarm(A(f, "FarmID")), name: A(f, "FarmName") }));
+    })().catch((e) => { MAPS.error = mask(e.message || e); MAPS.ready = null; throw e; });
+    return MAPS.ready;
+  }
+  async function initMap(r) {
+    const stat = (cls, t) => { const el = $("mapStatus"); if (el) { el.className = cls; el.textContent = t; } };
+    try {
+      await loadPolygons();
+      if (curTab !== "map" || curId !== r.id || !$("mapHost")) return;
+      const { MapCls, GraphicsLayer, G } = MAPS.mods;
+      const farmNo = String((F.farmNo ? r.a[F.farmNo] : "") ?? "").trim(), farm = normFarm(farmNo);
+      const mine = (fr.rows || []).filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
+      const farmPolys = farm ? MAPS.farms.filter((f) => f.farm === farm) : [];
+      const onFarm = farm ? MAPS.fields.filter((f) => f.farm === farm || f.pre === farm) : [];
+      const real = onFarm.filter((f) => f.suf !== "9999" && f.id != null && String(f.id).trim() !== "");       // skip whole-farm placeholders and unnamed polygons for matching
+      const rowsInfo = mine.map((x) => { const num = String(attr(x, "FieldNum") ?? "").trim();
+        const hits = real.filter((f) => f.suf.toLowerCase() === num.toLowerCase());
+        return { num, acres: attr(x, "TreatedAcresInField"), status: show(fr.fields.fieldstatus, attr(x, "FieldStatus")), hits }; });
+      const used = new Set(rowsInfo.flatMap((x) => x.hits));
+      const layer = new GraphicsLayer(), gs = [], byNum = new Map();
+      const fill = (c, o) => ({ type: "simple-fill", color: c, outline: o });
+      for (const f of farmPolys) gs.push(new G({ geometry: f.g, symbol: fill([0, 0, 0, 0], { color: [26, 29, 33, 1], width: 2 }) }));
+      for (const f of onFarm.filter((f) => !used.has(f))) gs.push(new G({ geometry: f.g, symbol: fill([255, 255, 255, 0.15], { color: [107, 116, 126, 1], width: 1 }), attributes: { label: f.suf || "" } }));
+      for (const x of rowsInfo) for (const f of x.hits) { const g = new G({ geometry: f.g, symbol: fill([23, 69, 122, 0.35], { color: [23, 69, 122, 1], width: 2.5 }), attributes: { num: x.num } }); gs.push(g); if (!byNum.has(x.num)) byNum.set(x.num, []); byNum.get(x.num).push(g);
+        const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: x.num + (x.acres != null ? " · " + fmt(Number(x.acres)) + " ac" : ""), color: [14, 44, 80, 1], haloColor: [255, 255, 255, 1], haloSize: 2, font: { size: 11, weight: "bold" } } })); }
+      layer.addMany(gs);
+      const host = $("mapHost"); host.innerHTML = "";
+      const targets = gs.filter((g) => g.geometry && g.geometry.type === "polygon");
+      if (targets.length) {
+        const el = document.createElement("arcgis-map"); MAPS.el = el;
+        el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] });
+        host.appendChild(el);
+        const zoomAll = () => { try { el.goTo && el.goTo(targets).catch(() => {}); } catch { /* not ready */ } };
+        el.addEventListener("arcgisViewReadyChange", zoomAll); setTimeout(zoomAll, 1500);
+        el.addEventListener("arcgisViewClick", async (evt) => { try { const hit = await el.hitTest(evt.detail);
+          const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.num != null);
+          if (g) select(g.attributes.num, false); } catch { /* clicking the map is optional */ } });
+        const select = (num, zoom) => { for (const b of $("mapList").querySelectorAll(".mrow")) b.classList.toggle("on", b.dataset.num === num);
+          if (zoom && byNum.has(num)) { try { el.goTo(byNum.get(num)).catch(() => {}); } catch { /* ignore */ } } };
+        $("mapList").onclick = (e) => { const b = e.target.closest(".mrow"); if (!b) return; if (b.dataset.all) { for (const x of $("mapList").querySelectorAll(".mrow")) x.classList.remove("on"); zoomAll(); } else if (!b.disabled) select(b.dataset.num, true); };
+      } else host.innerHTML = '<div style="padding:16px;font-size:14px">' + esc(farm ? "No farm or field polygon was found for Farm # " + farmNo + "." : "This application has no Farm #, so its farm cannot be looked up.") + "</div>";
+      const found = rowsInfo.filter((x) => x.hits.length).length;
+      $("mapList").innerHTML = "<h3>Fields in this application (" + rowsInfo.length + ")</h3>" +
+        (rowsInfo.map((x) => '<button type="button" class="mrow' + (x.hits.length ? "" : " miss") + '" data-num="' + esc(x.num) + '"' + (x.hits.length ? "" : " disabled") + "><b>" + esc(x.num || "(no field number)") + "</b>" +
+          "<span>" + (x.acres != null ? esc(fmt(Number(x.acres))) + " ac treated" : "acres not entered") + (x.status ? " · " + esc(x.status) : "") + "</span>" +
+          "<span>" + (x.hits.length === 1 ? "On the map" : x.hits.length ? "On the map (" + x.hits.length + " polygons share this ID)" : "Not found on the map") + "</span></button>").join("") || '<span class="none">No field rows.</span>') +
+        (targets.length ? '<button type="button" class="mrow" data-all="1"><b>Whole farm</b><span>Zoom to everything shown</span></button>' : "");
+      const unnamed = onFarm.filter((f) => f.id == null || String(f.id).trim() === "").length, place = onFarm.filter((f) => f.suf === "9999").length;
+      stat(found === rowsInfo.length && rowsInfo.length ? "notice" : "notice", farmPolys.length || onFarm.length
+        ? "Farm # " + farmNo + ": " + found + " of " + rowsInfo.length + " field row(s) found on the map. " + (onFarm.length - used.size) + " other polygon(s) on this farm" + (unnamed ? ", " + unnamed + " of them without a field ID" : "") + "."
+        : (farm ? "No polygons for Farm # " + farmNo + " in the farms layer." : "No Farm # on this application."));
+      $("mapDiag").textContent = ["Polygons from " + MAPS.source + ": " + MAPS.farms.length + " farms, " + MAPS.fields.length + " fields", "Farm # on the application: " + JSON.stringify(farmNo) + " → compared as " + JSON.stringify(farm),
+        "Farm polygons matched: " + farmPolys.length + (farmPolys.length ? " (" + farmPolys.map((f) => f.name).join("; ") + ")" : ""), "Field polygons on this farm: " + onFarm.length + " (placeholders -9999: " + place + ", without ID: " + unnamed + ")",
+        "IDs on this farm: " + onFarm.map((f) => f.id ?? "(none)").join(", "), "Field rows: " + rowsInfo.map((x) => x.num + " → " + (x.hits.map((f) => f.id).join(" / ") || "no match")).join("; "),
+        "Farm IDs in the layer: " + [...new Set(MAPS.farms.map((f) => f.farm))].join(", ")].join("\n");
+    } catch (e) { stat("error", "The map could not be loaded – " + mask(e.message || e)); console.error(e); }
+  }
+
   // ---------------- New application: the published intake survey, embedded with Esri's Survey123 web form script ----------------
   const intake = { item: null, form: null, loaded: false, submitted: false, before: null };
   const inStatus = (cls, text) => { const el = $("intakeStatus"); el.hidden = !text; el.className = cls; el.textContent = mask(text || ""); };
