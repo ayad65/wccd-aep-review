@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B5b, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B5c, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -155,6 +155,8 @@
     #own.running .einfo, #own.running .calcfld { opacity: .5; }
     .ecard { border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
     .ecard.tint { background: #F1F5FA; border-color: #B9CBE0; }
+    .ecard.green { background: #EEF6EE; border-color: #A9CDAA; } .ecard.green > h3, details.ecard.green[open] > summary { border-bottom-color: #A9CDAA; }
+    details.gcard.green { background: #EEF6EE; border-color: #A9CDAA; } details.gcard.green[open] > summary { border-bottom-color: #A9CDAA; } .green .pair { border-bottom-color: #CFE3CF; }
     .ecard > h3 { margin: 0; font-size: 15px; padding: 12px 14px; border-bottom: 1px solid var(--soft); }
     .ecard.tint > h3 { border-bottom-color: #B9CBE0; }
     .ecard > .ebody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
@@ -541,10 +543,10 @@
     rank: [{ re: /^General$/, w: "L", title: "Eligibility" }, { re: /reviewer/i, w: "R" }, { re: /total/i, w: "full" }, { re: /awarded/i },
            { re: /question/i, w: "full", open: false, score: true }],
 rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, tint: true },
-           { re: /soil test lab/i, w: "L", row: 2 }, { re: /^Soil test results$/i, w: "R", row: 2, tint: true }, { re: /more soil/i, w: "R", row: 2, tint: true, open: false },
-           { re: /lab report/i, w: "L", row: 3, open: false }, { re: /crop/i, w: "R", row: 3, tint: true, open: false },
-           { re: /optimal/i, w: "L", row: 4, open: false }, { re: /name/i, w: "R", row: 4, tint: true, open: false },
-           { re: /acreage/i, w: "L", row: 5, open: false }, { re: /^Other$/, title: "Notes", w: "R", row: 5, tint: true }]
+           { re: /name/i, w: "L", row: 2, open: false }, { re: /acreage/i, w: "R", row: 2, open: false },
+           { re: /soil test lab/i, w: "L", row: 3, tint: "green" }, { re: /^Soil test results$/i, w: "R", row: 3, tint: "green" }, { re: /more soil/i, w: "R", row: 3, tint: "green", open: false },
+           { re: /lab report/i, w: "R", row: 3, tint: "green", open: false }, { re: /optimal/i, w: "R", row: 3, tint: "green", open: false },
+           { re: /^Other$/, title: "Notes", w: "L", row: 4 }, { re: /crop/i, w: "R", row: 4, open: false }]
   };
   function groupsOf(list) {       // consecutive fields of the same form group; fields outside any group become "General" (first) or "Other"
     const out = [];
@@ -568,7 +570,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const card = (c, two) => { const n = c.rows.filter((x) => x.text != null).length;
       if (c.rule.w === "figs") return '<div class="strip" role="group" aria-label="' + esc(c.rule.title || c.g.name) + '">' +
         c.rows.map((x) => '<div class="fig"><small>' + esc(x.label) + "</small><b>" + esc(x.text ?? "—") + "</b></div>").join("") + "</div>";
-      return '<details class="gcard' + (c.rule.tint ? " tint" : "") + '"' + (c.rule.open === false ? "" : " open") + "><summary><span>" + esc(c.rule.title || c.g.name) + '</span><span class="cnt">' +
+      return '<details class="gcard' + (c.rule.tint === "green" ? " green" : c.rule.tint ? " tint" : "") + '"' + (c.rule.open === false ? "" : " open") + "><summary><span>" + esc(c.rule.title || c.g.name) + '</span><span class="cnt">' +
         n + (n === 1 ? " value" : " values") + (c.rule.score && scoreNote ? " · " + esc(scoreNote) : "") + '</span></summary><dl class="vals' + (two ? " two" : "") + '">' +
         c.rows.map((x) => '<div class="pair"><dt>' + esc(x.label) + "</dt>" + (x.text == null ? '<dd class="empty">—</dd>' : "<dd>" + esc(x.text) + "</dd>") + "</div>").join("") + "</dl></details>"; };
     let html = "", pend = [];
@@ -902,12 +904,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", two: true, order: 3 },
              { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
       agr:  [{ re: /signature/i, col: "full", splitRight: /wccd|title|representative/i }, { re: /./, col: "full" }],
-      // Field rows (Yasser, 12 Nov): rows line up across. row = which pair a card belongs to.
-      rows: [{ re: /^Field$/i, col: "L", row: 1, order: 1 }, { re: /lime rec/i, col: "R", row: 1, order: 2 },
-             { re: /soil test lab/i, col: "L", row: 2, order: 3 }, { re: /^Soil test results$/i, col: "R", row: 2, order: 4 }, { re: /more soil/i, col: "R", row: 2, two: true, closed: true, order: 5 },
-             { re: /lab report/i, col: "L", row: 3, closed: true, order: 6 }, { re: /crop/i, col: "R", row: 3, closed: true, order: 7 },
-             { re: /optimal/i, col: "L", row: 4, closed: true, order: 8 }, { re: /name/i, col: "R", row: 4, closed: true, order: 9 },
-             { re: /acreage/i, col: "L", row: 5, closed: true, order: 10 }, { re: /^loose/, col: "R", row: 5, title: "Notes", order: 11 }, { re: /./, col: "full", order: 12 }],
+      // Field rows (Yasser, 12 Nov): Field | Lime recommendation on top; the field's naming and acreage groups under them; the lab block in green;
+      // Notes | Crops last. row = which pair a card belongs to. tint: true = blue, "green" = lab, false = white (default: right column is blue).
+      rows: [{ re: /^Field$/i, col: "L", row: 1, tint: false, order: 1 }, { re: /lime rec/i, col: "R", row: 1, tint: true, order: 2 },
+             { re: /name/i, col: "L", row: 2, tint: false, closed: true, order: 3 }, { re: /acreage/i, col: "R", row: 2, tint: false, closed: true, order: 4 },
+             { re: /soil test lab/i, col: "L", row: 3, tint: "green", order: 5 }, { re: /^Soil test results$/i, col: "R", row: 3, tint: "green", order: 6 },
+             { re: /more soil/i, col: "R", row: 3, tint: "green", two: true, closed: true, order: 7 }, { re: /lab report/i, col: "R", row: 3, tint: "green", closed: true, order: 8 },
+             { re: /optimal/i, col: "R", row: 3, tint: "green", closed: true, order: 9 },
+             { re: /^loose/, col: "L", row: 4, tint: false, title: "Notes", order: 10 }, { re: /crop/i, col: "R", row: 4, tint: false, closed: true, order: 11 }, { re: /./, col: "full", order: 12 }],
       cvf:  [{ re: /^loose0$/, col: "full", title: "Lime and cost", textsRight: true }, { re: /internal/i, col: "L" }, { re: /payment|invoice/i, col: "R" }, { re: /./, col: "full" }]
     };
     const pretty = (k) => String(k).replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^(\w)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
@@ -1112,7 +1116,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         else if (r.splitRight) { const isR = (el) => el.type === "field" && r.splitRight.test(labelOf(el.fieldName));
           body = items.filter((el) => el.type !== "field").map(elHtml).join("") + '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field" && !isR(el)).map(elHtml).join("") + '</div><div class="col tintcol">' + items.filter(isR).map(elHtml).join("") + "</div></div>"; }
         else body = items.map(elHtml).join("");
-        const cls = "ecard" + (r.col === "R" ? " tint" : "") + (r.two ? " two" : "");
+        const shade = r.tint === undefined ? r.col === "R" : r.tint;
+        const cls = "ecard" + (shade === "green" ? " green" : shade ? " tint" : "") + (r.two ? " two" : "");
         const card = r.closed
           ? '<details class="' + cls + '" data-card="' + esc(q.name) + '"' + (S.openCards.has(q.name) ? " open" : "") + "><summary>" + esc(title) + '</summary><div class="ebody">' + body + "</div></details>"
           : '<div class="' + cls + '">' + (title ? "<h3>" + esc(title) + "</h3>" : "") + '<div class="ebody">' + body + "</div></div>";
