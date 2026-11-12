@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B7a, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B7b, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, ONLY on the TEST records listed in CFG.editable, after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -154,6 +154,9 @@
     .dgrp { border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 10px 14px; margin-bottom: 12px; } .dgrp h3 { margin: 0 0 4px; font-size: 14px; } .dgrp .none { font-size: 13px; }
     .dfile { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; } .dfile:first-of-type { border-top: 0; }
     .dfile div { flex: 1; min-width: 0; overflow-wrap: anywhere; } .dfile small { display: block; color: var(--muted); } .dfile .btn { height: 36px; padding: 0 14px; }
+    .dfile .btn.del { border-color: var(--red); color: var(--red); } .dgrp .add { margin-top: 8px; height: 36px; padding: 0 14px; }
+    #docReview .rev { border: 2px solid var(--blue); border-radius: 4px; background: #fff; padding: 12px 16px; margin: 12px 0; font-size: 14px; } #docReview .rev.del { border-color: var(--red); } #docReview .rev p { margin: 0 0 10px; } #docReview .btn { margin-right: 8px; }
+    #docNote > div { margin: 12px 0 0; }
     .dcol > h3 { margin: 0 0 8px; font-size: 15px; } .dmiss { color: var(--red); font-weight: 600; font-size: 14px; margin: 8px 0 0; }
     .mrow .ty { color: #5E3A00; } .mrow .ty.bad { color: var(--red); font-weight: 600; }
     #mapHost arcgis-map { display: block; width: 100%; height: 100%; }
@@ -615,8 +618,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
-    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docBody"></div>' +
-      '<p>Read-only; nothing here is saved. Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="docBody"></div>' +
+      '<p>' + (canEdit(r) ? "TEST record: files can be added or removed, each after a review. " : "Look only on this record. ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
@@ -1525,7 +1528,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // ---------------- Documents tab (look only): the files attached to the application and to its field rows ----------------
   const DOC_GROUPS = [["cvf", "Cost verification packet", /cvf|cost|invoice|receipt/i], ["agr", "Agreement", /agree/i], ["lab", "Lab reports", /lab|soil/i],
                       ["app", "Application packet", /app|packet|intake/i], ["other", "Other files", /./]];
-  let docFiles = [];
+  const DOC_KEYWORD = { app: "FileApplicationPacket", agr: "FileAgreement", cvf: "FileCVFPacket", other: "FileReserve1" };   // the survey's own question names, as EB and Survey123 tag files
+  let docFiles = [], docUI = { pending: null, note: null, busy: false };
   const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
   const canAttach = (l) => !!(l && typeof l.queryAttachments === "function" && (l.capabilities?.data?.supportsAttachment || l.hasAttachments));
   async function initDocs(r) {
@@ -1540,19 +1544,22 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const res = await fr.table.queryAttachments({ objectIds: ids }); for (const id of ids) rowFiles.set(String(id), (res && res[id]) || []); }
       if (curTab !== "docs" || curId !== r.id || !$("docBody")) return;
       docFiles = [];
+      const edit = canEdit(r) && appOk;
       const kw = (f) => String(Array.isArray(f.keywords) ? f.keywords.join(", ") : f.keywords ?? "").trim();
-      const fileHtml = (f) => { docFiles.push(f); return '<div class="dfile"><div>' + esc(f.name || "(no name)") + "<small>" + esc([sizeText(f.size), f.contentType, kw(f) ? "keyword " + kw(f) : "no keyword"].filter(Boolean).join(" · ")) + '</small></div><button type="button" class="btn" data-doc="' + (docFiles.length - 1) + '">Open</button></div>'; };
+      const fileHtml = (f) => { docFiles.push(f); return '<div class="dfile"><div>' + esc(f.name || "(no name)") + "<small>" + esc([sizeText(f.size), f.contentType, kw(f) ? "keyword " + kw(f) : "no keyword"].filter(Boolean).join(" · ")) + '</small></div><button type="button" class="btn" data-doc="' + (docFiles.length - 1) + '">Open</button>' + (edit ? '<button type="button" class="btn del" data-docdel="' + (docFiles.length - 1) + '">Remove</button>' : "") + "</div>"; };
       const buckets = Object.fromEntries(DOC_GROUPS.map(([k]) => [k, []]));
       for (const f of appFiles) { const k = kw(f); buckets[k ? DOC_GROUPS.find(([, , re]) => re.test(k))[0] : "other"].push(f); }
-      const grp = (title, list) => '<div class="dgrp"><h3>' + esc(title) + " (" + list.length + ")</h3>" + (list.map(fileHtml).join("") || '<span class="none">No file attached.</span>') + "</div>";
-      const left = '<div class="dcol"><h3>Application files</h3>' + (appOk ? ["app", "agr", "cvf", "lab", "other"].filter((k) => k !== "lab" || buckets.lab.length).map((k) => grp(DOC_GROUPS.find((g) => g[0] === k)[1], buckets[k])).join("")
-        : '<div class="dgrp"><span class="none">This layer does not offer attachments.</span></div>') + "</div>";
-      const right = '<div class="dcol"><h3>Files on the field rows</h3>' + (!rowsOk ? '<div class="dgrp"><span class="none">' + (mine.length ? "The field rows table does not offer attachments; lab reports are kept with the application." : "No field rows.") + "</span></div>"
-        : mine.map((x) => grp("Field " + (attr(x, "FieldNum") ?? "(no number)"), rowFiles.get(String(x[fr.oidField])) || [])).join("")) + "</div>";
+      const grp = (title, list, key) => '<div class="dgrp"><h3>' + esc(title) + " (" + list.length + ")</h3>" + (list.map(fileHtml).join("") || '<span class="none">No file attached.</span>') +
+        (edit && key && DOC_KEYWORD[key] ? '<div><button type="button" class="btn add" data-docadd="' + key + '">Add file</button></div>' : "") + "</div>";
+      const left = appOk ? ["app", "agr", "cvf", "lab", "other"].filter((k) => k !== "lab" || buckets.lab.length).map((k) => grp(DOC_GROUPS.find((g) => g[0] === k)[1], buckets[k], k)).join("")
+        : '<div class="dgrp"><span class="none">This layer does not offer attachments.</span></div>';
+      const right = rowsOk ? mine.filter((x) => (rowFiles.get(String(x[fr.oidField])) || []).length).map((x) => grp("Field " + (attr(x, "FieldNum") ?? "(no number)"), rowFiles.get(String(x[fr.oidField])))).join("") : "";
       const miss = [];
       if (appOk) { if (r.stageN > 4 && r.status === "Approved" && !buckets.agr.length) miss.push("Past Agreement, but no agreement file is attached.");
         if (r.stageN >= 6 && r.status === "Approved" && !buckets.cvf.length) miss.push("Closed, but no cost verification packet is attached."); }
       $("docBody").innerHTML = miss.map((m) => '<p class="dmiss">' + esc(m) + "</p>").join("") + '<div class="docWrap">' + left + right + "</div>";
+      docUI.last = appFiles.map((f) => ({ id: f.id, kw: kw(f), name: f.name }));
+      $("docNote").innerHTML = docUI.note && docUI.note.id === r.id ? '<div class="' + docUI.note.cls + '">' + esc(docUI.note.text) + "</div>" : "";
       const nRow = [...rowFiles.values()].reduce((t, l) => t + l.length, 0);
       stat("notice", appFiles.length + " file(s) on the application" + (rowsOk ? ", " + nRow + " on its " + mine.length + " field row(s)." : "."));
       diag.push("Applications layer \"" + appLayer.title + "\": attachments " + (appOk ? "offered" : "NOT offered") + "; OBJECTID " + oid,
@@ -1562,6 +1569,47 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       $("docDiag").textContent = mask(diag.join("\n"));
     } catch (e) { stat("error", "The files could not be read – " + mask(e.message || e)); console.error(e); }
   }
+  // Add or remove a file (TEST records only): pick, review, confirm, then read the list back and check it.
+  const docReview = () => { const el = $("docReview"), p = docUI.pending; if (!el) return;
+    el.innerHTML = !p ? "" : '<div class="rev' + (p.type === "del" ? " del" : "") + '"><p>' + (p.type === "add"
+        ? "Add <b>" + esc(p.file.name) + "</b> (" + esc(sizeText(p.file.size)) + ") to <b>" + esc(p.rid) + "</b> as <b>" + esc(DOC_GROUPS.find((g) => g[0] === p.group)[1]) + "</b> (keyword " + esc(DOC_KEYWORD[p.group]) + ")?"
+        : "Remove <b>" + esc(p.f.name) + "</b> from <b>" + esc(p.rid) + "</b>? The file is deleted from the record and cannot be brought back.") + "</p>" +
+      '<button type="button" class="btn go" data-docgo="1"' + (docUI.busy ? " disabled" : "") + ">" + (docUI.busy ? "Working…" : p.type === "add" ? "Confirm and upload" : "Confirm and remove") + '</button><button type="button" class="btn" data-doccancel="1"' + (docUI.busy ? " disabled" : "") + ">Cancel</button></div>"; };
+  $("detail").addEventListener("change", (e) => { if (e.target.id !== "docPick") return; const file = e.target.files && e.target.files[0]; if (!file || !docUI.pick) return;
+    docUI.pending = { type: "add", group: docUI.pick, file, rid: curId }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); $("docReview").scrollIntoView({ block: "nearest" }); });
+  $("detail").addEventListener("click", async (e) => {
+    const add = e.target.closest("[data-docadd]"), del = e.target.closest("[data-docdel]");
+    if (add && !docUI.busy) { docUI.pick = add.dataset.docadd; const pk = $("docPick"); pk.value = ""; pk.click(); return; }
+    if (del && !docUI.busy) { const f = docFiles[Number(del.dataset.docdel)]; if (!f) return; docUI.pending = { type: "del", f, rid: curId }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); $("docReview").scrollIntoView({ block: "nearest" }); return; }
+    if (e.target.closest("[data-doccancel]") && !docUI.busy) { docUI.pending = null; docReview(); return; }
+    if (!e.target.closest("[data-docgo]") || docUI.busy || !docUI.pending) return;
+    const p = docUI.pending, r = rows.find((x) => x.id === p.rid);
+    if (!r || !canEdit(r) || curId !== p.rid) { docUI.pending = null; docReview(); return; }      // only the TEST records, and only the record on screen
+    docUI.busy = true; docReview();
+    try {
+      const G = await $arcgis.import("@arcgis/core/Graphic.js"), oid = r.a[appLayer.objectIdField];
+      const feature = new G({ attributes: { [appLayer.objectIdField]: oid } }), before = (docUI.last || []).map((x) => x.id);
+      let note;
+      if (p.type === "add") {
+        const fd = new FormData(); fd.append("attachment", p.file, p.file.name); fd.append("keywords", DOC_KEYWORD[p.group]);
+        const res = await appLayer.addAttachment(feature, fd); if (res && res.error) throw res.error;
+        const now = ((await appLayer.queryAttachments({ objectIds: [oid] })) || {})[oid] || [];
+        const added = now.filter((f) => !before.includes(f.id)), mineNew = added.find((f) => f.name === p.file.name) || added[0];
+        const k = mineNew ? String(Array.isArray(mineNew.keywords) ? mineNew.keywords.join(", ") : mineNew.keywords ?? "").trim() : "";
+        note = !mineNew ? { cls: "error", text: "The upload reported success, but the file is not in the list read back afterwards." }
+          : k !== DOC_KEYWORD[p.group] ? { cls: "error", text: "Uploaded " + mineNew.name + ", but its keyword reads " + (k ? '"' + k + '"' : "empty") + " instead of " + DOC_KEYWORD[p.group] + ". Tell Claude; the file itself is attached." }
+          : { cls: "okmsg", text: "Uploaded and verified: " + mineNew.name + " (" + sizeText(mineNew.size) + "), keyword " + k + "." };
+      } else {
+        const res = await appLayer.deleteAttachments(feature, [p.f.id]); const bad = (res || []).find((x) => x && x.error); if (bad) throw bad.error;
+        const now = ((await appLayer.queryAttachments({ objectIds: [oid] })) || {})[oid] || [];
+        note = now.some((f) => f.id === p.f.id) ? { cls: "error", text: "The removal reported success, but " + p.f.name + " is still in the list read back afterwards." }
+          : { cls: "okmsg", text: "Removed and verified: " + p.f.name + ". " + now.length + " file(s) remain." };
+      }
+      docUI.note = { id: r.id, ...note };
+    } catch (err) { docUI.note = { id: r.id, cls: "error", text: (p.type === "add" ? "The file was not uploaded – " : "The file was not removed – ") + mask((err && err.message) || err) }; console.error(err); }
+    docUI.busy = false; docUI.pending = null; docReview();
+    if (curTab === "docs" && curId === r.id) initDocs(r);
+  });
   // Open one file: the app fetches it (signed in) and shows the copy, so no link on the page carries a sign-in token.
   $("detail").addEventListener("click", async (e) => {
     const b = e.target.closest("[data-doc]"); if (!b) return;
