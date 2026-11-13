@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B11a, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B11b, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -167,7 +167,9 @@
     .nagrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; } @media (max-width: 900px) { .nagrid { grid-template-columns: 1fr; } }
     .nacol { display: flex; flex-direction: column; gap: 12px; min-width: 0; } .naid { font-size: 20px; font-weight: 700; letter-spacing: .02em; } .naid.bad { color: var(--red); }
     #naMap { height: 300px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); position: relative; }
-    .narows { width: 100%; border-collapse: collapse; font-size: 14px; } .narows th { text-align: left; font-size: 13px; padding: 4px 6px 4px 0; } .narows td { padding: 3px 6px 3px 0; }
+    .narows { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 46px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
+    #naPane .fld input[type="date"] { max-width: 190px; } #naPane [data-nafld="AttendedEventDetail"] input { max-width: 380px; }
+    .nafarmtag { position: absolute; top: 8px; left: 8px; z-index: 2; pointer-events: none; background: rgba(255,255,255,.72); border: 1px solid rgba(26,29,33,.35); border-radius: 4px; padding: 3px 8px; font-size: 13px; font-weight: 600; color: #1A1D21; max-width: calc(100% - 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .narows th { text-align: left; font-size: 13px; padding: 4px 6px 4px 0; } .narows td { padding: 3px 6px 3px 0; }
     .narows input { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; } .narows .x { width: 40px; height: 40px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; cursor: pointer; font-size: 16px; }
     .nabar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; } .nabar .sp { flex: 1; font-size: 13px; color: var(--muted); }
     #about p { margin: 0 0 8px; } #about dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 8px; } #about dt { color: var(--muted); } #about dd { margin: 0; }
@@ -1788,7 +1790,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B11a", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B11b", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -1812,7 +1814,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     FieldCountMismatch: { x: "if(${FieldsCount}!='' and ${FieldsCount} != sum(${f_HasNum}),1,0)",
       f: (p, R) => !nb(p.FieldsCount) && Number(p.FieldsCount) !== sum(R, "f_HasNum") ? 1 : 0 },
     AliasCount: { x: "sum(${a_HasText})",
-      f: () => 0 },
+      f: () => null },   // no alias rows at creation: the survey leaves this empty
     pHTotalForAllFields: { x: "round(sum(${f_pHForSum}),2)",
       f: (p, R) => rd(sum(R, "f_pHForSum"), 2) },
     FieldCountWithpH: { x: "sum(${f_HasPH})",
@@ -1973,7 +1975,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       '<button type="button" class="btn" id="naClear">Clear</button><button type="button" class="btn go" id="naReviewBtn">Review</button></div>';
     naSync(); naFarmList(); if (NA.farm) naMap();
   }
-  async function naFarmList() { try { await loadPolygons(); const dl = $("naFarms"); if (dl) dl.innerHTML = MAPS.farms.filter((f) => f.no != null).map((f) => '<option value="' + esc(f.no) + '">' + esc(f.name || "") + "</option>").join(""); naFarmChanged(); } catch { /* no polygons: Farm # is typed */ } }
+  async function naFarmList() { try { await loadPolygons(); const dl = $("naFarms"); if (dl) dl.innerHTML = MAPS.farms.filter((f) => f.no != null).slice().sort((a, b) => (parseInt(a.no, 10) || 0) - (parseInt(b.no, 10) || 0) || String(a.no).localeCompare(String(b.no))).map((f) => '<option value="' + esc(f.no) + '">' + esc(f.name || "") + "</option>").join(""); naFarmChanged(); } catch { /* no polygons: Farm # is typed */ } }
   const naNextSeq = (fy) => { const yy = String(fy).slice(2, 4), county = castBorn(BORN.P.AEPCounty, BORN.P.AEPCounty.value), used = new Set();
     for (const r of rows) { const m = new RegExp("^AEP" + county + "-" + yy + "-(\\d+)$").exec(r.id); if (m) used.add(Number(m[1])); }
     let n = 1; while (used.has(n)) n++; return n; };
@@ -2003,11 +2005,13 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function naFarmChanged() {
     if (!NA || !MAPS.farms) return;
     const farm = normFarm(NA.v.FarmID ?? ""), hit = farm ? MAPS.farms.filter((f) => f.farm === farm) : [], flds = farm ? MAPS.fields.filter((f) => (f.farm === farm || f.pre === farm) && f.key && f.suf !== "9999") : [];
-    const key = farm + "|" + hit.length + "|" + flds.length; if (NA.farmKey === key) return; NA.farmKey = key;
-    NA.farm = hit.length || flds.length ? { farm, polys: hit, fields: flds } : null;
+    const key = farm + "|" + hit.length + "|" + flds.length, same = NA.farmKey === key; NA.farmKey = key;
+    if (!same) NA.farm = hit.length || flds.length ? { farm, polys: hit, fields: flds } : null;
+    NA.farmTag = NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") : "";
     const note = $("naMapNote"); if (note) note.textContent = !farm ? "Enter a Farm # to see its fields on a map." : NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") + ": click a field to add or remove it." : "No polygon for Farm # " + NA.v.FarmID + " in the farms layer. Type the fields below.";
-    if ($("naMap")) $("naMap").hidden = !NA.farm; if (NA.farm) naMap();
+    if ($("naMap")) $("naMap").hidden = !NA.farm; if (same) { naTag(); return; } if (NA.farm) naMap();
   }
+  function naTag() { const host = $("naMap"); if (!host) return; let t = host.querySelector(".nafarmtag"); if (!t) { t = document.createElement("div"); t.className = "nafarmtag"; host.appendChild(t); } t.textContent = NA.farmTag || ""; t.hidden = !NA.farmTag; }
   function naMap() {
     try {
       const host = $("naMap"); if (!host || !NA.farm) return; host.hidden = false;
@@ -2017,9 +2021,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       NA.farm.fields.forEach((f, i) => { const on = have.has(f.key);
         gs.push(new G({ geometry: f.g, symbol: on ? fill([23, 69, 122, 0.4], { color: [23, 69, 122, 1], width: 2.5 }) : fill([255, 255, 255, 0.2], { color: [107, 116, 126, 1], width: 1 }), attributes: { fi: i } }));
         const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: on ? [14, 44, 80, 1] : [90, 98, 107, 1], haloColor: [255, 255, 255, 1], haloSize: 1.5, font: { size: on ? 11 : 9, weight: on ? "bold" : "normal" } } })); });
-      if (NA.mapEl && NA.mapEl.isConnected && NA.mapFarm === NA.farm.farm) { NA.mapLayer.removeAll(); NA.mapLayer.addMany(gs); return; }
+      if (NA.mapEl && NA.mapEl.isConnected && NA.mapFarm === NA.farm.farm) { NA.mapLayer.removeAll(); NA.mapLayer.addMany(gs); naTag(); return; }
       host.innerHTML = ""; const layer = new GraphicsLayer(); layer.addMany(gs);
-      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] }); host.appendChild(el);
+      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] }); host.appendChild(el); naTag();
       NA.mapEl = el; NA.mapLayer = layer; NA.mapFarm = NA.farm.farm;
       const zoom = () => { try { el.goTo(gs.filter((g) => g.geometry && g.geometry.type === "polygon")).catch(() => {}); } catch { /* not ready */ } };
       el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
