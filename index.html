@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B11f, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12b, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -189,6 +189,12 @@
     #naDlg.dock { margin-top: 10px; max-height: 52vh; } #naDlg.dock .ndbody { max-height: calc(52vh - 136px); } #naDlg.dock::backdrop { background: rgba(20, 25, 30, .12); }
     #naDlg .ndwarn { margin-top: 8px; background: #C81E1E; color: #fff; font-weight: 600; padding: 8px 12px; border-radius: 4px; } #naDlg .ndwarn:empty { display: none; } #naDlg input.badv { border: 2px solid #C81E1E; background: #FDECEC; } #naDlg input[readonly] { background: #EEF0F2; }
     #naDlg .ndnote { padding: 0 10px 2px; }
+    #prCard .prrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; } #prCard .pritem { display: flex; flex-direction: column; gap: 3px; max-width: 250px; } #prCard .pritem small { color: var(--muted); font-size: 12.5px; }
+    #prCard { border: 1px solid var(--line); border-radius: 6px; background: #fff; padding: 10px 14px 12px; margin: 10px 0; } #prCard h3 { margin: 0 0 8px; font-size: 15px; }
+    #prDlg { width: min(980px, 96vw); height: 94vh; max-height: 94vh; border: 1px solid #6B747E; border-radius: 6px; padding: 0; color: var(--ink); font: inherit; } #prDlg::backdrop { background: rgba(20, 25, 30, .45); }
+    #prDlg .prwrap { display: flex; flex-direction: column; height: 100%; } #prDlg .prhead { padding: 10px 16px; border-bottom: 1px solid var(--line); } #prDlg .prhead b { font-size: 16px; }
+    #prDlg .prmiss { margin-top: 6px; background: #FBE4E4; color: var(--red); border-radius: 4px; padding: 6px 10px; font-size: 13.5px; } #prDlg iframe { flex: 1; border: 0; background: #8A9199; width: 100%; }
+    #prDlg .prfoot { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); } #prDlg .prfoot .sp { flex: 1; font-size: 13px; color: var(--muted); }
     #naSum { margin-top: 8px; padding: 8px 10px; background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; } #naSum:empty { display: none; }
     .narows { width: 100%; min-width: 660px; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 124px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
     #naPane .fld input[type="date"] { max-width: 190px; } .napair:not(:has(> :not([hidden]))) { display: none; } .napair { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; } .napair > [data-nafld="AttendedEventDetail"] { flex: 1 1 240px; min-width: 0; } .napair > [data-nafld="AttendedEventDate"] { flex: 0 0 190px; }
@@ -729,7 +735,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
-    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="docBody"></div>' +
+    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="prCard"></div><div id="docBody"></div>' +
       '<p>' + (canEdit(r) ? "Files can be added or removed on the live record, each after a review. " : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
@@ -1552,6 +1558,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   }
   // Earlier funding of this farm's fields inside the three-year window (rule of eb-three-year-check.md, counting only applications that were limed and paid:
   // status Approved and stage Closed; Yasser, 9 and 12 Nov). Returns field key -> { used acres, last year, AEP ID, field name as written there }.
+  // Each map gets its own copy of the web map's basemap. A map that is taken off the page destroys what it holds, and sharing the web map's own basemap
+  // let that destroy it for the forms and for every later map ("Instance of 'esri.Basemap' is already destroyed").
+  function baseCopy() { try { const b = webmap && webmap.basemap; if (b && !b.destroyed && typeof b.clone === "function") return b.clone(); } catch (e) { console.warn("basemap copy", e); } return "topo-vector"; }
   function earlierFunding(r) {
     const out = new Map(), farm = normFarm(F.farmNo ? r.a[F.farmNo] : "");
     const yearOf = (v) => { const m = /(\d{4})/.exec(String(v ?? "")); return m ? Number(m[1]) : null; };
@@ -1630,7 +1639,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         b.querySelector("button").onclick = hideInfo; };
       if (targets.length) {
         el = document.createElement("arcgis-map"); MAPS.el = el;
-        el.map = new MapCls({ basemap: webmap.basemap, layers: [layer, idLayer] });
+        el.map = new MapCls({ basemap: baseCopy(), layers: [layer, idLayer] });
         host.appendChild(el);
         el.addEventListener("arcgisViewReadyChange", zoomAll); setTimeout(zoomAll, 1500);
         el.addEventListener("arcgisViewClick", async (evt) => { try { const d = evt.detail, hit = await el.hitTest(d);
@@ -1813,7 +1822,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B11f", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12b", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2161,7 +2170,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: on ? [14, 44, 80, 1] : [90, 98, 107, 1], haloColor: [255, 255, 255, 1], haloSize: 1.5, font: { size: on ? 11 : 9, weight: on ? "bold" : "normal" } } })); });
       if (NA.mapEl && NA.mapEl.isConnected && NA.mapFarm === NA.farm.farm) { NA.mapLayer.removeAll(); NA.mapLayer.addMany(gs); naTag(); return; }
       host.innerHTML = ""; const layer = new GraphicsLayer(); layer.addMany(gs);
-      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] }); host.appendChild(el); naTag();
+      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: baseCopy(), layers: [layer] }); host.appendChild(el); naTag();
       NA.mapEl = el; NA.mapLayer = layer; NA.mapFarm = NA.farm.farm;
       const zoom = () => { try { el.goTo(gs.filter((g) => g.geometry && g.geometry.type === "polygon")).catch(() => {}); } catch { /* not ready */ } };
       el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
@@ -2306,6 +2315,103 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   }
   aboutDraw(); bornLoad();
 
+  // ---------------- Printing: the four documents drawn from the record, shown for review, printed by the browser ----------------
+  // The wording follows the four Word templates in the project (approval letter, agreement, cost verification form, application summary). Printing changes nothing on the record.
+  const PR = (() => {
+    const fld = (n) => appLayer.fields.find((f) => f.name.toLowerCase() === n.toLowerCase());
+    const raw = (r, n) => attr(r.a, n), has = (r, n) => !nb(raw(r, n));
+    const longDate = (v) => nb(v) ? "" : new Date(v).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    const txt = (r, n) => { const f = fld(n), v = raw(r, n); if (nb(v)) return ""; return f && f.type === "date" ? longDate(v) : (show(f, v) ?? ""); };
+    const n = (v, min, max) => nb(v) || isNaN(Number(v)) ? "" : Number(v).toLocaleString("en-US", { minimumFractionDigits: min, maximumFractionDigits: max });
+    const csz = (r) => esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "));
+    const T = (r, k) => esc(txt(r, k)), N = (r, k, min, max) => esc(n(raw(r, k), min, max));
+    const blank = (t, w) => t === "" ? '<span class="blank" style="min-width:' + (w || 120) + 'px">&nbsp;</span>' : "<b>" + t + "</b>";
+    const head = '<div class="lh"><b>Washington County Conservation District</b><br>50 Old Hickory Ridge Road, Suite 1<br>Washington, PA 15301<br>Phone: 724-705-7098<br>Fax: 724-249-2519</div>';
+    const included = (r) => rowsOf(r).filter((x) => { const st = attr(x, "FieldStatus"); return nb(st) || st === "Included"; });
+    const docs = {
+      summary: { label: "Application Summary", group: "other", when: () => "", need: [],
+        html(r) { const rs = included(r), ef = earlierFunding(r).out, hit = rs.filter((x) => ef.has(normKey(attr(x, "FieldNum")))).length;
+          const kv = (pairs) => pairs.map(([l, v]) => '<div class="kv"><span>' + l + "</span><b>" + (v || "–") + "</b></div>").join("");
+          const q = (k) => { const v = raw(r, k), t = txt(r, k); return nb(v) ? "–" : esc(t) + (String(t) === String(v) ? " pts" : " (" + esc(String(v)) + ")"); };
+          return '<div class="sum"><h1>Washington County Conservation District</h1><div class="sub">Agricultural Enhancement Program · Lime · Application Summary</div>' +
+            '<div class="idbar"><b>' + T(r, "AEPID") + "</b><span>Fiscal year " + N(r, "FiscalYear", 0, 0).replace(/,/g, "") + " · " + T(r, "Stage") + " · " + T(r, "AppStatus") + "</span></div>" +
+            '<div class="band ' + (hit ? "warn" : "ok") + '">' + (hit ? "THREE-YEAR RESTRICTION: " + hit + " field(s) on this farm were funded within the last three years — see the 3-year check column below before approving." : "THREE-YEAR CHECK: No field on this farm has been funded in the last three years.") + "</div>" +
+            '<div class="two"><div>' + kv([["Applicant", T(r, "ApplicantLegalName")], ["Contact", esc([txt(r, "FirstName"), txt(r, "LastName")].filter(Boolean).join(" "))], ["Greeting", T(r, "LetterSalutation")], ["Role", T(r, "ApplicantRole")], ["Landowner", T(r, "LandownerName")], ["Email", T(r, "Email")], ["Phone", T(r, "Phone")], ["Address", T(r, "Address1")], ["", esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "))]]) + "</div><div>" +
+              kv([["Farm name", T(r, "FarmName")], ["Farm #", T(r, "FarmID")], ["Tract #", T(r, "TractNumber")], ["County", T(r, "CountyName")], ["Application date", T(r, "ApplicationDate")], ["Requested (tons)", N(r, "AmountRequestedTons", 0, 2)], ["Fields stated", T(r, "FieldsCount")], ["Conservation plan", T(r, "HasConsPlan")], ["Manure plan", T(r, "HasManurePlan")]]) + "</div></div>" +
+            "<h2>Fields and soil tests</h2><table><thead><tr><th>Field #</th><th>Field name</th><th>Acres</th><th>Soil pH</th><th>Tons / acre</th><th>Total tons</th><th>3-year check</th></tr></thead><tbody>" +
+              (rs.map((x) => { const e = ef.get(normKey(attr(x, "FieldNum"))); return "<tr><td>" + esc(attr(x, "FieldNum") ?? "") + "</td><td>" + esc(attr(x, "FieldLabelResolved") ?? "") + '</td><td class="r">' + esc(n(attr(x, "TreatedAcresInField"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "SoilpH"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "LimeRecTonsPerAcre"), 3, 3)) + '</td><td class="r">' + esc(n(attr(x, "TotalTonsForField"), 2, 2)) + "</td><td>" + (e ? "<b>FUNDED " + esc(String(e.yr)) + "</b>" : "clear") + "</td></tr>"; }).join("") || '<tr><td colspan="7">No field rows.</td></tr>') +
+              '<tr class="tot"><td></td><td>Total</td><td class="r">' + N(r, "TotalTreatedAcres", 0, 2) + '</td><td class="r">' + N(r, "pHAverage", 0, 2) + '</td><td class="r">' + N(r, "AverageTonnage", 2, 2) + '</td><td class="r">' + N(r, "TotalTonsRanked", 2, 2) + "</td><td></td></tr></tbody></table>" +
+            '<h2>Ranking and approval</h2><div class="two"><div>' + kv([["1. Current conservation plan or Ag E&amp;S plan", q("Q01ConsPlan")], ["2. Conservation plan verified by the district", q("Q02ConsPlanVerified")], ["3. Current ACT 38 NMP or manure management plan", q("Q03ActPlan")], ["4. Manure plan verified by the district", q("Q04ActPlanVerified")], ["5. First-time or previously non-funded applicant", q("Q05FirstTime")], ["6. Prior contracts completed on time", q("Q06PriorOnTime")], ["7. All selected fields pasture", q("Q07AllPasture")], ["8. District event in the past 12 months", q("Q08AttendedEvent")], ["9. Soil test dated within the last 12 months", q("Q09SoilTestCurrent")], ["10. District visit within the past year", q("Q10DistrictVisit")], ["11. Soil pH band (average of all fields)", q("Q11pHBand")], ["General ranking total", T(r, "TotalGeneralRanking")], ["Lime score", T(r, "LimeScore")], ["TOTAL APPLICATION SCORE", T(r, "TotalApplicationScore")]]) + "</div><div>" +
+              kv([["Approved tons", N(r, "ApprovedTons", 0, 2)], ["Approved acres", N(r, "ApprovedAcres", 0, 2)], ["Max assistance", N(r, "ApprovedAmountUSD", 2, 2)], ["Rate ($/ton)", N(r, "PricePerTonCap", 2, 2)], ["Cost share", has(r, "CostSharePercent") ? T(r, "CostSharePercent") + "%" : ""], ["Approval letter", T(r, "ApprovalLetterDate")], ["Approved by", T(r, "ApprovedBy")], ["Practice lifespan", has(r, "PracticeLifespanYears") ? T(r, "PracticeLifespanYears") + " years" : ""], ["Practice deadline", T(r, "PracticeDeadline")], ["CVF deadline", T(r, "CVFDeadline")]]) + "</div></div>" +
+            '<h2>Agreement and reimbursement</h2><div class="two"><div>' + kv([["Landowner signed", T(r, "AgreementLandownerSignDate")], ["WCCD signed", T(r, "AgreementWCCDSignDate")], ["WCCD representative", T(r, "AgreementWCCDRepName")], ["A · Lime purchased (t)", N(r, "TonsPurchased", 2, 2)], ["B · Eligible (t)", N(r, "TonsEligible", 2, 2)]]) + "</div><div>" +
+              kv([["C · Cost per ton", N(r, "ActualCostPerTon", 2, 2)], ["D · Rate ($/ton)", N(r, "RatePerTon", 2, 2)], ["Total request (B x D)", N(r, "TotalReimbursementRequest", 2, 2)], ["Total paid", N(r, "TotalReimbursementPaid", 2, 2)], ["Check / date", esc([txt(r, "CheckNumber"), txt(r, "PaymentDate")].filter(Boolean).join("   "))]]) + "</div></div>" +
+            "<h2>Notes</h2><p>" + (T(r, "Notes") || "–") + '</p><p class="foot">Generated from the WCCD Agricultural Lime application record on ' + esc(longDate(Date.now())) + ".</p></div>"; } },
+      letter: { label: "Approval Letter", group: "other", when: (r) => r.status === "Approved" ? "" : "Offered once the application is Approved.",
+        need: [["Approval letter date", "ApprovalLetterDate"], ["Signed by (name on the letter)", "SignerName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Greeting", "LetterSalutation"], ["Signing window start", "SigningWindowStart"], ["Signing window end", "SigningWindowEnd"], ["Approved by", "ApprovedBy"], ["Title", "ApprovedByTitle"]],
+        html(r) { return '<div class="letter">' + head + '<p class="c"><b>WCCD AGRICULTURE ENHANCEMENT PROGRAM</b><br><b>APPLICATION APPROVAL</b></p><p>' + T(r, "ApprovalLetterDate") + "</p><p>" + T(r, "SignerName") + "<br>" + T(r, "Address1") + "<br>" + csz(r) + "</p><p>Dear " + T(r, "LetterSalutation") + ",</p>" +
+          "<p>We appreciate your interest in the WCCD Agriculture Enhancement Program. Upon review and careful consideration, the Washington County Conservation District (WCCD or District) is pleased to inform you that your application has been approved for the following funding:</p><p class=\"ind\">- Application of " + T(r, "BMPType") + "</p>" +
+          "<p>Your application will be formally awarded upon the execution of a signed agreement with Washington County Conservation District. Please contact the conservation district to schedule a time to sign the agreement on one of the following days: " + T(r, "SigningWindowStart") + " through " + T(r, "SigningWindowEnd") + " from 8:30 am to 4:00 pm. Please bring the complete W9 form which is enclosed with you to the meeting. We urge you to not begin work on your project until the appropriate contract conditions have been satisfied.</p>" +
+          "<p><b>You are required to immediately notify the Washington County Conservation District in writing of any changes to this approved application, particularly if you do not plan to continue with the program.</b></p><p>The District looks forward to working in partnership with you.</p><p>Sincerely,</p><p><br><br>" + T(r, "ApprovedBy") + "<br>" + T(r, "ApprovedByTitle") + '</p><p>Enclosure: W9 Form</p><p class="foot">9.19.22</p></div>'; } },
+      agreement: { label: "Agreement", group: "agr", when: (r) => r.status === "Approved" && r.stageN >= 4 ? "" : "Offered at the Agreement stage or later.",
+        need: [["Applicant name", "ApplicantLegalName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Approved tons", "ApprovedTons"], ["Maximum assistance", "ApprovedAmountUSD"], ["Farm #", "FarmID"], ["Practice lifespan", "PracticeLifespanYears"], ["Rate per ton", "PricePerTonCap"], ["Practice deadline", "PracticeDeadline"], ["CVF deadline", "CVFDeadline"]],
+        html(r) { const li = (a) => "<ol>" + a.map((t) => "<li>" + t + "</li>").join("") + "</ol>", sig = (t) => '<table class="sig"><tr><td>' + t + "</td><td>Date</td></tr></table>";
+          return '<div class="letter agr"><p class="c"><b><i>Washington County Conservation District<br>Agricultural Enhancement Program<br>Landowner/Operator Agreement</i></b></p>' +
+          '<p>This Agreement is made by &nbsp; <u>&nbsp;' + T(r, "ApplicantLegalName") + '&nbsp;</u><br><span class="small">(Landowner / Operator Name)</span></p><p>Address: &nbsp; <u>&nbsp;' + [T(r, "Address1"), csz(r)].filter(Boolean).join(", ") + "&nbsp;</u></p>" +
+          "<p><b>And Washington County Conservation District (WCCD), located at 50 Old Hickory Ridge Road, Suite 1, Washington, PA 15301 for the following practices:</b></p>" +
+          "<table><thead><tr><th>Practice</th><th>Amount approved for</th><th>Farm Name/#</th><th>Field Numbers</th><th>Practice Lifespan</th></tr></thead><tbody><tr><td>" + (T(r, "BMPType") || "Lime") + "</td><td>" + N(r, "ApprovedTons", 0, 2) + " Tons<br>$ " + N(r, "ApprovedAmountUSD", 2, 2) + " Max Financial Assistance</td><td>" + T(r, "FarmID") + "</td><td>" + esc(included(r).map((x) => attr(x, "FieldNum")).filter((v) => !nb(v)).join(" ")) + "</td><td>" + T(r, "PracticeLifespanYears") + "</td></tr></tbody></table>" +
+          "<p>Each undersigned landowner/operator agrees to participate in the WCCD Agricultural Enhancement Program and comply with terms set forth herein for the period covered by this Agreement. The undersigned landowner(s)/operator(s) represent and agree that:</p>" +
+          "<p><b>Section 1 - Financial Assistance</b></p>" + li(["Payment received shall be a (flat rate or %) of $ " + N(r, "PricePerTonCap", 2, 2) + " /(unit) not to exceed a total reimbursement of $ " + N(r, "ApprovedAmountUSD", 2, 2) + ".", "Payment will be presented for board approval upon WCCD's receipt of the cost verification form and verification by a WCCD employee."]) +
+          "<p><b>Section 2 - Agreement Provisions</b></p>" + li(["Landowner(s)/Operator(s) agree that the WCCD, supervisors, employees, agents and contractors shall have the right to enter upon the Premises to provide technical assistance, perform project inspections, and monitor the practice for the lifespan of the practice (as listed above).",
+            "The practice (s) shall be performed according to the USDA - Natural Resources Conservation Service Field Office Technical Guide (PA) standards and specifications or other approved standards in effect at the time the practices are implemented.",
+            "The practice(s) shall be maintained properly for their lifespan as specified in the Natural Resources Conservation Service Field Office Technical Guide, other approved standards, the designated lifespan, or the permitted lifespan.",
+            "The terms of this Agreement shall cover the lifespan of the longest-lived practice paid for under this Agreement.",
+            "By signing this Agreement, the Landowner(s)/Operator(s) warrant that he/she is the sole owner or operator of the real property on which the project is to be performed, or has secured a sufficient property interest, including any necessary easements or rights-of-way, that may be necessary to grant access, for the completion and maintenance of the work.",
+            "Landowner(s)/Operator(s) agrees to refund all or part of the cost-share assistance paid to it, as determined by the District, if before expiration of the practice lifespan specified above, Landowner(s) (a) destroys the BMP installed, or (b) voluntarily relinquishes control or title to the land on which the installed BMP has/have been established, and the new Landowner(s) and/or operator of the land does not agree in writing to properly maintain the BMP for the remainder of its/their specified lifespan.",
+            "Landowner(s)/Operators(s) shall comply with all Federal, State, local laws, rules and regulations and is responsible for obtaining all permits.",
+            "This Agreement shall be binding on the parties, their heirs, legal representatives, successors, and assigns.",
+            "The Washington County Conservation District board has final decision on payment approvals.",
+            "The Washington County Conservation District shall not be liable for any claims, injuries or damages arising from or any way related to this Project Agreement."]) +
+          "<p><b>Section 3 – Additional Agreement Provisions, if necessary, as deemed by the District.</b></p><p>The Landowner/Operator agrees to comply with the following conditions.</p>" + li(["Once the project is complete, the landowner pays all bills and submits for reimbursement to the District using the Cost Verification Form and attaching all bills related to the project."]) +
+          "<p><b>If I do not complete my practice by " + T(r, "PracticeDeadline") + ", or submit the cost verification form by " + T(r, "CVFDeadline") + ", I will forfeit my right to any cost share payment. No extensions will be granted.</b></p>" +
+          "<p><b>Section 4 – Agreement Signatures</b></p><p>In Witness Whereof, the parties hereto have executed this Agreement.</p><p><b>Landowner(s)/Operator(s):</b></p>" + sig("Landowner Signature") + sig("Operator Signature (if different than Landowner)") +
+          "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "</div>"; } },
+      cvf: { label: "Cost Verification Form", group: "cvf", when: (r) => r.status === "Approved" && r.stageN >= 5 ? "" : "Offered at the Reimbursement stage or later.",
+        need: [["Applicant name", "ApplicantLegalName"], ["Tons purchased", "TonsPurchased"], ["Tons eligible", "TonsEligible"], ["Cost per ton", "ActualCostPerTon"], ["Reimbursement rate", "RatePerTon"], ["Total reimbursement request", "TotalReimbursementRequest"]],
+        html(r) { const ln = (l, v, w) => "<p>" + l + " &nbsp;" + blank(v, w) + "</p>";
+          return '<div class="letter">' + head + '<p class="c"><b>WCCD Agricultural Enhancement Program – Cost Verification Form</b></p>' +
+          "<p>This form is for requesting reimbursement payment for the WCCD Agricultural Enhancement Program project listed below. The form along with invoice or receipts should be submitted within 30 days of implementation of the project and 7 days before the next district meeting. A reimbursement check will be mailed after the district meeting following this submission (district meetings are the second Tuesday of every month).</p>" +
+          ln("Applicant Name:", T(r, "ApplicantLegalName"), 260) + ln("A. &nbsp; Amount of Lime Purchased (Tons):", N(r, "TonsPurchased", 2, 2)) + ln("B. &nbsp; Amount of Lime Eligible for Reimbursement (Tons):", N(r, "TonsEligible", 0, 2)) + ln("C. &nbsp; Cost per Ton (Lime Only):", N(r, "ActualCostPerTon", 2, 2)) +
+          '<p class="small">** If Cost per Ton is less than $' + (N(r, "PricePerTonCap", 0, 2) || "22") + ", Cost of lime per ton (C) x " + (has(r, "CostShareMultiplier") ? N(r, "CostShareMultiplier", 0, 2) : "0.75") + " to get reimbursement rate.</p>" +
+          ln("D. &nbsp; Cost per Ton Reimbursement Rate:", N(r, "RatePerTon", 2, 2)) + ln("Total Reimbursement Request (B x D): &nbsp; $", N(r, "TotalReimbursementRequest", 2, 2)) + '<p class="small">(Amount of Lime Eligible for Reimbursement x Cost per Ton Reimbursement Rate)</p>' +
+          "<p><b>WCCD Internal Use:</b></p>" + ln("Account funds to be paid from:", T(r, "AccountFundsFrom")) + "<p><b>Verification:</b></p>" + ln("Amount of Lime matches agreement:", T(r, "AmountMatchesAgreement")) + ln("Reimbursement amount matches agreement:", T(r, "ReimbursementMatchesAgreement")) + ln("Was the lime certified:", T(r, "LimeCertified")) + ln("Spot check of application:", T(r, "SpotCheckDone")) +
+          ln("Checked by:", T(r, "CheckedBy"), 200) + ln("Date:", T(r, "CVFReceivedDate"), 160) + ln("Reimbursement approved:", T(r, "CVFApprovedBy"), 220) + '<p style="margin-left:42%">District Manager &nbsp;&nbsp;&nbsp;&nbsp; Date: ' + blank(T(r, "CVFApprovedDate"), 140) + "</p></div>"; } }
+    };
+    const css = "@page{size:letter;margin:0.9in}html{background:#8A9199}body{margin:0;font:12pt/1.38 'Times New Roman',Times,serif;color:#000}" +
+      ".page{background:#fff;width:6.7in;margin:18px auto;padding:0.9in;box-shadow:0 2px 10px rgba(0,0,0,.35)}@media print{html{background:#fff}.page{margin:0;padding:0;width:auto;box-shadow:none}}" +
+      ".lh{text-align:center;margin-bottom:14pt}.c{text-align:center}.ind{margin-left:.5in}.small{font-size:10pt}.foot{font-size:9pt;color:#444;margin-top:18pt}p{margin:0 0 9pt}ol{margin:0 0 9pt;padding-left:.45in}li{margin-bottom:5pt}" +
+      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}.sig td:last-child{width:28%}" +
+      ".blank{display:inline-block;border-bottom:1px solid #000}.agr{font-size:11pt}.agr li{text-align:justify}" +
+      ".sum{font:10pt/1.3 Arial,Helvetica,sans-serif}.sum h1{font-size:15pt;margin:0}.sum .sub{margin-bottom:8pt}.sum h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:12pt 0 5pt;border-bottom:1.5px solid #000;padding-bottom:2pt}" +
+      ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.idbar{display:flex;justify-content:space-between;align-items:baseline;border:1.5px solid #000;padding:5pt 8pt;margin-bottom:6pt}.idbar b{font-size:13pt}" +
+      ".band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}.two{display:grid;grid-template-columns:1fr 1fr;gap:0 18pt}.kv{display:flex;justify-content:space-between;gap:10pt;border-bottom:1px dotted #999;padding:2pt 0}.kv b{text-align:right}";
+    return { docs, has, css };
+  })();
+  function prCard(r) {
+    const el = $("prCard"); if (!el) return;
+    el.innerHTML = "<h3>Print a document</h3>" + '<div class="prrow">' + Object.entries(PR.docs).map(([k, d]) => { const why = d.when(r); return '<div class="pritem"><button type="button" class="btn" data-pr="' + k + '"' + (why ? " disabled" : "") + ">" + esc(d.label) + "</button>" + (why ? "<small>" + esc(why) + "</small>" : "") + "</div>"; }).join("") + "</div>";
+  }
+  function prOpen(r, k) {
+    const d = PR.docs[k]; if (!d) return; const miss = d.need.filter(([, f]) => !PR.has(r, f)).map(([l]) => l);
+    let dlg = $("prDlg"); if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "prDlg"; dlg.setAttribute("aria-labelledby", "prTitle"); document.body.appendChild(dlg);
+      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
+    const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
+    dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
+      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Printing changes nothing on the record. To keep a copy with the application, choose “Save as PDF” in the print window, then use Add file under ' + esc(grp) + '.</span><button type="button" class="btn" id="prClose">Close</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+    dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div class="page">' + d.html(r) + "</div></body></html>";
+    if (!dlg.open) dlg.showModal();
+  }
+  $("detail").addEventListener("click", (e) => { const b = e.target.closest("[data-pr]"); if (!b || b.disabled) return; const r = rows.find((x) => x.id === curId); if (r) prOpen(r, b.dataset.pr); });
+
   // ---------------- Documents tab (look only): the files attached to the application and to its field rows ----------------
   const DOC_GROUPS = [["cvf", "Cost verification packet", /cvf|cost|invoice|receipt/i], ["agr", "Agreement", /agree/i], ["lab", "Lab reports", /lab|soil/i],
                       ["app", "Application packet", /app|packet|intake/i], ["other", "Other files", /./]];
@@ -2314,6 +2420,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
   const canAttach = (l) => !!(l && typeof l.queryAttachments === "function" && (l.capabilities?.data?.supportsAttachment || l.hasAttachments));
   async function initDocs(r) {
+    try { prCard(r); } catch (e) { console.warn("print card", e); }
     const stat = (cls, t) => { const el = $("docStatus"); if (el) { el.className = cls; el.textContent = t; } };
     try {
       const diag = [], oid = r.a[appLayer.objectIdField];
