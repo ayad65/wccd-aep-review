@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12g, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12h, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -201,6 +201,9 @@
     .qcell.notes { display: flex; } .qcell.notes > .fld { display: flex; flex-direction: column; flex: 1; } .qcell.notes textarea { flex: 1; min-height: 72px; resize: vertical; }
     .chg { display: block; } .chg .linkbtn { margin: 0; min-height: 0; font-size: inherit; font-weight: 600; }
     @media (max-width: 900px) { .qgrid { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none !important; } .qcell.l { border-right: 0; } .qcell.last { border-bottom: 1px solid var(--line); } .qcell:last-child { border-bottom: 0; } .qhead { grid-template-columns: 1fr; } }
+    .prhd { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; } .prhd h2 { margin-bottom: 0; } .prhd + p { margin-top: 6px; } .prtab { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin: 0 0 6px 12px; } .prtab small { color: var(--muted); font-size: 12.5px; }
+    .dgrp .dgh { display: flex; align-items: center; justify-content: space-between; gap: 10px; } .dgrp .dgh .add { margin-top: 0; } .dgrp .dgh h3 { margin: 0; }
+    .opts label.clr { color: var(--blue); text-decoration: underline; font-size: 13px; cursor: pointer; } .opts label.clr input { position: absolute; opacity: 0; width: 1px; height: 1px; }
     #naSum { margin-top: 8px; padding: 8px 10px; background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; } #naSum:empty { display: none; }
     .narows { width: 100%; min-width: 660px; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 124px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
     #naPane .fld input[type="date"] { max-width: 190px; } .napair:not(:has(> :not([hidden]))) { display: none; } .napair { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; } .napair > [data-nafld="AttendedEventDetail"] { flex: 1 1 240px; min-width: 0; } .napair > [data-nafld="AttendedEventDate"] { flex: 0 0 190px; }
@@ -743,8 +746,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
-    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="prCard"></div><div id="docBody"></div>' +
-      '<p>' + (canEdit(r) ? "Files can be added or removed on the live record, each after a review. " : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="docBody"></div>' +
+      '<p>' + (canFiles(r) ? "Files can be attached or deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
@@ -779,7 +782,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
     const cmp = t.key === "intake" ? cmpText(r) : "";       // an application created by the app: how it differs from one created by the survey
-    return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
+    return '<div class="prhd"><h2>' + esc(t.label) + "</h2>" + prTabBtn(r, t.key) + "</div><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
       " fields have a value. " + (t.synth ? "What the application says. There is no Map Viewer form for intake, so this layout comes from the app." : "Messages the form works out on screen are not shown.") + " </p>" + top +
       emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>') + (cmp ? '<details class="diag"><summary>Compare with a survey-created application (for Claude)</summary><pre style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0">' + esc(cmp) + "</pre></details>" : "");
   }
@@ -814,8 +817,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     let figs = fig("Requested acres", reqAc != null ? fmt(reqAc) : "—", nRows == null ? "field rows not read" : nRows + (nRows === 1 ? " field row" : " field rows")) +
       fig("Official score", official != null ? fmt(official) : "—",
           aw != null && calc != null ? "awarded " + fmt(aw) + " · calculated " + fmt(calc) : aw != null ? "awarded; no calculated score stored" : calc != null ? "calculated; no awarded score stored" : "not ranked yet") +
-      fig("Approved", r.status === "Approved" && apT != null ? fmt(apT) + (apT === 1 ? " ton" : " tons") + (apAc != null ? " on " + fmt(apAc) + " acres" : "") : "—",
-          r.status === "Approved" ? (amt != null ? "up to " + money(amt) : "approved") : r.ended ? r.statusText : "no decision yet");
+      fig("Approved", r.status === "Approved" && apT != null ? fmt(apT) + (apT === 1 ? " ton" : " tons") : "—",
+          r.status === "Approved" ? [apAc != null ? "on " + fmt(apAc) + " acres" : null, amt != null ? "up to " + money(amt) : null].filter(Boolean).join(" · ") || "approved" : r.ended ? r.statusText : "no decision yet");
     if (paid != null) figs += fig("Paid", money(paid), r.stageN === 6 ? "closed" : "recorded so far");
     d.innerHTML =
       '<div class="dhead"><div><small>' + esc(r.id + " · " + r.fy + " · " + (farm ? "Farm # " + farm : "no Farm #")) + "</small><h1>" + esc(r.applicant || "(no applicant name)") + "</h1><p>" + esc(line) + "</p>" +
@@ -1216,6 +1219,11 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       if (it === "switch") { const on = el.input.onValue, off = el.input.offValue;
         return '<span class="sw"><input type="checkbox" role="switch" id="' + id + '" data-f="' + esc(name) + '" data-kind="switch" data-on="' + esc(on) + '" data-off="' + esc(off) + '"' + (String(v) === String(on) ? " checked" : "") + dis + "> <span>" +
           (String(v) === String(on) ? "On" : "Off") + "</span></span>"; }
+      const yesNo = cvs && cvs.length === 2 && cvs.every((c) => /^(yes|no)$/i.test(String(c.name).trim()));
+      if (yesNo && it !== "radio-buttons") {      // any Yes/No question is two radio buttons, whatever the form's own control; Clear puts it back to no answer
+        const opts = cvs.map((c) => '<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " checked" : "") + dis + "> " + esc(c.name) + "</label>");
+        if (v != null && !locked && !S.req[name]) opts.push('<label class="clr"><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value=""> Clear</label>');
+        return '<span class="opts inline' + miss + '" role="radiogroup" aria-labelledby="l_' + id + '">' + opts.join("") + "</span>"; }
       if (cvs && it === "radio-buttons") {
         const opts = cvs.map((c) => '<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value="' + esc(c.code) + '"' + (String(v) === String(c.code) ? " checked" : "") + dis + "> " + esc(c.name) + "</label>");
         if (el.input.showNoValueOption) opts.unshift('<label><input type="radio" name="' + id + '" data-f="' + esc(name) + '" data-kind="choice" value=""' + (v == null ? " checked" : "") + dis + "> " + esc(el.input.noValueOptionLabel || "No value") + "</label>");
@@ -1848,7 +1856,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12g", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12h", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2465,7 +2473,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       } finally { fr.remove(); }
       return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title>" +
         "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
-        "<style>@page WordSection1{size:8.5in 11.0in;margin:0.9in 0.9in 0.9in 0.9in}div.WordSection1{page:WordSection1}</style></head><body><div class=\"WordSection1\">" + body + "</div></body></html>";
+        "<style>@page WordSection1{size:8.5in 11.0in;margin:0.9in 0.9in 0.9in 0.9in;mso-footer-margin:0.45in;mso-footer:f1}div.WordSection1{page:WordSection1}p.MsoFooter{margin:0;text-align:center;font-size:9pt;font-family:Arial,sans-serif;color:#444444}table#hrdftrtbl{margin:0in 0in 0in 900in;width:1px;height:1px;overflow:hidden}</style></head><body><div class=\"WordSection1\">" + body +
+        // Word's own footer, with its page-number fields; the table only keeps the footer definition out of the page body
+        "<table id=\"hrdftrtbl\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td><div style=\"mso-element:footer\" id=\"f1\"><p class=\"MsoFooter\">Page <span style='mso-field-code:\" PAGE \"'></span> of <span style='mso-field-code:\" NUMPAGES \"'></span></p></div></td></tr></table></div></body></html>";
     }
     // Runs inside the preview: deals the document's blocks onto Letter sheets, so the preview and the printout break at the same places.
     // A list is dealt item by item (numbering carried on); a short bold heading is never left alone at the foot of a sheet.
@@ -2492,6 +2502,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     }.toString() + ")();";
     return { docs, has, css, paginate, word };
   })();
+  const PR_TAB = { intake: "summary", appr: "letter", agr: "agreement", cvf: "cvf" };      // each document opens from the tab it belongs to
+  function prTabBtn(r, tabKey) { const k = PR_TAB[tabKey], d = k && PR.docs[k]; if (!d) return ""; const why = d.when(r);
+    return '<div class="prtab"><button type="button" class="btn" data-pr="' + k + '"' + (why ? " disabled" : "") + ">Open the " + esc(d.label) + "</button>" + (why ? "<small>" + esc(why) + "</small>" : "") + "</div>"; }
   function prCard(r) {
     const el = $("prCard"); if (!el) return;
     el.innerHTML = "<h3>Print a document</h3>" + '<div class="prrow">' + Object.entries(PR.docs).map(([k, d]) => { const why = d.when(r); return '<div class="pritem"><button type="button" class="btn" data-pr="' + k + '"' + (why ? " disabled" : "") + ">" + esc(d.label) + "</button>" + (why ? "<small>" + esc(why) + "</small>" : "") + "</div>"; }).join("") + "</div>";
@@ -2502,13 +2515,13 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prWord" || e.target.id === "prAttach") { const pr = dlg._pr, r0 = pr && rows.find((x) => x.id === pr.rid); if (!r0) return;
           const d0 = PR.docs[pr.k], name = (r0.id + " " + d0.label).replace(/[^\w\- ]+/g, "").trim() + ".doc", blob = new Blob(["\ufeff", PR.word(d0, r0)], { type: "application/msword" });
           if (e.target.id === "prWord") { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
-          else { dlg.close(); docUI.pending = { type: "add", group: d0.group, file: new File([blob], name, { type: "application/msword" }), rid: r0.id }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); if ($("docReview")) $("docReview").scrollIntoView({ block: "nearest" }); }
+          else { dlg.close(); if (curTab !== "docs") { if (!leaveEdit()) return; curTab = "docs"; renderWork(curId); } docUI.pending = { type: "add", group: d0.group, file: new File([blob], name, { type: "application/msword" }), rid: r0.id }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); if ($("docReview")) $("docReview").scrollIntoView({ block: "nearest" }); }
           return; }
         if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
     const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
     dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
       '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Nothing on the record changes until you attach. Attach saves the Word file under ' + esc(grp) + ', after a confirmation.</span><button type="button" class="btn" id="prClose">Close</button>' +
-      (canEdit(r) ? '<button type="button" class="btn" id="prAttach">Attach to this application</button>' : "") + '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+      (canFiles(r) ? '<button type="button" class="btn" id="prAttach">Attach to this application</button>' : "") + '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
     dlg._pr = { rid: r.id, k };
     dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div id="src">' + d.html(r) + "</div><script>" + PR.paginate + "<\/script></body></html>";
     if (!dlg.open) dlg.showModal();
@@ -2521,9 +2534,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const DOC_KEYWORD = { app: "FileApplicationPacket", agr: "FileAgreement", cvf: "FileCVFPacket", other: "FileReserve1" };   // the survey's own question names, as EB and Survey123 tag files
   let docFiles = [], docUI = { pending: null, note: null, busy: false };
   const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  const canFiles = (r) => !!r && !r.viewOnly;      // files can be attached and deleted on every application, closed ones included (Yasser, 13 Nov)
   const canAttach = (l) => !!(l && typeof l.queryAttachments === "function" && (l.capabilities?.data?.supportsAttachment || l.hasAttachments));
   async function initDocs(r) {
-    try { prCard(r); } catch (e) { console.warn("print card", e); }
     const stat = (cls, t) => { const el = $("docStatus"); if (el) { el.className = cls; el.textContent = t; } };
     try {
       const diag = [], oid = r.a[appLayer.objectIdField];
@@ -2535,13 +2548,13 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const res = await fr.table.queryAttachments({ objectIds: ids }); for (const id of ids) rowFiles.set(String(id), (res && res[id]) || []); }
       if (curTab !== "docs" || curId !== r.id || !$("docBody")) return;
       docFiles = [];
-      const edit = canEdit(r) && appOk;
+      const edit = canFiles(r) && appOk;
       const kw = (f) => String(Array.isArray(f.keywords) ? f.keywords.join(", ") : f.keywords ?? "").trim();
-      const fileHtml = (f) => { docFiles.push(f); return '<div class="dfile"><div>' + esc(f.name || "(no name)") + "<small>" + esc([sizeText(f.size), f.contentType, kw(f) ? "keyword " + kw(f) : "no keyword"].filter(Boolean).join(" · ")) + '</small></div><button type="button" class="btn" data-doc="' + (docFiles.length - 1) + '">Open</button>' + (edit ? '<button type="button" class="btn del" data-docdel="' + (docFiles.length - 1) + '">Remove</button>' : "") + "</div>"; };
+      const fileHtml = (f) => { docFiles.push(f); return '<div class="dfile"><div>' + esc(f.name || "(no name)") + "<small>" + esc([sizeText(f.size), f.contentType, kw(f) ? "keyword " + kw(f) : "no keyword"].filter(Boolean).join(" · ")) + '</small></div><button type="button" class="btn" data-doc="' + (docFiles.length - 1) + '">Open</button>' + (edit ? '<button type="button" class="btn del" data-docdel="' + (docFiles.length - 1) + '">Delete</button>' : "") + "</div>"; };
       const buckets = Object.fromEntries(DOC_GROUPS.map(([k]) => [k, []]));
       for (const f of appFiles) { const k = kw(f); buckets[k ? DOC_GROUPS.find(([, , re]) => re.test(k))[0] : "other"].push(f); }
-      const grp = (title, list, key) => '<div class="dgrp"><h3>' + esc(title) + " (" + list.length + ")</h3>" + (list.map(fileHtml).join("") || '<span class="none">No file attached.</span>') +
-        (edit && key && DOC_KEYWORD[key] ? '<div><button type="button" class="btn add" data-docadd="' + key + '">Add file</button></div>' : "") + "</div>";
+      const grp = (title, list, key) => '<div class="dgrp"><div class="dgh"><h3>' + esc(title) + " (" + list.length + ")</h3>" + (edit && key && DOC_KEYWORD[key] ? '<button type="button" class="btn add" data-docadd="' + key + '" aria-label="Attach a file to ' + esc(title) + '">Attach</button>' : "") + "</div>" +
+        (list.map(fileHtml).join("") || '<span class="none">No file attached.</span>') + "</div>";
       const left = appOk ? ["app", "agr", "cvf", "lab", "other"].filter((k) => k !== "lab" || buckets.lab.length).map((k) => grp(DOC_GROUPS.find((g) => g[0] === k)[1], buckets[k], k)).join("")
         : '<div class="dgrp"><span class="none">This layer does not offer attachments.</span></div>';
       const right = rowsOk ? mine.filter((x) => (rowFiles.get(String(x[fr.oidField])) || []).length).map((x) => grp("Field " + (attr(x, "FieldNum") ?? "(no number)"), rowFiles.get(String(x[fr.oidField])))).join("") : "";
@@ -2575,7 +2588,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (e.target.closest("[data-doccancel]") && !docUI.busy) { docUI.pending = null; docReview(); return; }
     if (!e.target.closest("[data-docgo]") || docUI.busy || !docUI.pending) return;
     const p = docUI.pending, r = rows.find((x) => x.id === p.rid);
-    if (!r || !canEdit(r) || curId !== p.rid) { docUI.pending = null; docReview(); return; }      // only the TEST records, and only the record on screen
+    if (!r || !canFiles(r) || curId !== p.rid) { docUI.pending = null; docReview(); return; }      // only the TEST records, and only the record on screen
     docUI.busy = true; docReview();
     try {
       const G = await $arcgis.import("@arcgis/core/Graphic.js"), oid = r.a[appLayer.objectIdField];
