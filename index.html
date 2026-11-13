@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B11d, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B11e, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -166,7 +166,7 @@
     .buildline { margin: 24px 0 8px; font-size: 12px; color: var(--muted); text-align: right; }
     .nagrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; } @media (max-width: 900px) { .nagrid { grid-template-columns: 1fr; } }
     .nacol { display: flex; flex-direction: column; gap: 12px; min-width: 0; } .naid { font-size: 20px; font-weight: 700; letter-spacing: .02em; } .naid.bad { color: var(--red); }
-    #naMap { height: 360px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); position: relative; }
+    #naMap { height: 520px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); position: relative; }
     .nafields { display: grid; grid-template-columns: minmax(260px, 34%) minmax(0, 1fr); gap: 14px; align-items: start; } @media (max-width: 1000px) { .nafields { grid-template-columns: 1fr; } }
     .narwrap { overflow-x: auto; } .narows td.act { white-space: nowrap; } .narows td.act .x { margin-left: 4px; vertical-align: middle; }
     .narows select { width: 100%; height: 40px; padding: 0 6px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; background: #fff; box-sizing: border-box; min-width: 0; }
@@ -174,6 +174,17 @@
     .narows th:nth-child(6) { width: 158px; } .narows tr.namore > td { width: auto; text-align: left; background: #F7F8FA; padding: 6px 10px 12px; border-bottom: 2px solid var(--line); }
     .namore details { border: 1px solid var(--line); border-radius: 4px; background: #fff; margin-top: 6px; } .namore summary { padding: 8px 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
     .nagridx { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 10px; padding: 4px 10px 10px; } .pane label.nax, .nax { display: flex; flex-direction: column; align-items: stretch; text-align: left; font-weight: 400; min-height: 0; gap: 3px; font-size: 12.5px; justify-content: flex-end; } .nax.wide { grid-column: span 2; } .nax > span { color: var(--muted); }
+    .nalist { list-style: none; margin: 0; padding: 0; } .nalist li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--soft); font-size: 14px; } .nalist .t { flex: 1 1 320px; } .nalist .st { font-weight: 600; } .nalist .st.bad { color: var(--red); } .nalist .st.ok { color: #2E6B34; } .nalist .none { color: var(--muted); }
+    .nalist .x { width: 40px; height: 40px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; cursor: pointer; font-size: 16px; }
+    #naDlg { width: min(940px, 96vw); max-height: 92vh; border: 1px solid #6B747E; border-radius: 6px; padding: 0; color: var(--ink); font: inherit; } #naDlg::backdrop { background: rgba(20, 25, 30, .45); }
+    #naDlg .ndhead { padding: 12px 16px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 16px; } #naDlg .ndbody { padding: 12px 16px; overflow: auto; max-height: calc(92vh - 136px); }
+    #naDlg .ndfoot { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); align-items: center; } #naDlg .ndfoot .sp { flex: 1; }
+    #naDlg .ndtop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.7fr); gap: 10px; background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; padding: 10px; } @media (max-width: 760px) { #naDlg .ndtop { grid-template-columns: 1fr 1fr; } }
+    #naDlg .ndtop label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; } #naDlg .req { color: var(--red); font-weight: 600; }
+    #naDlg input, #naDlg select { height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; width: 100%; box-sizing: border-box; min-width: 0; background: #fff; color: var(--ink); }
+    #naDlg .ndlime { display: flex; gap: 6px; } #naDlg .ndlime select { width: 112px; flex: none; padding: 0 6px; } #naDlg .small { font-size: 13px; color: var(--muted); }
+    #naDlg details { border: 1px solid var(--line); border-radius: 4px; background: #fff; margin-top: 8px; } #naDlg summary { padding: 8px 10px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    #naDlg .btn.danger { color: var(--red); border-color: var(--red); background: #fff; }
     #naSum { margin-top: 8px; padding: 8px 10px; background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; } #naSum:empty { display: none; }
     .narows { width: 100%; min-width: 660px; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 124px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
     #naPane .fld input[type="date"] { max-width: 190px; } .napair:not(:has(> :not([hidden]))) { display: none; } .napair { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; } .napair > [data-nafld="AttendedEventDetail"] { flex: 1 1 240px; min-width: 0; } .napair > [data-nafld="AttendedEventDate"] { flex: 0 0 190px; }
@@ -1798,7 +1809,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B11d", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B11e", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -1885,9 +1896,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // What the entry page asks. Labels, hints, choices and "required" come from the file; only the grouping is the app's.
   const NA_GROUPS = [
     { key: "id", label: "Identity", col: "L", fields: ["FiscalYear", "AEPSequence"] },
-    { key: "app", label: "Applicant and farm", col: "L", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber"] },
+    { key: "app", label: "Applicant and farm", col: "L", tint: true, fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber"] },
     { key: "rank", label: "Answers that feed the ranking", col: "R", tint: true, fields: ["ApplicationDate", "HasConsPlan", "HasManurePlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate"] },
-    { key: "req", label: "Request and certification", col: "L", closed: true, fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
+    { key: "req", label: "Request and certification", col: "R", tint: true, fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
     { key: "con", label: "Contact details", col: "L", closed: true, fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip"] },
     { key: "notes", label: "Notes", col: "R", closed: true, fields: ["Notes", "DiscrepancyNotes"] }
   ];
@@ -1962,10 +1973,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     return g.closed ? '<details class="ecard"><summary>' + esc(g.label) + "</summary>" + body + "</details>" : '<div class="ecard' + (g.tint ? " tint" : "") + '"><h3>' + esc(g.label) + "</h3>" + body + "</div>";
   }
   // ---------- field rows on the entry page: the six values the ranking reads, and the rest of the lab entry under More ----------
-  const NR_MAIN = [["num", "Field #"], ["total", "Total acres"], ["treated", "Treated acres"], ["x:SoilpH", "Soil pH"], ["x:LimeRecLbPerAcre", "Lime rec. (lb/acre)"], ["x:LabReportDate", "Lab report date"]];
   const NR_GROUPS = [
+    { key: "lab", label: "Lab report", fields: ["LabReportDate", "DateSampled", "LabName", "LabNameOther", "SampleIDAsPrinted", "LabNo", "LabReportIsShared", "LabSharedWithFields"] },
     { key: "names", label: "Names and acreage", fields: ["FieldNamesDiffer", "FieldNumAsWritten", "FieldNameLocal", "FieldLabelOnAgreement", "IsPasture", "AcreageSourcesDisagree", "AcresFromMap", "AcresFromLab", "AcresFromRanking", "AcreageConflictNote"] },
-    { key: "lab", label: "Lab report", fields: ["LabName", "LabNameOther", "SampleIDAsPrinted", "LabNo", "DateSampled", "LabReportIsShared", "LabSharedWithFields"] },
     { key: "soil", label: "Soil results", fields: ["Phosphorus", "Potassium", "Magnesium", "Calcium", "CEC", "KSaturation", "MgSaturation", "CaSaturation", "BufferpH", "ExchAcidity", "OrganicMatter", "Sulfur", "Zinc", "Copper", "Boron", "Iron", "Manganese", "K_MgRatio", "Ca_MgRatio"] },
     { key: "rec", label: "Recommendation and crops", fields: ["LimeRecUnitAsWritten", "TargetpH", "LimeTypeFlag", "MagnesiumRecLbPerAcre", "CurrentCrop", "PreviousCrop", "SoilSeries",
       "CropYr1", "YieldYr1", "YieldUnitYr1", "NYr1", "P2O5Yr1", "K2OYr1", "CropYr2", "YieldYr2", "YieldUnitYr2", "NYr2", "P2O5Yr2", "K2OYr2", "CropYr3", "YieldYr3", "YieldUnitYr3", "NYr3", "P2O5Yr3", "K2OYr3"] },
@@ -1978,7 +1988,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const NR_MORE = () => { const all = BORN.file.FieldRows.map((f) => f.field), a = all.indexOf("MoreLabResults"), b = all.indexOf("LabComments"); return a < 0 || b < 0 ? [] : all.slice(a + 1, b + 1); };
   const nrDate = (t) => { const d = /^(\d{4})-(\d\d)-(\d\d)$/.exec(t || ""); return d ? new Date(Number(d[1]), Number(d[2]) - 1, Number(d[3]), 12).getTime() : null; };   // noon, like every date without a time
   function nrBox(i, f, r) {
-    const m = BORN.R[f] || {}, v = (r.x || {})[f] ?? "", ch = naChoices(m), a = ' data-nar="' + i + '" data-k="x:' + f + '" aria-label="' + esc((m.label || f) + (r.num ? " for field " + r.num : "")) + '"';
+    const m = BORN.R[f] || {}, v = (r.x || {})[f] ?? "", ch = naChoices(m), a = ' data-nd="x:' + f + '" aria-label="' + esc((m.label || f) + (r.num ? " for field " + r.num : "")) + '"';
     if (ch) { const cur = v || (m.born === "default" ? String(m.value) : ""); return "<select" + a + ">" + (m.born === "default" ? "" : '<option value=""></option>') + ch.map(([c, t]) => '<option value="' + esc(c) + '"' + (cur === c ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>"; }
     if (/Date/.test(m.type || "")) return '<input type="date"' + a + ' value="' + esc(v) + '">';
     return '<input type="text"' + (/Integer|Double/.test(m.type || "") ? ' inputmode="decimal"' : "") + a + ' value="' + esc(v) + '">';
@@ -1990,16 +2000,74 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (NR_MORE().some((f) => !nb(o[f]))) o.MoreLabResults = "Yes";
     return o;
   }
-  const nrMainKeys = new Set(["SoilpH", "LimeRecLbPerAcre", "LabReportDate"]);
   const nrFilled = (r, fields) => fields.filter((f) => !nb((r.x || {})[f]) && !(BORN.R[f] && BORN.R[f].born === "default" && String(BORN.R[f].value) === (r.x || {})[f])).length;
-  const naRowsHtml = () => '<div class="narwrap"><table class="narows"><thead><tr>' + NR_MAIN.map(([, t]) => "<th>" + t + ' <span class="req">*</span></th>').join("") + '<th><span class="vh">More details and remove</span></th></tr></thead><tbody>' +
-    (NA.rows.map((r, i) => { r.x = r.x || {}; r.og = r.og || {}; const extra = nrFilled(r, NR_GROUPS.flatMap((g) => g.fields));
-      return "<tr>" + NR_MAIN.map(([k, t]) => "<td>" + (k.startsWith("x:") ? nrBox(i, k.slice(2), r) : '<input type="text"' + (k === "num" ? "" : ' inputmode="decimal"') + ' data-nar="' + i + '" data-k="' + k + '" aria-label="' + t + '" value="' + esc(r[k]) + '">') + "</td>").join("") +
-        '<td class="act"><button type="button" class="narmore" data-narmore="' + i + '" aria-expanded="' + (r.open ? "true" : "false") + '">' + (r.open ? "Less" : "More…") + (extra ? " (" + extra + ")" : "") + '</button><button type="button" class="x" data-narx="' + i + '" aria-label="Remove field ' + esc(r.num) + '">×</button></td></tr>' +
-        (r.open ? '<tr class="namore"><td colspan="7">' + NR_GROUPS.map((g) => { const n = nrFilled(r, g.fields);
-          return '<details data-narg="' + i + ":" + g.key + '"' + (r.og[g.key] ? " open" : "") + "><summary>" + esc(g.label) + (n ? ' <span class="small">(' + n + " entered)</span>" : "") + '</summary><div class="nagridx">' +
-            g.fields.filter((f) => BORN.R[f] && (!NR_SHOW[f] || NR_SHOW[f](r.x))).map((f) => '<label class="nax' + (NR_WIDE.has(f) ? " wide" : "") + '"><span>' + esc(BORN.R[f].label || f) + "</span>" + nrBox(i, f, r) + "</label>").join("") + "</div></details>"; }).join("") + "</td></tr>" : ""); }).join("") ||
-      '<tr><td colspan="7" class="none">No fields yet. Click fields on the map, or add one by typing.</td></tr>') + '</tbody></table></div><div id="naSum" class="small"></div>';
+  function nrProblems(r) {         // what a field still needs, and what is wrong in it
+    const x = r.x || {}, miss = [], bad = [], tot = Number(r.total), tr = Number(r.treated), ph = Number(x.SoilpH), lime = Number(x.LimeRecLbPerAcre);
+    if (!r.num) miss.push("field number");
+    if (nb(r.total) || isNaN(tot) || tot <= 0) miss.push("total acres");
+    if (nb(r.treated) || isNaN(tr) || tr <= 0) miss.push("treated acres"); else if (!isNaN(tot) && tot > 0 && tr > tot) bad.push("treated acres cannot be more than total acres");
+    if (nb(x.SoilpH) || isNaN(ph)) miss.push("soil pH"); else if (ph <= 0 || ph > 14) bad.push("soil pH must be between 0 and 14");
+    if (nb(x.LimeRecLbPerAcre) || isNaN(lime)) miss.push("lime recommendation"); else if (lime < 0) bad.push("the lime recommendation cannot be negative");
+    if (nrDate(x.LabReportDate) == null && nrDate(x.DateSampled) == null) miss.push("lab date");
+    for (const [f, t] of Object.entries(x)) { const m = BORN.R[f]; if (m && !nb(t) && f !== "SoilpH" && f !== "LimeRecLbPerAcre" && /Integer|Double/.test(m.type || "") && isNaN(Number(t))) bad.push((m.label || f) + " must be a number"); }
+    return { miss, bad };
+  }
+  const nrRate = (r) => { const x = r.x || {}; if (nb(x.LimeRecLbPerAcre) || isNaN(Number(x.LimeRecLbPerAcre))) return null; return r.limeUnit === "t" ? fmt(Number(x.LimeRecLbPerAcre) / 2000) + " tons/acre" : fmt(Number(x.LimeRecLbPerAcre)) + " lb/acre"; };
+  const naRowsHtml = () => NA.rows.length ? '<ul class="nalist">' + NA.rows.map((r, i) => { const x = r.x || {}, pr = nrProblems(r), d = nrDate(x.DateSampled) ?? nrDate(x.LabReportDate), extra = nrFilled(r, NR_GROUPS.flatMap((g) => g.fields).filter((f) => f !== "LabReportDate" && f !== "DateSampled" && !(f === "LimeRecUnitAsWritten" && x.LimeRecUnitAsWritten === r.autoW)));
+      const bits = [nb(r.total) ? null : fmt(Number(r.total)) + " ac", nb(r.treated) ? null : "treated " + fmt(Number(r.treated)), nb(x.SoilpH) ? null : "pH " + x.SoilpH, nrRate(r), d == null ? null : "lab date " + new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }), extra ? extra + " other value" + (extra === 1 ? "" : "s") : null].filter(Boolean);
+      return '<li><span class="t"><b>' + esc(r.num || "(no number)") + "</b>" + (bits.length ? " · " + esc(bits.join(" · ")) : "") + '</span><span class="st ' + (pr.miss.length || pr.bad.length ? "bad" : "ok") + '">' + esc(pr.miss.length ? "Missing: " + pr.miss.join(", ") : pr.bad.length ? "Check: " + pr.bad[0] : "Complete") + "</span>" +
+        '<button type="button" class="btn" data-nared="' + i + '">Edit</button><button type="button" class="x" data-narx="' + i + '" aria-label="Remove field ' + esc(r.num) + '">×</button></li>'; }).join("") + '</ul><div id="naSum" class="small"></div>'
+    : '<div class="nalist"><div class="none small">No fields yet. Click a field on the map, or add one by typing.</div></div><div id="naSum" class="small"></div>';
+  // ---------- one field's entry panel, over the page ----------
+  let ND = null;                   // { i: index in NA.rows or -1 for a new field, r: a working copy }
+  function ndOpen(i, seed) {
+    const src = i >= 0 ? NA.rows[i] : { num: "", total: "", treated: "", x: {}, og: {}, limeUnit: "lb", lime: "", ...(seed || {}) };
+    ND = { i, r: { ...src, x: { ...(src.x || {}) }, og: { lab: true, ...(src.og || {}) } }, err: "" };
+    if (ND.r.lime == null) ND.r.lime = ND.r.x.LimeRecLbPerAcre ?? ""; if (!ND.r.limeUnit) ND.r.limeUnit = "lb";
+    let dlg = $("naDlg");
+    if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "naDlg"; dlg.setAttribute("aria-labelledby", "ndTitle"); document.body.appendChild(dlg);
+      dlg.addEventListener("close", () => { ND = null; });
+      dlg.addEventListener("input", (e) => { if (!ND) return; ndRead(); ndHint(); });
+      dlg.addEventListener("change", (e) => { if (!ND) return; ndRead(); if (e.target.tagName === "SELECT") { const k = e.target.dataset.nd; ndDraw(); const again = dlg.querySelector('[data-nd="' + k + '"]'); if (again) again.focus(); } });
+      dlg.addEventListener("click", (e) => { if (!ND) return;
+        if (e.target.id === "ndCancel") { dlg.close(); return; }
+        if (e.target.id === "ndRemove") { if (ND.i >= 0) NA.rows.splice(ND.i, 1); dlg.close(); naRowsDraw(); if (NA.farm) naMap(); return; }
+        if (e.target.id === "ndSave") { ndRead(); const r = ND.r;
+          if (!r.num) { ND.err = "Enter the field number before saving."; ndDraw(); return; }
+          if (NA.rows.some((o, j) => j !== ND.i && normKey(o.num) === normKey(r.num))) { ND.err = "Field " + r.num + " is already in this application."; ndDraw(); return; }
+          if (ND.i >= 0) NA.rows[ND.i] = r; else NA.rows.push(r);
+          dlg.close(); naRowsDraw(); if (NA.farm) naMap(); } }); }
+    ndDraw(); if (!dlg.open) dlg.showModal();
+    const first = dlg.querySelector(ND.r.num ? '[data-nd="treated"]' : '[data-nd="num"]'); if (first) first.focus();
+  }
+  function ndRead() {              // the panel's boxes → the working copy
+    const dlg = $("naDlg"), r = ND.r; if (!dlg) return;
+    for (const el of dlg.querySelectorAll("[data-nd]")) { const k = el.dataset.nd, t = el.value.trim(); if (k.startsWith("x:")) r.x[k.slice(2)] = t; else r[k] = t; }
+    for (const d of dlg.querySelectorAll("details[data-ndg]")) r.og[d.dataset.ndg] = d.open;
+    const n = Number(r.lime); r.x.LimeRecLbPerAcre = nb(r.lime) ? "" : isNaN(n) ? r.lime : String(r.limeUnit === "t" ? rd(n * 2000, 2) : n);
+    // "Rate exactly as written" follows what was typed, unless the user has written their own text there
+    const auto = nb(r.lime) || isNaN(n) ? "" : r.lime + (r.limeUnit === "t" ? " tons/acre" : " lb/acre");
+    if (nb(r.x.LimeRecUnitAsWritten) || r.x.LimeRecUnitAsWritten === (r.autoW || "")) { r.x.LimeRecUnitAsWritten = auto; const box = dlg.querySelector('[data-nd="x:LimeRecUnitAsWritten"]'); if (box && document.activeElement !== box) box.value = auto; } r.autoW = auto;
+  }
+  function ndHint() {
+    const el = $("ndLimeHint"); if (!el || !ND) return; const r = ND.r, lb = Number(r.x.LimeRecLbPerAcre), tr = Number(r.treated);
+    el.textContent = nb(r.x.LimeRecLbPerAcre) || isNaN(lb) ? "Type the rate in either unit; it is stored as lb/acre, as the survey stores it." :
+      "Stored as " + fmt(lb) + " lb/acre (" + fmt(lb / 2000) + " tons/acre)" + (!nb(r.treated) && !isNaN(tr) ? " · " + fmt(rd(tr * rd(lb / 2000, 3), 2)) + " tons for this field" : "") + ".";
+  }
+  function ndDraw() {
+    const dlg = $("naDlg"), r = ND.r, top = (k, t, dec) => "<label>" + t + ' <span class="req">*</span><input type="text"' + (dec ? ' inputmode="decimal"' : "") + ' data-nd="' + k + '" value="' + esc(r[k] ?? "") + '"></label>';
+    dlg.innerHTML = '<div class="ndhead" id="ndTitle">' + (ND.i >= 0 ? "Field " + esc(r.num) : "New field" + (r.num ? " " + esc(r.num) : "")) + '</div><div class="ndbody">' +
+      '<div class="ndtop">' + top("num", "Field #") + top("total", "Total acres", 1) + top("treated", "Treated acres", 1) +
+        '<label>Soil pH <span class="req">*</span><input type="text" inputmode="decimal" data-nd="x:SoilpH" value="' + esc(r.x.SoilpH ?? "") + '"></label>' +
+        '<label>Lime recommendation <span class="req">*</span><span class="ndlime"><input type="text" inputmode="decimal" data-nd="lime" aria-label="Lime recommendation" value="' + esc(r.lime ?? "") + '"><select data-nd="limeUnit" aria-label="Unit of the lime recommendation"><option value="lb"' + (r.limeUnit === "t" ? "" : " selected") + '>lb/acre</option><option value="t"' + (r.limeUnit === "t" ? " selected" : "") + ">tons/acre</option></select></span></label></div>" +
+      '<div class="small" id="ndLimeHint" style="margin-top:6px"></div>' +
+      NR_GROUPS.map((g) => { const n = nrFilled(r, g.fields);
+        return '<details data-ndg="' + g.key + '"' + (r.og[g.key] ? " open" : "") + "><summary>" + esc(g.label) + (g.key === "lab" ? ' <span class="req">* one of the two dates</span>' : "") + (n ? ' <span class="small">(' + n + " entered)</span>" : "") + '</summary><div class="nagridx">' +
+          g.fields.filter((f) => BORN.R[f] && (!NR_SHOW[f] || NR_SHOW[f](r.x))).map((f) => '<label class="nax' + (NR_WIDE.has(f) ? " wide" : "") + '"><span>' + esc(BORN.R[f].label || f) + "</span>" + nrBox(0, f, r) + "</label>").join("") + "</div></details>"; }).join("") +
+      (ND.err ? '<div class="error" style="margin-top:10px">' + esc(ND.err) + "</div>" : "") + "</div>" +
+      '<div class="ndfoot">' + (ND.i >= 0 ? '<button type="button" class="btn danger" id="ndRemove">Remove field</button>' : "") + '<span class="sp small">Saved to this page only. Nothing is created until you review and confirm.</span><button type="button" class="btn" id="ndCancel">Cancel</button><button type="button" class="btn go" id="ndSave">Save field</button></div>';
+    ndHint();
+  }
   function naSum() {               // the ranking effect of what is typed so far, by the survey's own rules
     const el = $("naSum"); if (!el) return;
     try { if (!NA.rows.length) { el.textContent = ""; return; }
@@ -2008,7 +2076,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         " · soil test within a year of the application date: " + (nb(p.ApplicationDate) ? "enter the application date" : cur + " of " + R.length + " field" + (R.length === 1 ? "" : "s")) + ".";
     } catch { el.textContent = ""; }
   }
-  function naRowsDraw() { const h = $("naRows"); if (h) h.innerHTML = naRowsHtml(); naSum(); }
+  function naRowsDraw() { const h = $("naRows"); if (h) h.innerHTML = naRowsHtml(); naSum(); if ($("naErr")) $("naErr").innerHTML = ""; }
   function naOpen() {
     const pane = $("naPane");
     if (!BORN.ok) { pane.innerHTML = "<h2>New application</h2>" + '<div class="error">Creating applications in the app is switched off. ' + esc(BORN.why) + "</div>" +
@@ -2017,14 +2085,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       for (const k of NA_FIELDS) { const m = naMeta(k); if (m.born === "default") { NA.v[k] = castBorn(m, m.value); NA.t[k] = String(m.value); } } }
     if (NA.step === "review") return naReview();
     const col = (c) => NA_GROUPS.filter((g) => g.col === c);
-    pane.innerHTML = "<h2>New application</h2>" + '<div class="notice">The boxes marked required, and the six starred values of each field, are needed now. Everything else can be completed later on the Intake and Field rows tabs. Nothing is created until you review and confirm.</div>' +
+    pane.innerHTML = "<h2>New application</h2>" + '<div class="notice">The boxes marked required, and the starred values of each field, are needed now. Everything else can be completed later on the Intake and Field rows tabs. Nothing is created until you review and confirm.</div>' +
       BORN.notes.map((n) => '<div class="notice" style="margin-top:8px">' + esc(n) + "</div>").join("") +
-      '<datalist id="naFarms"></datalist><div class="nagrid" style="margin-top:12px"><div class="nacol">' + col("L").filter((g) => !g.closed).map(naGroup).join("") + col("L").filter((g) => g.closed).map(naGroup).join("") + '</div><div class="nacol">' +
-      col("R").filter((g) => !g.closed).map(naGroup).join("") +
+      '<datalist id="naFarms"></datalist><div class="nagrid" style="margin-top:12px;align-items:stretch">' + ["id", "rank", "app", "req"].map((k) => naGroup(NA_GROUPS.find((g) => g.key === k))).join("") +
+      '<div class="nacol">' + naGroup(NA_GROUPS.find((g) => g.key === "con")) + '</div><div class="nacol">' +
       '<div class="ecard"><h3>Application packet (PDF, optional)</h3><div class="ebody"><input type="file" id="naFile" accept="application/pdf,.pdf"><small id="naFileNote">' + (NA.file ? "Chosen: " + esc(NA.file.name) : "") + "</small></div></div>" +
-      col("R").filter((g) => g.closed).map(naGroup).join("") + "</div></div>" +
-      '<div class="ecard" style="margin-top:12px"><h3>Fields</h3><div class="ebody"><div class="small">Every field needs its number, total and treated acres, soil pH, lime recommendation and a lab date, because the ranking is calculated from them. The other lab details are optional under More… and can also be entered or corrected later on the Field rows tab.</div>' +
-      '<div class="nafields"><div><div id="naMapNote" class="small">Enter a Farm # to see its fields on a map.</div><div id="naMap" hidden style="margin-top:6px"></div></div><div><div id="naRows">' + naRowsHtml() + '</div><div style="margin-top:8px"><button type="button" class="btn" id="naAddRow">Add a field by typing</button></div></div></div></div></div>' +
+      naGroup(NA_GROUPS.find((g) => g.key === "notes")) + "</div></div>" +
+      '<div class="ecard" style="margin-top:12px"><h3>Fields</h3><div class="ebody"><div class="small">Click a field on the map to add it and enter its values. Every field needs its number, total and treated acres, soil pH, lime recommendation and a lab date, because the ranking is calculated from them. The other lab details are optional and can also be entered or corrected later on the Field rows tab.</div>' +
+      '<div id="naMapNote" class="small">Enter a Farm # to see its fields on a map.</div><div id="naMap" hidden></div><div id="naRows">' + naRowsHtml() + '</div><div><button type="button" class="btn" id="naAddRow">Add a field by typing</button></div></div></div>' +
       '<div id="naErr"></div><div class="nabar"><span class="sp">Creating writes a new application to the live layer, after the review.</span><button type="button" class="linkbtn" id="naSurvey" style="margin:0">Use the intake survey instead</button>' +
       '<button type="button" class="btn" id="naClear">Clear</button><button type="button" class="btn go" id="naReviewBtn">Review</button></div>';
     naSync(); naFarmList(); if (NA.farm) naMap(); naSum();
@@ -2041,8 +2109,6 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       else if (/Date/.test(m.type || "")) { const d = /^(\d{4})-(\d\d)-(\d\d)$/.exec(t); NA.v[k] = d ? new Date(Number(d[1]), Number(d[2]) - 1, Number(d[3]), 12).getTime() : null; }     // a date without a time is stored at noon
       else if (/Integer|Double/.test(m.type || "")) NA.v[k] = t === "" ? null : Number(t);
       else NA.v[k] = t || null; }
-    for (const el of document.querySelectorAll("[data-nar]")) { const r = NA.rows[Number(el.dataset.nar)]; if (!r) continue; const k = el.dataset.k, t = el.value.trim(); if (k.startsWith("x:")) (r.x = r.x || {})[k.slice(2)] = t; else r[k] = t; }
-    for (const d of document.querySelectorAll("details[data-narg]")) { const [i, g] = d.dataset.narg.split(":"), r = NA.rows[Number(i)]; if (r) (r.og = r.og || {})[g] = d.open; }
   }
   function naSync() {              // the parts that follow what is typed: which boxes show, the AEP ID line, the sequence suggestion
     if (!NA || NA.step !== "form" || !$("naId")) return;
@@ -2063,7 +2129,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const key = farm + "|" + hit.length + "|" + flds.length, same = NA.farmKey === key; NA.farmKey = key;
     if (!same) NA.farm = hit.length || flds.length ? { farm, polys: hit, fields: flds } : null;
     NA.farmTag = NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") : "";
-    const note = $("naMapNote"); if (note) note.textContent = !farm ? "Enter a Farm # to see its fields on a map." : NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") + ": click a field to add or remove it." : "No polygon for Farm # " + NA.v.FarmID + " in the farms layer. Type the fields below.";
+    const note = $("naMapNote"); if (note) note.textContent = !farm ? "Enter a Farm # to see its fields on a map." : NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") + ": click a field to add it, or to open it again." : "No polygon for Farm # " + NA.v.FarmID + " in the farms layer. Type the fields below.";
     if ($("naMap")) $("naMap").hidden = !NA.farm; if (same) { naTag(); return; } if (NA.farm) naMap();
   }
   function naTag() { const host = $("naMap"); if (!host) return; let t = host.querySelector(".nafarmtag"); if (!t) { t = document.createElement("div"); t.className = "nafarmtag"; host.appendChild(t); } t.textContent = NA.farmTag || ""; t.hidden = !NA.farmTag; }
@@ -2084,8 +2150,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
       el.addEventListener("arcgisViewClick", async (evt) => { try { const hit = await el.hitTest(evt.detail), g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.fi != null); if (!g) return;
         naReadAll(); const f = NA.farm.fields[g.attributes.fi], at = NA.rows.findIndex((r) => normKey(r.num) === f.key);
-        if (at >= 0) NA.rows.splice(at, 1); else NA.rows.push({ num: f.suf, total: f.acres != null ? String(rd(f.acres, 2)) : "", treated: "", gid: null, x: {}, og: {} });
-        naRowsDraw(); naMap(); } catch (e) { console.warn("new application map click", e); } });
+        ndOpen(at, at >= 0 ? null : { num: f.suf, total: f.acres != null ? String(rd(f.acres, 2)) : "", gid: null }); } catch (e) { console.warn("new application map click", e); } });
     } catch (e) { console.warn("new application map", e); }
   }
   function naValidate() {
@@ -2096,17 +2161,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (v.FieldsCount != null && !(Number.isInteger(v.FieldsCount) && v.FieldsCount >= 1 && v.FieldsCount <= 40)) e.push("Number of fields must be a whole number from 1 to 40.");
     if (NA.dup) e.push("AEP ID " + NA.id + " is already used by another application.");
     const seen = new Set();
-    NA.rows.forEach((r, i) => { const n = "Field row " + (i + 1) + (r.num ? " (" + r.num + ")" : ""), tot = Number(r.total), tr = r.treated === "" ? null : Number(r.treated);
-      if (!r.num) e.push(n + ": the field number is required.");
-      else if (seen.has(normKey(r.num))) e.push(n + ": this field is listed twice."); seen.add(normKey(r.num));
-      if (r.total === "" || isNaN(tot) || tot <= 0) e.push(n + ": total acres is required, as a number above zero.");
-      if (tr == null || isNaN(tr) || tr <= 0) e.push(n + ": treated acres is required, as a number above zero.");
-      else if (!isNaN(tot) && tr > tot) e.push(n + ": treated acres cannot be more than total acres.");
-      const x = r.x || {}, ph = Number(x.SoilpH), lime = Number(x.LimeRecLbPerAcre);
-      if (nb(x.SoilpH) || isNaN(ph) || ph <= 0 || ph > 14) e.push(n + ": soil pH is required (the ranking averages it across the fields).");
-      if (nb(x.LimeRecLbPerAcre) || isNaN(lime) || lime < 0) e.push(n + ": the lime recommendation in lb/acre is required (the lime score is calculated from it). Enter 0 if the report recommends none.");
-      if (nrDate(x.LabReportDate) == null && nrDate(x.DateSampled) == null) e.push(n + ": a lab report date or a date sampled is required (it decides whether the soil test is current).");
-      for (const [f, t] of Object.entries(x)) { const m = BORN.R[f]; if (m && !nb(t) && /Integer|Double/.test(m.type || "") && isNaN(Number(t))) e.push(n + ": " + (m.label || f) + " must be a number."); } });
+    NA.rows.forEach((r, i) => { const n = "Field " + (r.num || "row " + (i + 1)), pr = nrProblems(r);
+      if (r.num && seen.has(normKey(r.num))) e.push(n + ": this field is listed twice."); seen.add(normKey(r.num));
+      if (pr.miss.length) e.push(n + ": missing " + pr.miss.join(", ") + ". Click Edit on that field.");
+      for (const b of pr.bad) e.push(n + ": " + b + "."); });
     return e;
   }
   function naPlan() {             // what will be written
@@ -2124,7 +2182,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     $("naPane").innerHTML = "<h2>New application – review</h2>" + '<div class="ecard"><h3>Review before creating ' + esc(p.AEPID) + '</h3><div class="ebody">' +
       "<div><b>You entered</b><ul>" + typedKeys.map(li).join("") + "</ul></div>" +
       "<div><b>Fields (" + plan.R.length + ")</b>" + (plan.R.length ? "<ul>" + plan.R.map((r, i) => { const t = nrTyped(NA.rows[i]), more = Object.keys(t).filter((k) => !["FieldNum", "TotalAcresInField", "TreatedAcresInField", "SoilpH", "LimeRecLbPerAcre", "LabReportDate", "DateSampled", "MoreLabResults"].includes(k) && !nb(t[k])).length;
-          return "<li><b>" + esc(r.FieldNum) + "</b>: " + esc(fmt(r.TotalAcresInField)) + " total acres, " + esc(fmt(r.TreatedAcresInField)) + " treated · pH " + esc(fmt(r.SoilpH)) + " · " + esc(fmt(r.LimeRecLbPerAcre)) + " lb/acre = " + esc(fmt(r.TotalTonsForField || 0)) + " tons · lab date " + esc(naShowV("LabDateForScoring", r.LabDateForScoring, BORN.R)) +
+          return "<li><b>" + esc(r.FieldNum) + "</b>: " + esc(fmt(r.TotalAcresInField)) + " total acres, " + esc(fmt(r.TreatedAcresInField)) + " treated · pH " + esc(fmt(r.SoilpH)) + " · " + esc(fmt(r.LimeRecLbPerAcre)) + " lb/acre (" + esc(fmt(r.LimeRecLbPerAcre / 2000)) + " tons/acre) = " + esc(fmt(r.TotalTonsForField || 0)) + " tons · lab date " + esc(naShowV("LabDateForScoring", r.LabDateForScoring, BORN.R)) +
             (r.f_LabCurrent === 1 ? "" : " (more than a year before the application date)") + (more ? " · " + more + " other value" + (more === 1 ? "" : "s") : "") + "</li>"; }).join("") + "</ul>" +
           '<div class="small">Average pH ' + esc(nb(p.pHAverage) ? "–" : fmt(p.pHAverage)) + " · total tons " + esc(fmt(p.TotalTonsRanked || 0)) + " · average " + esc(nb(p.AverageTonnage) ? "–" : fmt(p.AverageTonnage)) + " tons/acre · lime score " + esc(fmt(p.LimeScore || 0)) + ".</div>"
         : '<div class="small">None. The application will be flagged "No field rows" until one is added on the Field rows tab.</div>') + "</div>" +
@@ -2177,17 +2235,16 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       window.location.hash = "#/work/" + encodeURIComponent(curId);
     } catch (e) { console.error(e); if (NA) { NA.busy = false; NA.err = (done.length ? "Stopped after creating " + done.join(" and ") + " – " : "Nothing was created – ") + mask((e && e.message) || e) + "."; naReview(); } }
   }
-  $("newapp").addEventListener("input", (e) => { if (!NA || NA.step !== "form") return; if (e.target.id === "na_AEPSequence") NA.seqTouched = e.target.value.trim() !== ""; if (e.target.closest("[data-nar]")) { naReadAll(); naSum(); return; } naSync(); naSum(); });
+  $("newapp").addEventListener("input", (e) => { if (!NA || NA.step !== "form") return; if (e.target.id === "na_AEPSequence") NA.seqTouched = e.target.value.trim() !== ""; naSync(); naSum(); });
   $("newapp").addEventListener("change", (e) => { if (!NA || NA.step !== "form") return;
     if (e.target.id === "naFile") { NA.file = (e.target.files && e.target.files[0]) || null; $("naFileNote").textContent = NA.file ? "Chosen: " + NA.file.name : ""; return; }
-    if (e.target.closest("[data-nar]")) { naReadAll(); if (e.target.tagName === "SELECT") naRowsDraw(); else naSum(); if (NA.farm) naMap(); return; }
     naSync(); naSum(); if (e.target.id === "na_FarmID") naFarmChanged(); });
   $("newapp").addEventListener("click", (e) => {
     if (e.target.id === "naSurvey") { openIntake(); return; }
     if (!NA) return;
-    if (e.target.id === "naAddRow") { naReadAll(); NA.rows.push({ num: "", total: "", treated: "", x: {}, og: {} }); naRowsDraw(); const last = document.querySelector('[data-nar="' + (NA.rows.length - 1) + '"][data-k="num"]'); if (last) last.focus(); return; }
+    if (e.target.id === "naAddRow") { naReadAll(); ndOpen(-1); return; }
     const x = e.target.closest("[data-narx]"); if (x) { naReadAll(); NA.rows.splice(Number(x.dataset.narx), 1); naRowsDraw(); if (NA.farm) naMap(); return; }
-    const mo = e.target.closest("[data-narmore]"); if (mo) { naReadAll(); const r = NA.rows[Number(mo.dataset.narmore)]; if (r) { r.open = !r.open; naRowsDraw(); } return; }
+    const edb = e.target.closest("[data-nared]"); if (edb) { naReadAll(); ndOpen(Number(edb.dataset.nared)); return; }
     if (e.target.id === "naClear") { if (window.confirm("Clear everything typed on this page?")) { NA = null; naOpen(); } return; }
     if (e.target.id === "naReviewBtn") { const errs = naValidate(); if (errs.length) { $("naErr").innerHTML = '<div class="error" style="margin-top:12px"><b>Before the review:</b><ul style="margin:6px 0 0 18px;padding:0">' + errs.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ul></div>"; $("naErr").scrollIntoView({ block: "nearest" }); return; }
       NA.step = "review"; NA.err = ""; naReview(); window.scrollTo(0, 0); return; }
