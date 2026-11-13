@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B10c, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B11a, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -162,6 +162,15 @@
     .tool .frow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; } .tool .frow { align-items: end; } .pane .tool label, .tool label { display: block; font-weight: 600; margin: 0 0 4px; min-height: 0; }
     .tool input[type=text], .tool select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; background: #fff; }
     .tool .err { color: var(--red); font-weight: 600; } .rowBar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 13px; color: var(--muted); }
+    .small { font-size: 13px; color: var(--muted); }
+    .buildline { margin: 24px 0 8px; font-size: 12px; color: var(--muted); text-align: right; }
+    .nagrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; } @media (max-width: 900px) { .nagrid { grid-template-columns: 1fr; } }
+    .nacol { display: flex; flex-direction: column; gap: 12px; min-width: 0; } .naid { font-size: 20px; font-weight: 700; letter-spacing: .02em; } .naid.bad { color: var(--red); }
+    #naMap { height: 300px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); position: relative; }
+    .narows { width: 100%; border-collapse: collapse; font-size: 14px; } .narows th { text-align: left; font-size: 13px; padding: 4px 6px 4px 0; } .narows td { padding: 3px 6px 3px 0; }
+    .narows input { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; } .narows .x { width: 40px; height: 40px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; cursor: pointer; font-size: 16px; }
+    .nabar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; } .nabar .sp { flex: 1; font-size: 13px; color: var(--muted); }
+    #about p { margin: 0 0 8px; } #about dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 8px; } #about dt { color: var(--muted); } #about dd { margin: 0; }
     .dcol > h3 { margin: 0 0 8px; font-size: 15px; } .dmiss { color: var(--red); font-weight: 600; font-size: 14px; margin: 8px 0 0; }
     .mrow .ty { color: #5E3A00; } .mrow .ty.bad { color: var(--red); font-weight: 600; }
     #mapHost arcgis-map { display: block; width: 100%; height: 100%; }
@@ -284,7 +293,14 @@
         </details>
         <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Open applications can be edited; every save happens only after you review and confirm. Closed applications and view-only records cannot be changed here.</p>
         <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
+        <details class="diag"><summary>About this app</summary><div id="about"></div></details>
       </div>
+    </section>
+
+    <!-- NEW APPLICATION (created by the app) -->
+    <section id="newapp" hidden>
+      <div><a class="back" href="#/">← All applications</a></div>
+      <div class="detail" style="margin-top:12px"><div class="pane" id="naPane"></div></div>
     </section>
 
     <!-- WORKLIST (read-only) -->
@@ -296,6 +312,7 @@
       </div>
     </section>
   </main>
+  <p id="buildLine" class="buildline"></p>
 </div>
 
 <!-- New application: the intake survey in a panel -->
@@ -722,9 +739,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
                         : '<div class="edBar"><span>' + esc(lockWhy(r)) + "</span></div>";
     }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
+    const cmp = t.key === "intake" ? cmpText(r) : "";       // an application created by the app: how it differs from one created by the survey
     return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
       " fields have a value. " + (t.synth ? "What the application says. There is no Map Viewer form for intake, so this layout comes from the app." : "Messages the form works out on screen are not shown.") + " </p>" + top +
-      emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>');
+      emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>') + (cmp ? '<details class="diag"><summary>Compare with a survey-created application (for Claude)</summary><pre style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0">' + esc(cmp) + "</pre></details>" : "");
   }
   function itemHtml(r) {
     const sub = r.closed ? '<span class="out">' + esc(r.statusText + (r.plain[0] ? " · " + r.plain[0] : "")) + "</span>"
@@ -1458,15 +1476,15 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("detail").addEventListener("change", (e) => { if (e.target.id === "showEmpty") { showEmpty = e.target.checked; renderWork(curId); } });
   function route() {
     const h = decodeURIComponent(window.location.hash || "#/");
-    const isWork = h.startsWith("#/work");
+    const isWork = h.startsWith("#/work"), isNew = h.startsWith("#/new");
     if (ed && (!isWork || h.replace(/^#\/work\/?/, "") !== ed.r.id)) {       // leaving a record that is being edited
       if (!leaveEdit()) { window.location.hash = "#/work/" + encodeURIComponent(ed.r.id); return; }
     }
-    $("home").hidden = isWork; $("work").hidden = !isWork;
+    $("home").hidden = isWork || isNew; $("work").hidden = !isWork; $("newapp").hidden = !isNew;
     for (const [el, on] of [[$("navHome"), !isWork], [$("navWork"), isWork]]) {
       if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
     }
-    if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else renderHome();
+    if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else if (isNew) naOpen(); else renderHome();
   }
 
   // ---------------- Wire up ----------------
@@ -1503,7 +1521,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       const q = async (l) => l ? (await l.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: true, outSpatialReference: { wkid: 3857 } })).features : [];
       const A = (f, n) => attr(f.attributes, n);
       MAPS.fields = (await q(got.fields)).map((f) => { const [pre, suf] = splitFieldId(A(f, "FieldID")); return { g: f.geometry, id: A(f, "FieldID"), farm: normFarm(A(f, "FarmID") ?? pre), pre: normFarm(pre), suf: suf.trim(), key: normKey(suf), acres: A(f, "TotalAcresInField") }; });
-      MAPS.farms = (await q(got.farms)).map((f) => ({ g: f.geometry, farm: normFarm(A(f, "FarmID")), name: A(f, "FarmName") }));
+      MAPS.farms = (await q(got.farms)).map((f) => ({ g: f.geometry, farm: normFarm(A(f, "FarmID")), no: A(f, "FarmID"), name: A(f, "FarmName"), gid: A(f, "GlobalID") }));
     })().catch((e) => { MAPS.error = mask(e.message || e); MAPS.ready = null; throw e; });
     return MAPS.ready;
   }
@@ -1703,10 +1721,17 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       if (t.kind === "add") {
         const a = {}, put = (n, v) => { const k = rowField(n); if (k && v != null && v !== "") a[k] = v; };
         a[fr.parent] = r.gid;
-        put("FieldNum", t.num); put("TotalAcresInField", t.total); put("TreatedAcresInField", t.treated); put("FieldStatus", "Included");
-        put("FieldLabelResolved", t.num); put("TotalTonsForField", 0); put("f_AEPID", r.noId ? null : r.id); put("f_FiscalYear", (() => { const m = /(\d{4})/.exec(String(attr(r.a, "FiscalYear") ?? "")); return m ? Number(m[1]) : null; })());
-        put("FieldKey", String((F.farmNo ? r.a[F.farmNo] : "") ?? "").trim() + "-" + t.num);
-        for (const n of ["FieldNamesDiffer", "AcreageSourcesDisagree", "IsPasture", "LabReportIsShared", "MoreLabResults"]) put(n, "No");
+        const fyNum = (() => { const m = /(\d{4})/.exec(String(attr(r.a, "FiscalYear") ?? "")); return m ? Number(m[1]) : null; })(), farmTxt = String((F.farmNo ? r.a[F.farmNo] : "") ?? "").trim();
+        if (BORN.ok) {            // born exactly as the survey's rules file says, the same way a new application's rows are
+          const pp = { AEPID: r.noId ? null : r.id, FiscalYear: fyNum, ApplicationDate: attr(r.a, "ApplicationDate"), FarmID: farmTxt }, row = {}, typedRow = { FieldNum: t.num, TotalAcresInField: t.total, TreatedAcresInField: t.treated };
+          for (const f of BORN.file.FieldRows) { if (f.born === "default") row[f.field] = castBorn(f, f.value); if (!nb(typedRow[f.field])) row[f.field] = typedRow[f.field]; }
+          for (const f of BORN.file.FieldRows) if (f.born === "calculation") row[f.field] = R_RULES[f.field].f(row, pp, rowsOf(r).length);
+          for (const [k, v] of Object.entries(row)) put(k, v);
+        } else {                  // the rules file is unavailable: the short list the survey chat confirmed (handoff S3a)
+          put("FieldNum", t.num); put("TotalAcresInField", t.total); put("TreatedAcresInField", t.treated); put("FieldStatus", "Included");
+          put("FieldLabelResolved", t.num); put("TotalTonsForField", 0); put("f_AEPID", r.noId ? null : r.id); put("f_FiscalYear", fyNum); put("FieldKey", farmTxt + "-" + t.num);
+          for (const n of ["FieldNamesDiffer", "AcreageSourcesDisagree", "IsPasture", "LabReportIsShared", "MoreLabResults"]) put(n, "No");
+        }
         const res = await fr.table.applyEdits({ addFeatures: [new Graphic({ attributes: a })] });
         const one = res.addFeatureResults && res.addFeatureResults[0];
         if (!one || one.error) throw new Error(one && one.error ? one.error.message : "no result returned");
@@ -1755,6 +1780,386 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       }
     } catch (err) { console.error(err); if (tool) { tool.busy = false; tool.err = "Stopped – " + mask((err && err.message) || err) + "."; toolDraw(); } }
   });
+
+  // =====================================================================================================================
+  // NEW APPLICATION, created by the app (Yasser, 12–13 Nov). The survey's generator stays the single source of truth:
+  // it emits born-values.json (every value a record is born with). The file sits beside this page on the site.
+  //  - defaults are taken from the file as they stand;
+  //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
+  //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
+  // =====================================================================================================================
+  const BUILD = "B11a", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const nb = (v) => v == null || v === "";
+  const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
+  const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
+  const P_RULES = {
+    AEPID: { x: "if(${AEPCounty}!='' and ${FiscalYear}!='' and ${AEPSequence}!='',concat('AEP',${AEPCounty},'-',substr(concat(${FiscalYear}),2,4),'-',if(${AEPSequence}<10,concat('00',${AEPSequence}),if(${AEPSequence}<100,concat('0',${AEPSequence}),concat(${AEPSequence})))),'')",
+      f: (p) => nb(p.AEPCounty) || nb(p.FiscalYear) || nb(p.AEPSequence) ? null : "AEP" + p.AEPCounty + "-" + String(p.FiscalYear).slice(2, 4) + "-" + String(p.AEPSequence).padStart(3, "0") },
+    LetterSalutation: { x: "if(${Salutation}='',${LastName},concat(${Salutation},' ',${LastName}))",
+      f: (p) => nb(p.Salutation) ? (nb(p.LastName) ? null : p.LastName) : p.Salutation + " " + (p.LastName ?? "") },
+    SignerName: { x: "if(${FirstName}!='' and ${LastName}!='',concat(${FirstName},' ',${LastName}),if(${LastName}!='',${LastName},if(${FirstName}!='',${FirstName},${ApplicantLegalName})))",
+      f: (p) => !nb(p.SignerName) ? p.SignerName : !nb(p.FirstName) && !nb(p.LastName) ? p.FirstName + " " + p.LastName : !nb(p.LastName) ? p.LastName : !nb(p.FirstName) ? p.FirstName : (p.ApplicantLegalName ?? null) },
+    FarmName: { x: "${ApplicantLegalName}",
+      f: (p) => !nb(p.FarmName) ? p.FarmName : (p.ApplicantLegalName ?? null) },
+    PricePerTonCap: { x: "if(${FiscalYear} >= 2027,30,22)",
+      f: (p) => Number(p.FiscalYear) >= 2027 ? 30 : 22 },
+    CostShareMultiplier: { x: "if(${FiscalYear} >= 2027,1,0.75)",
+      f: (p) => Number(p.FiscalYear) >= 2027 ? 1 : 0.75 },
+    CostSharePercent: { x: "if(${CostShareMultiplier}='','',round(${CostShareMultiplier} * 100,0))",
+      f: (p) => nb(p.CostShareMultiplier) ? null : Math.round(p.CostShareMultiplier * 100) },
+    FSACertComplete: { x: "if(${FSAEmployeeName}!='' and ${FSAEmployeeSignDate}!='','Yes','No')",
+      f: (p) => !nb(p.FSAEmployeeName) && !nb(p.FSAEmployeeSignDate) ? "Yes" : "No" },
+    FieldCountMismatch: { x: "if(${FieldsCount}!='' and ${FieldsCount} != sum(${f_HasNum}),1,0)",
+      f: (p, R) => !nb(p.FieldsCount) && Number(p.FieldsCount) !== sum(R, "f_HasNum") ? 1 : 0 },
+    AliasCount: { x: "sum(${a_HasText})",
+      f: () => 0 },
+    pHTotalForAllFields: { x: "round(sum(${f_pHForSum}),2)",
+      f: (p, R) => rd(sum(R, "f_pHForSum"), 2) },
+    FieldCountWithpH: { x: "sum(${f_HasPH})",
+      f: (p, R) => sum(R, "f_HasPH") },
+    pHAverage: { x: "if(sum(${f_HasPH}) > 0,round(sum(${f_pHForSum}) div sum(${f_HasPH}),2),'')",
+      f: (p, R) => sum(R, "f_HasPH") > 0 ? rd(sum(R, "f_pHForSum") / sum(R, "f_HasPH"), 2) : null },
+    TotalTreatedAcres: { x: "round(sum(${f_AcresForSum}),2)",
+      f: (p, R) => rd(sum(R, "f_AcresForSum"), 2) },
+    TotalTonsRanked: { x: "round(sum(${TotalTonsForField}),2)",
+      f: (p, R) => rd(sum(R, "TotalTonsForField"), 2) },
+    FieldCountEntered: { x: "sum(${f_HasNum})",
+      f: (p, R) => sum(R, "f_HasNum") },
+    AverageTonnage: { x: "if(${TotalTreatedAcres} > 0,round(${TotalTonsRanked} div ${TotalTreatedAcres},2),'')",
+      f: (p) => p.TotalTreatedAcres > 0 ? rd(p.TotalTonsRanked / p.TotalTreatedAcres, 2) : null },
+    LimeScore: { x: "if(${AverageTonnage}='',0,round(${AverageTonnage} * 20,2))",
+      f: (p) => nb(p.AverageTonnage) ? 0 : rd(p.AverageTonnage * 20, 2) },
+    CapAcresExceeded: { x: "if(${CapAcresMax}!='' and ${TotalTreatedAcres} > ${CapAcresMax},1,0)",
+      f: (p) => !nb(p.CapAcresMax) && p.TotalTreatedAcres > Number(p.CapAcresMax) ? 1 : 0 },
+    CapRateExceeded: { x: "if(${CapTonsPerAcreMax}!='' and ${AverageTonnage}!='' and ${AverageTonnage} > ${CapTonsPerAcreMax},1,0)",
+      f: (p) => !nb(p.CapTonsPerAcreMax) && !nb(p.AverageTonnage) && p.AverageTonnage > Number(p.CapTonsPerAcreMax) ? 1 : 0 },
+    PracticeDeadline: { x: "if(${FiscalYear}='','',concat(${FiscalYear},'-11-01'))",
+      f: (p) => nb(p.FiscalYear) ? null : new Date(Number(p.FiscalYear), 10, 1, 12).getTime() },
+    CVFDeadline: { x: "if(${FiscalYear}='','',concat(${FiscalYear},'-12-01'))",
+      f: (p) => nb(p.FiscalYear) ? null : new Date(Number(p.FiscalYear), 11, 1, 12).getTime() }
+  };
+  const R_RULES = {
+    f_AEPID: { x: "${AEPID}",
+      f: (r, p) => p.AEPID ?? null },
+    f_FiscalYear: { x: "${FiscalYear}",
+      f: (r, p) => nb(p.FiscalYear) ? null : Number(p.FiscalYear) },
+    f_RowPos: { x: "position(..)",
+      f: (r, p, i) => i + 1 },
+    f_HasNum: { x: "if(${FieldNum}!='',1,0)",
+      f: (r) => nb(r.FieldNum) ? 0 : 1 },
+    f_HasPH: { x: "if(${SoilpH}!='',1,0)",
+      f: (r) => nb(r.SoilpH) ? 0 : 1 },
+    f_pHForSum: { x: "if(${SoilpH}='',0,${SoilpH})",
+      f: (r) => nb(r.SoilpH) ? 0 : Number(r.SoilpH) },
+    f_AcresForSum: { x: "if(${TreatedAcresInField}='',0,${TreatedAcresInField})",
+      f: (r) => nb(r.TreatedAcresInField) ? 0 : Number(r.TreatedAcresInField) },
+    f_LabCurrent: { x: "if(${ApplicationDate}='',0,if(${DateSampled}!='',if(decimal-date-time(${ApplicationDate}) - decimal-date-time(${DateSampled}) <= 365,1,0),if(${LabReportDate}!='' and decimal-date-time(${ApplicationDate}) - decimal-date-time(${LabReportDate}) <= 365,1,0)))",
+      f: (r, p) => nb(p.ApplicationDate) ? 0 : !nb(r.DateSampled) ? ((p.ApplicationDate - r.DateSampled) / 86400000 <= 365 ? 1 : 0) : (!nb(r.LabReportDate) && (p.ApplicationDate - r.LabReportDate) / 86400000 <= 365 ? 1 : 0) },
+    FieldKey: { x: "concat(${FarmID},'-',${FieldNum})",
+      f: (r, p) => (p.FarmID ?? "") + "-" + (r.FieldNum ?? "") },
+    FieldLabelResolved: { x: "if(${FieldLabelOnAgreement}!='',${FieldLabelOnAgreement},${FieldNum})",
+      f: (r) => !nb(r.FieldLabelOnAgreement) ? r.FieldLabelOnAgreement : (r.FieldNum ?? null) },
+    AcreageConflict: { x: "if(selected(${AcreageSourcesDisagree},'Yes'),1,0)",
+      f: (r) => r.AcreageSourcesDisagree === "Yes" ? 1 : 0 },
+    LabDateForScoring: { x: "if(${DateSampled}!='',${DateSampled},${LabReportDate})",
+      f: (r) => !nb(r.DateSampled) ? r.DateSampled : (r.LabReportDate ?? null) },
+    LimeRecTonsPerAcre: { x: "if(${LimeRecLbPerAcre}!='',round(${LimeRecLbPerAcre} div 2000,3),'')",
+      f: (r) => !nb(r.LimeRecLbPerAcre) ? rd(r.LimeRecLbPerAcre / 2000, 3) : (r.LimeRecTonsPerAcre ?? null) },
+    TotalTonsForField: { x: "if(${TreatedAcresInField}!='' and ${LimeRecTonsPerAcre}!='',round(${TreatedAcresInField} * ${LimeRecTonsPerAcre},2),0)",
+      f: (r) => !nb(r.TreatedAcresInField) && !nb(r.LimeRecTonsPerAcre) ? rd(r.TreatedAcresInField * r.LimeRecTonsPerAcre, 2) : 0 },
+    TonsForFieldRounded: { x: "if(${TotalTonsForField}!='',round(${TotalTonsForField},1),0)",
+      f: (r) => nb(r.TotalTonsForField) ? 0 : rd(r.TotalTonsForField, 1) },
+    NameMismatch: { x: "if(${FieldNumAsWritten}!='' and ${SampleIDAsPrinted}!='' and not(contains(translate(${FieldNumAsWritten},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),translate(${SampleIDAsPrinted},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'))) and not(contains(translate(${SampleIDAsPrinted},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),translate(${FieldNumAsWritten},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'))),1,0)",
+      f: (r) => { const a = String(r.FieldNumAsWritten ?? "").toLowerCase(), b = String(r.SampleIDAsPrinted ?? "").toLowerCase(); return a && b && !a.includes(b) && !b.includes(a) ? 1 : 0; } }
+  };
+  // What the entry page asks. Labels, hints, choices and "required" come from the file; only the grouping is the app's.
+  const NA_GROUPS = [
+    { key: "id", label: "Identity", col: "L", fields: ["FiscalYear", "AEPSequence"] },
+    { key: "app", label: "Applicant and farm", col: "L", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber"] },
+    { key: "rank", label: "Answers that feed the ranking", col: "R", tint: true, fields: ["ApplicationDate", "HasConsPlan", "HasManurePlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate"] },
+    { key: "req", label: "Request and certification", col: "L", closed: true, fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
+    { key: "con", label: "Contact details", col: "L", closed: true, fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip"] },
+    { key: "notes", label: "Notes", col: "R", closed: true, fields: ["Notes", "DiscrepancyNotes"] }
+  ];
+  const NA_FIELDS = new Set(NA_GROUPS.flatMap((g) => g.fields));
+  const NA_SHOW = {           // when a box shows, as the survey shows it (keyed by the survey's own rule text; an unknown rule means "always shown")
+    "selected(${ApplicantRole},'Operator') or selected(${ApplicantRole},'Other')": (v) => v.ApplicantRole === "Operator" || v.ApplicantRole === "Other",
+    "selected(${ApplicantRole},'Landowner') or selected(${ApplicantRole},'Other')": (v) => v.ApplicantRole === "Landowner" || v.ApplicantRole === "Other",
+    "selected(${AttendedEvent},'Yes')": (v) => v.AttendedEvent === "Yes"
+  };
+  const NA_LABEL = { FSAEmployeeSignDate: "FSA employee signature date" }, NA_BLANK = { FarmName: "Same as the name, unless typed", SignerName: "From the first and last name, unless typed" };
+  const BORN = { file: null, ok: false, why: "The born-values file has not been read yet.", notes: [], P: {}, R: {} };
+  function bornCheck(file) {
+    const bad = [], notes = [];
+    const one = (list, RULES, what) => {
+      const calcs = list.filter((f) => f.born === "calculation");
+      for (const f of calcs) { const r = RULES[f.field];
+        if (!r) bad.push(what + " " + f.field + ": the survey calculates it and this build has no rule for it");
+        else if (r.x !== f.calculation) bad.push(what + " " + f.field + ": the survey's calculation has changed since this build's rule was written"); }
+      for (const k of Object.keys(RULES)) if (!calcs.some((f) => f.field === k)) bad.push(what + " " + k + ": this build has a rule for it, but the survey no longer calculates it");
+    };
+    if (!file || !Array.isArray(file.parent) || !Array.isArray(file.FieldRows) || !file.choices) return { ok: false, why: "The born-values file is not in the expected shape.", notes };
+    one(file.parent, P_RULES, "Application field"); one(file.FieldRows, R_RULES, "Field-row field");
+    for (const f of file.parent) if (f.born === "typed" && f.required && !NA_FIELDS.has(f.field)) bad.push("Application field " + f.field + ": the survey now requires it, and the entry page does not ask for it");
+    for (const f of file.FieldRows) if (f.born === "typed" && f.required && !["FieldNum", "TotalAcresInField"].includes(f.field)) bad.push("Field-row field " + f.field + ": the survey now requires it, and the entry page does not ask for it");
+    for (const k of NA_FIELDS) if (!file.parent.some((f) => f.field === k)) bad.push("Application field " + k + ": the entry page asks for it, but it is no longer in the survey");
+    if (file.hash !== BORN_HASH) notes.push("The file has changed since this build was written (hash " + file.hash + ", build written against " + BORN_HASH + "). Every rule still matches, so creating is allowed; tell Claude so the build can be brought up to date.");
+    return bad.length ? { ok: false, why: bad.length + " rule(s) disagree with the survey: " + bad.join("; ") + ".", notes } : { ok: true, why: "", notes };
+  }
+  async function bornLoad() {
+    try {
+      const res = await fetch("born-values.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(res.status === 404 ? "born-values.json is not on the site. Upload it to GitHub beside index.html." : "born-values.json could not be read (HTTP " + res.status + ").");
+      const file = await res.json(), c = bornCheck(file);
+      Object.assign(BORN, { file, ok: c.ok, why: c.why, notes: c.notes, P: Object.fromEntries(file.parent.map((f) => [f.field, f])), R: Object.fromEntries(file.FieldRows.map((f) => [f.field, f])) });
+    } catch (e) { Object.assign(BORN, { file: null, ok: false, why: mask(e.message || e), notes: [] }); }
+    aboutDraw(); if (!$("newapp").hidden) naOpen();
+  }
+  const castBorn = (f, v) => nb(v) ? null : /Integer|Double/.test(f.type || "") ? Number(v) : String(v);
+  // Everything a new application and its rows are born with: typed values, the file's defaults, then the calculations (rows need the AEP ID, sums need the rows).
+  function bornBuild(typed, typedRows) {
+    const p = {}, file = BORN.file;
+    for (const f of file.parent) { if (f.born === "default") p[f.field] = castBorn(f, f.value); if (!nb(typed[f.field])) p[f.field] = typed[f.field]; }
+    p.FormVersionUsed = "app-" + BUILD;
+    const calcP = (R) => { for (const f of file.parent) if (f.born === "calculation") p[f.field] = P_RULES[f.field].f(p, R); };
+    calcP([]);
+    const R = typedRows.map((t, i) => { const r = {};
+      for (const f of file.FieldRows) { if (f.born === "default") r[f.field] = castBorn(f, f.value); if (!nb(t[f.field])) r[f.field] = t[f.field]; }
+      for (const f of file.FieldRows) if (f.born === "calculation") r[f.field] = R_RULES[f.field].f(r, p, i);
+      return r; });
+    calcP(R);
+    return { p, R };
+  }
+  // ---------- the entry page ----------
+  let NA = null;
+  const naMeta = (k) => BORN.P[k] || { field: k, label: k };
+  const naChoices = (m) => (m.choices && BORN.file.choices[m.choices]) || null;
+  function naField(k) {
+    const m = naMeta(k), v = NA.v[k], id = "na_" + k, ch = naChoices(m), req = m.required ? ' <span class="req">* required</span>' : "";
+    const label = esc(NA_LABEL[k] || m.label || k);
+    let box;
+    if (ch && ch.length <= 3) box = '<span class="opts inline" role="radiogroup" aria-label="' + label + '">' + ch.map(([c, t]) => '<label><input type="radio" name="' + id + '" value="' + esc(c) + '"' + (v === c ? " checked" : "") + "> " + esc(t) + "</label>").join("") + "</span>";
+    else if (ch) box = '<select id="' + id + '">' + (m.born === "default" ? "" : '<option value=""></option>') + ch.map(([c, t]) => '<option value="' + esc(c) + '"' + (v === c ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>";
+    else if (/Date/.test(m.type || "")) box = '<input type="date" id="' + id + '" value="' + esc(NA.t[k] ?? "") + '">';
+    else if ((m.length || 0) > 400) box = '<textarea id="' + id + '">' + esc(NA.t[k] ?? "") + "</textarea>";
+    else box = '<input type="text" id="' + id + '"' + (/Integer|Double/.test(m.type || "") ? ' inputmode="decimal"' : "") + (k === "FarmID" ? ' list="naFarms" autocomplete="off"' : "") + (NA_BLANK[k] ? ' placeholder="' + esc(NA_BLANK[k]) + '"' : "") + ' value="' + esc(NA.t[k] ?? "") + '">';
+    return '<div class="fld" data-nafld="' + k + '"><label' + (ch && ch.length <= 3 ? "" : ' for="' + id + '"') + ">" + label + req + "</label>" + box + (m.hint ? "<small>" + esc(m.hint) + "</small>" : "") +
+      (k === "AEPSequence" ? '<small id="naSeqHint"></small>' : "") + "</div>";
+  }
+  function naGroup(g) {
+    const body = '<div class="ebody">' + g.fields.map(naField).join("") + (g.key === "id" ? '<div class="fld"><span class="lab">AEP ID</span><span class="naid" id="naId">—</span><small id="naIdNote"></small></div>' : "") + "</div>";
+    return g.closed ? '<details class="ecard"><summary>' + esc(g.label) + "</summary>" + body + "</details>" : '<div class="ecard' + (g.tint ? " tint" : "") + '"><h3>' + esc(g.label) + "</h3>" + body + "</div>";
+  }
+  const naRowsHtml = () => '<table class="narows"><thead><tr><th>Field #</th><th>Total acres</th><th>Treated acres</th><th><span class="vh">Remove</span></th></tr></thead><tbody>' +
+    (NA.rows.map((r, i) => '<tr><td><input type="text" data-nar="' + i + '" data-k="num" aria-label="Field number" value="' + esc(r.num) + '"></td><td><input type="text" inputmode="decimal" data-nar="' + i + '" data-k="total" aria-label="Total acres in field" value="' + esc(r.total) + '"></td>' +
+      '<td><input type="text" inputmode="decimal" data-nar="' + i + '" data-k="treated" aria-label="Treated acres" value="' + esc(r.treated) + '"></td><td><button type="button" class="x" data-narx="' + i + '" aria-label="Remove field ' + esc(r.num) + '">×</button></td></tr>').join("") ||
+      '<tr><td colspan="4" class="none">No fields yet. Click fields on the map, or add one by typing.</td></tr>') + "</tbody></table>";
+  function naOpen() {
+    const pane = $("naPane");
+    if (!BORN.ok) { pane.innerHTML = "<h2>New application</h2>" + '<div class="error">Creating applications in the app is switched off. ' + esc(BORN.why) + "</div>" +
+      '<p style="margin-top:12px">Editing existing applications is not affected. The intake survey still works:</p><button type="button" class="btn go" id="naSurvey">Open the intake survey</button>'; return; }
+    if (!NA) { NA = { v: {}, t: {}, rows: [], file: null, step: "form", busy: false, err: "", seqTouched: false, farm: null };
+      for (const k of NA_FIELDS) { const m = naMeta(k); if (m.born === "default") { NA.v[k] = castBorn(m, m.value); NA.t[k] = String(m.value); } } }
+    if (NA.step === "review") return naReview();
+    const col = (c) => NA_GROUPS.filter((g) => g.col === c);
+    pane.innerHTML = "<h2>New application</h2>" + '<div class="notice">Only the boxes marked required are needed now. Everything else can be completed later on the Intake and Field rows tabs. Nothing is created until you review and confirm.</div>' +
+      BORN.notes.map((n) => '<div class="notice" style="margin-top:8px">' + esc(n) + "</div>").join("") +
+      '<datalist id="naFarms"></datalist><div class="nagrid" style="margin-top:12px"><div class="nacol">' + col("L").filter((g) => !g.closed).map(naGroup).join("") + col("L").filter((g) => g.closed).map(naGroup).join("") + '</div><div class="nacol">' +
+      col("R").filter((g) => !g.closed).map(naGroup).join("") +
+      '<div class="ecard"><h3>Fields</h3><div class="ebody"><div id="naMapNote" class="small">Enter a Farm # to see its fields on a map.</div><div id="naMap" hidden></div><div id="naRows">' + naRowsHtml() + '</div><div><button type="button" class="btn" id="naAddRow">Add a field by typing</button></div></div></div>' +
+      '<div class="ecard"><h3>Application packet (PDF, optional)</h3><div class="ebody"><input type="file" id="naFile" accept="application/pdf,.pdf"><small id="naFileNote">' + (NA.file ? "Chosen: " + esc(NA.file.name) : "") + "</small></div></div>" +
+      col("R").filter((g) => g.closed).map(naGroup).join("") + "</div></div>" +
+      '<div id="naErr"></div><div class="nabar"><span class="sp">Creating writes a new application to the live layer, after the review.</span><button type="button" class="linkbtn" id="naSurvey" style="margin:0">Use the intake survey instead</button>' +
+      '<button type="button" class="btn" id="naClear">Clear</button><button type="button" class="btn go" id="naReviewBtn">Review</button></div>';
+    naSync(); naFarmList(); if (NA.farm) naMap();
+  }
+  async function naFarmList() { try { await loadPolygons(); const dl = $("naFarms"); if (dl) dl.innerHTML = MAPS.farms.filter((f) => f.no != null).map((f) => '<option value="' + esc(f.no) + '">' + esc(f.name || "") + "</option>").join(""); naFarmChanged(); } catch { /* no polygons: Farm # is typed */ } }
+  const naNextSeq = (fy) => { const yy = String(fy).slice(2, 4), county = castBorn(BORN.P.AEPCounty, BORN.P.AEPCounty.value), used = new Set();
+    for (const r of rows) { const m = new RegExp("^AEP" + county + "-" + yy + "-(\\d+)$").exec(r.id); if (m) used.add(Number(m[1])); }
+    let n = 1; while (used.has(n)) n++; return n; };
+  function naReadAll() {           // the boxes → NA.t (text as typed) and NA.v (the value to store)
+    for (const k of NA_FIELDS) { const m = naMeta(k), id = "na_" + k, ch = naChoices(m);
+      if (ch && ch.length <= 3) { const c = document.querySelector('input[name="' + id + '"]:checked'); NA.v[k] = c ? c.value : null; continue; }
+      const el = $(id); if (!el) continue; const t = el.value.trim(); NA.t[k] = t;
+      if (ch) NA.v[k] = t || null;
+      else if (/Date/.test(m.type || "")) { const d = /^(\d{4})-(\d\d)-(\d\d)$/.exec(t); NA.v[k] = d ? new Date(Number(d[1]), Number(d[2]) - 1, Number(d[3]), 12).getTime() : null; }     // a date without a time is stored at noon
+      else if (/Integer|Double/.test(m.type || "")) NA.v[k] = t === "" ? null : Number(t);
+      else NA.v[k] = t || null; }
+    for (const el of document.querySelectorAll("[data-nar]")) { const r = NA.rows[Number(el.dataset.nar)]; if (r) r[el.dataset.k] = el.value.trim(); }
+  }
+  function naSync() {              // the parts that follow what is typed: which boxes show, the AEP ID line, the sequence suggestion
+    if (!NA || NA.step !== "form" || !$("naId")) return;
+    naReadAll();
+    for (const k of NA_FIELDS) { const m = naMeta(k), fn = m.relevant ? NA_SHOW[m.relevant] : null, el = document.querySelector('[data-nafld="' + k + '"]'); if (el && fn) el.hidden = !fn(NA.v); }
+    const fy = NA.v.FiscalYear, okFy = Number.isInteger(fy) && fy >= 2000 && fy <= 2100;
+    if (okFy && !NA.seqTouched) { const n = naNextSeq(fy); $("na_AEPSequence").value = String(n); NA.t.AEPSequence = String(n); NA.v.AEPSequence = n; }
+    $("naSeqHint").textContent = okFy ? "Lowest unused number for FY" + fy + ": " + naNextSeq(fy) + ". Type over it to match the paper application." : "";
+    const id = okFy && Number.isInteger(NA.v.AEPSequence) && NA.v.AEPSequence > 0 ? P_RULES.AEPID.f({ AEPCounty: castBorn(BORN.P.AEPCounty, BORN.P.AEPCounty.value), FiscalYear: fy, AEPSequence: NA.v.AEPSequence }) : null;
+    const dup = id && rows.some((r) => r.id === id);
+    $("naId").textContent = id || "—"; $("naId").className = "naid" + (dup ? " bad" : "");
+    $("naIdNote").textContent = dup ? "This ID is already used by another application. Change the sequence number." : id ? "Not used by any other application." : "Enter the fiscal year and the sequence number.";
+    NA.id = id; NA.dup = !!dup;
+  }
+  function naFarmChanged() {
+    if (!NA || !MAPS.farms) return;
+    const farm = normFarm(NA.v.FarmID ?? ""), hit = farm ? MAPS.farms.filter((f) => f.farm === farm) : [], flds = farm ? MAPS.fields.filter((f) => (f.farm === farm || f.pre === farm) && f.key && f.suf !== "9999") : [];
+    const key = farm + "|" + hit.length + "|" + flds.length; if (NA.farmKey === key) return; NA.farmKey = key;
+    NA.farm = hit.length || flds.length ? { farm, polys: hit, fields: flds } : null;
+    const note = $("naMapNote"); if (note) note.textContent = !farm ? "Enter a Farm # to see its fields on a map." : NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") + ": click a field to add or remove it." : "No polygon for Farm # " + NA.v.FarmID + " in the farms layer. Type the fields below.";
+    if ($("naMap")) $("naMap").hidden = !NA.farm; if (NA.farm) naMap();
+  }
+  function naMap() {
+    try {
+      const host = $("naMap"); if (!host || !NA.farm) return; host.hidden = false;
+      const { MapCls, GraphicsLayer, G } = MAPS.mods, have = new Set(NA.rows.map((r) => normKey(r.num)));
+      const fill = (c, o) => ({ type: "simple-fill", color: c, outline: o }), gs = [];
+      for (const f of NA.farm.polys) gs.push(new G({ geometry: f.g, symbol: fill([0, 0, 0, 0], { color: [26, 29, 33, 1], width: 2 }) }));
+      NA.farm.fields.forEach((f, i) => { const on = have.has(f.key);
+        gs.push(new G({ geometry: f.g, symbol: on ? fill([23, 69, 122, 0.4], { color: [23, 69, 122, 1], width: 2.5 }) : fill([255, 255, 255, 0.2], { color: [107, 116, 126, 1], width: 1 }), attributes: { fi: i } }));
+        const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: on ? [14, 44, 80, 1] : [90, 98, 107, 1], haloColor: [255, 255, 255, 1], haloSize: 1.5, font: { size: on ? 11 : 9, weight: on ? "bold" : "normal" } } })); });
+      if (NA.mapEl && NA.mapEl.isConnected && NA.mapFarm === NA.farm.farm) { NA.mapLayer.removeAll(); NA.mapLayer.addMany(gs); return; }
+      host.innerHTML = ""; const layer = new GraphicsLayer(); layer.addMany(gs);
+      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: webmap.basemap, layers: [layer] }); host.appendChild(el);
+      NA.mapEl = el; NA.mapLayer = layer; NA.mapFarm = NA.farm.farm;
+      const zoom = () => { try { el.goTo(gs.filter((g) => g.geometry && g.geometry.type === "polygon")).catch(() => {}); } catch { /* not ready */ } };
+      el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
+      el.addEventListener("arcgisViewClick", async (evt) => { try { const hit = await el.hitTest(evt.detail), g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.fi != null); if (!g) return;
+        naReadAll(); const f = NA.farm.fields[g.attributes.fi], at = NA.rows.findIndex((r) => normKey(r.num) === f.key);
+        if (at >= 0) NA.rows.splice(at, 1); else NA.rows.push({ num: f.suf, total: f.acres != null ? String(rd(f.acres, 2)) : "", treated: "", gid: null });
+        $("naRows").innerHTML = naRowsHtml(); naMap(); } catch (e) { console.warn("new application map click", e); } });
+    } catch (e) { console.warn("new application map", e); }
+  }
+  function naValidate() {
+    naReadAll(); const e = [], v = NA.v;
+    for (const k of NA_FIELDS) { const m = naMeta(k); if (m.required && nb(v[k])) e.push((NA_LABEL[k] || m.label) + " is required."); if (/Integer|Double/.test(m.type || "") && v[k] != null && isNaN(v[k])) e.push((m.label || k) + " must be a number."); }
+    if (v.FiscalYear != null && !(Number.isInteger(v.FiscalYear) && v.FiscalYear >= 2000 && v.FiscalYear <= 2100)) e.push("Funding fiscal year must be a year between 2000 and 2100.");
+    if (v.AEPSequence != null && !(Number.isInteger(v.AEPSequence) && v.AEPSequence > 0)) e.push("The sequence number must be a whole number above zero.");
+    if (v.FieldsCount != null && !(Number.isInteger(v.FieldsCount) && v.FieldsCount >= 1 && v.FieldsCount <= 40)) e.push("Number of fields must be a whole number from 1 to 40.");
+    if (NA.dup) e.push("AEP ID " + NA.id + " is already used by another application.");
+    const seen = new Set();
+    NA.rows.forEach((r, i) => { const n = "Field row " + (i + 1) + (r.num ? " (" + r.num + ")" : ""), tot = Number(r.total), tr = r.treated === "" ? null : Number(r.treated);
+      if (!r.num) e.push(n + ": the field number is required.");
+      else if (seen.has(normKey(r.num))) e.push(n + ": this field is listed twice."); seen.add(normKey(r.num));
+      if (r.total === "" || isNaN(tot) || tot <= 0) e.push(n + ": total acres is required, as a number above zero.");
+      if (tr != null && (isNaN(tr) || tr < 0)) e.push(n + ": treated acres must be a number, or empty.");
+      else if (tr != null && !isNaN(tot) && tr > tot) e.push(n + ": treated acres cannot be more than total acres."); });
+    return e;
+  }
+  function naPlan() {             // what will be written
+    const typedRows = NA.rows.map((r) => ({ FieldNum: r.num, TotalAcresInField: Number(r.total), TreatedAcresInField: r.treated === "" ? null : Number(r.treated) }));
+    const typed = { ...NA.v }, farmPoly = NA.farm && NA.farm.polys[0];
+    if (farmPoly && farmPoly.gid) typed.FarmGlobalID = String(farmPoly.gid);
+    const built = bornBuild(typed, typedRows), c = farmPoly && farmPoly.g && (farmPoly.g.centroid || (farmPoly.g.extent && farmPoly.g.extent.center));
+    return { ...built, point: c ? { type: "point", x: c.x, y: c.y, spatialReference: { wkid: 3857 } } : null, farmName: farmPoly ? farmPoly.name : null };
+  }
+  const naShowV = (k, v, meta) => { const m = meta[k] || {}; if (nb(v)) return "(empty)"; const ch = m.choices && BORN.file.choices[m.choices]; const hit = ch && ch.find(([c]) => c === v);
+    return hit ? hit[1] : /Date/.test(m.type || "") ? new Date(v).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : String(v); };
+  function naReview() {
+    const plan = naPlan(), p = plan.p, typedKeys = [...NA_FIELDS].filter((k) => !nb(NA.v[k])), setKeys = Object.keys(p).filter((k) => !typedKeys.includes(k) && !nb(p[k]));
+    const li = (k) => "<li>" + esc(NA_LABEL[k] || (BORN.P[k] || {}).label || k) + ": <b>" + esc(naShowV(k, p[k], BORN.P)) + "</b></li>";
+    $("naPane").innerHTML = "<h2>New application – review</h2>" + '<div class="ecard"><h3>Review before creating ' + esc(p.AEPID) + '</h3><div class="ebody">' +
+      "<div><b>You entered</b><ul>" + typedKeys.map(li).join("") + "</ul></div>" +
+      "<div><b>Fields (" + plan.R.length + ")</b>" + (plan.R.length ? "<ul>" + plan.R.map((r) => "<li>" + esc(r.FieldNum) + ": " + esc(fmt(r.TotalAcresInField)) + " total acres" + (r.TreatedAcresInField != null ? ", " + esc(fmt(r.TreatedAcresInField)) + " treated" : ", treated acres not entered") + "</li>").join("") + "</ul>"
+        : '<div class="small">None. The application will be flagged "No field rows" until one is added on the Field rows tab.</div>') + "</div>" +
+      "<div><b>Map point</b><div class=\"small\">" + (plan.point ? "The centre of the farm polygon for Farm # " + esc(p.FarmID) + (plan.farmName ? " (" + esc(plan.farmName) + ")" : "") + "." : "None: " + (nb(p.FarmID) ? "no Farm # was entered." : "Farm # " + esc(p.FarmID) + " has no polygon in the farms layer.")) + "</div></div>" +
+      "<div><b>Application packet</b><div class=\"small\">" + (NA.file ? esc(NA.file.name) + " (" + esc(sizeText(NA.file.size)) + ")" : "None attached.") + "</div></div>" +
+      "<details><summary>Set by the app, as the survey would set them (" + setKeys.length + " values on the application" + (plan.R.length ? ", " + Object.keys(plan.R[0]).filter((k) => !["FieldNum", "TotalAcresInField", "TreatedAcresInField"].includes(k) && !nb(plan.R[0][k])).length + " on each field row" : "") + ")</summary><ul>" + setKeys.map(li).join("") + "</ul></details>" +
+      (NA.err ? '<div class="error">' + esc(NA.err) + "</div>" : "") +
+      '<div class="edBtns"><span>This creates a new application in the live layer.</span><button type="button" class="btn" id="naBack"' + (NA.busy ? " disabled" : "") + '>Back to the form</button><button type="button" class="btn go" id="naCreate"' + (NA.busy ? " disabled" : "") + ">" + (NA.busy ? "Creating…" : "Confirm and create") + "</button></div></div></div>";
+  }
+  const sameStored = (a, b) => nb(a) && nb(b) ? true : typeof a === "number" || typeof b === "number" ? Math.abs(Number(a) - Number(b)) < 1e-6 : String(a).replace(/[{}]/g, "").toLowerCase() === String(b).replace(/[{}]/g, "").toLowerCase();
+  async function naCreate() {
+    if (!NA || NA.busy || !BORN.ok) return;
+    NA.busy = true; NA.err = ""; naReview();
+    const done = [];
+    try {
+      if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
+      const plan = naPlan(), id = plan.p.AEPID;
+      if (nb(id)) throw new Error("the AEP ID could not be built");
+      // the ID must be free right now, on the server, not only in the list this page loaded
+      const taken = await appLayer.queryFeatureCount({ where: F.id + " = '" + String(id).replace(/'/g, "''") + "'" });
+      if (taken) throw new Error("AEP ID " + id + " is already used by another application. Go back and change the sequence number");
+      const realApp = (n) => (appLayer.fields.find((f) => f.name.toLowerCase() === n.toLowerCase()) || {}).name || null;
+      const attrs = {}, skipped = [];
+      for (const [k, v] of Object.entries(plan.p)) { if (nb(v)) continue; const n = realApp(k); if (n) attrs[n] = v; else skipped.push(k); }
+      const res = await appLayer.applyEdits({ addFeatures: [new Graphic({ attributes: attrs, geometry: plan.point })] });
+      const one = res.addFeatureResults && res.addFeatureResults[0]; if (!one || one.error) throw new Error(one && one.error ? one.error.message : "the layer returned no result");
+      done.push("the application");
+      const back = (await appLayer.queryFeatures({ objectIds: [one.objectId], outFields: ["*"], returnGeometry: false })).features[0];
+      if (!back) throw new Error("the application was added but could not be read back");
+      const gid = back.attributes[gidField], wrong = Object.keys(attrs).filter((n) => !sameStored(attrs[n], back.attributes[n]));
+      let rowNote = "", rowsOk = true;
+      if (plan.R.length) { try {
+        const feats = plan.R.map((r) => { const a = { [fr.parent]: gid }; for (const [k, v] of Object.entries(r)) { if (nb(v)) continue; const n = rowField(k); if (n) a[n] = v; } return new Graphic({ attributes: a }); });
+        const rr = await fr.table.applyEdits({ addFeatures: feats }), bad = (rr.addFeatureResults || []).filter((x) => !x || x.error);
+        if (bad.length) throw new Error(bad[0] && bad[0].error ? bad[0].error.message : "a row returned no result");
+        done.push(plan.R.length + " field row(s)");
+      } catch (e) { rowsOk = false; rowNote = " Its field rows were NOT added (" + mask(e.message || e) + "); add them on the Field rows tab."; } }
+      let fileNote = "";
+      if (NA.file) { try { const fd = new FormData(); fd.append("attachment", NA.file, NA.file.name); fd.append("keywords", DOC_KEYWORD.app);
+        const ar = await appLayer.addAttachment(new Graphic({ attributes: { [appOid]: one.objectId } }), fd); if (ar && ar.error) throw ar.error; done.push("the packet");
+      } catch (e) { fileNote = " The packet was NOT attached (" + mask((e && e.message) || e) + "); add it on the Documents tab."; } }
+      if (fr.table) await reloadFieldRows().catch(() => {});
+      await reloadRows();
+      const made = rows.find((x) => String(x.oid) === String(one.objectId)), nRows = made ? rowsOf(made).length : 0;
+      const clean = made && !wrong.length && rowsOk && !fileNote && nRows === plan.R.length;
+      NA = null;
+      curId = made ? made.id : id; curTab = "intake";
+      saveNote = { id: curId, tab: "intake", cls: clean ? "okmsg" : "error", text: (clean ? "Created and verified: " : "Created, with something to check: ") + id + " — " + Object.keys(attrs).length + " values on the application, " + nRows + " of " + plan.R.length + " field row(s)" + (done.includes("the packet") ? ", packet attached" : "") + "." +
+        (wrong.length ? " These values read back differently from what was sent: " + wrong.join(", ") + "." : "") + rowNote + fileNote + (skipped.length ? " Not in the layer, so not written: " + skipped.join(", ") + "." : "") };
+      window.location.hash = "#/work/" + encodeURIComponent(curId);
+    } catch (e) { console.error(e); if (NA) { NA.busy = false; NA.err = (done.length ? "Stopped after creating " + done.join(" and ") + " – " : "Nothing was created – ") + mask((e && e.message) || e) + "."; naReview(); } }
+  }
+  $("newapp").addEventListener("input", (e) => { if (!NA || NA.step !== "form") return; if (e.target.id === "na_AEPSequence") NA.seqTouched = e.target.value.trim() !== ""; if (e.target.closest("[data-nar]")) return; naSync(); });
+  $("newapp").addEventListener("change", (e) => { if (!NA || NA.step !== "form") return;
+    if (e.target.id === "naFile") { NA.file = (e.target.files && e.target.files[0]) || null; $("naFileNote").textContent = NA.file ? "Chosen: " + NA.file.name : ""; return; }
+    if (e.target.closest("[data-nar]")) { naReadAll(); if (NA.farm) naMap(); return; }
+    naSync(); if (e.target.id === "na_FarmID") naFarmChanged(); });
+  $("newapp").addEventListener("click", (e) => {
+    if (e.target.id === "naSurvey") { openIntake(); return; }
+    if (!NA) return;
+    if (e.target.id === "naAddRow") { naReadAll(); NA.rows.push({ num: "", total: "", treated: "" }); $("naRows").innerHTML = naRowsHtml(); const last = document.querySelector('[data-nar="' + (NA.rows.length - 1) + '"][data-k="num"]'); if (last) last.focus(); return; }
+    const x = e.target.closest("[data-narx]"); if (x) { naReadAll(); NA.rows.splice(Number(x.dataset.narx), 1); $("naRows").innerHTML = naRowsHtml(); if (NA.farm) naMap(); return; }
+    if (e.target.id === "naClear") { if (window.confirm("Clear everything typed on this page?")) { NA = null; naOpen(); } return; }
+    if (e.target.id === "naReviewBtn") { const errs = naValidate(); if (errs.length) { $("naErr").innerHTML = '<div class="error" style="margin-top:12px"><b>Before the review:</b><ul style="margin:6px 0 0 18px;padding:0">' + errs.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ul></div>"; $("naErr").scrollIntoView({ block: "nearest" }); return; }
+      NA.step = "review"; NA.err = ""; naReview(); window.scrollTo(0, 0); return; }
+    if (e.target.id === "naBack" && !NA.busy) { NA.step = "form"; naOpen(); return; }
+    if (e.target.id === "naCreate") naCreate();
+  });
+  // ---------- Comparison of an app-created application with a survey-created one (text for Claude) ----------
+  function cmpText(r) {
+    try {
+      const ver = (x) => String(attr(x.a, "FormVersionUsed") ?? "");
+      if (!ver(r).startsWith("app-") || !BORN.file) return "";
+      const others = rows.filter((x) => ver(x).startsWith("intake-")).sort((a, b) => ver(b).localeCompare(ver(a)) || Number(b.oid) - Number(a.oid)), o = others[0];
+      if (!o) return "No survey-created application (FormVersionUsed starting intake-) is in the layer to compare with.";
+      const out = ["This application: " + r.id + " (" + ver(r) + ")", "Compared with: " + o.id + " (" + ver(o) + ")", ""], sys = /^(objectid|globalid|creationdate|creator|editdate|editor|shape.*)$/i;
+      const side = (label, mine, theirs, meta) => { const names = [...new Set([...Object.keys(mine || {}), ...Object.keys(theirs || {})])].filter((n) => !sys.test(n)), onlyMine = [], onlyTheirs = [], diff = [];
+        for (const n of names) { const a = mine ? mine[n] : null, b = theirs ? theirs[n] : null, m = meta[Object.keys(meta).find((k) => k.toLowerCase() === n.toLowerCase())];
+          if (!nb(a) && nb(b)) onlyMine.push(n + " = " + a); else if (nb(a) && !nb(b)) onlyTheirs.push(n + " = " + b);
+          else if (!nb(a) && m && m.born !== "typed" && !sameStored(a, b)) diff.push(n + ": app " + a + " | survey " + b + " (" + m.born + ")"); }
+        out.push(label, "  Filled here, empty there (" + onlyMine.length + "): " + (onlyMine.join("; ") || "none"), "  Empty here, filled there (" + onlyTheirs.length + "): " + (onlyTheirs.join("; ") || "none"),
+          "  Born values that differ (" + diff.length + "): " + (diff.join("; ") || "none"), ""); };
+      side("APPLICATION", r.a, o.a, BORN.P);
+      const mineR = rowsOf(r)[0], theirR = rowsOf(o)[0];
+      if (mineR && theirR) side("FIRST FIELD ROW (" + attr(mineR, "FieldNum") + " against " + attr(theirR, "FieldNum") + ")", mineR, theirR, BORN.R); else out.push("FIELD ROWS: " + (mineR ? "the survey-created application has none." : "this application has none."));
+      out.push("Typed answers are expected to differ; fiscal-year values (rate, cost share, deadlines) differ when the two applications are in different fiscal years.");
+      return out.join("\n");
+    } catch (e) { return "The comparison could not be made: " + mask(e.message || e); }
+  }
+  // ---------- About this app ----------
+  function aboutDraw() {
+    $("buildLine").textContent = "WCCD lime applications review app · build " + BUILD + " · " + BUILD_DATE;
+    const f = BORN.file, row = (a, b) => "<dt>" + esc(a) + "</dt><dd>" + b + "</dd>";
+    $("about").innerHTML = "<p>A review workspace for the Washington County Conservation District's Agricultural Enhancement Program lime applications. It follows each application from intake through ranking, the funding decision, the agreement and cost verification, with the farm's fields on a map and the application's documents. " +
+      "Applications can be created, completed and corrected here; every change is shown for review first and read back from the service afterwards.</p><dl>" +
+      row("App build", esc(BUILD + ", " + BUILD_DATE)) + row("ArcGIS Maps SDK for JavaScript", esc(sdkVer)) + row("Web map", esc(CFG.mapTitle)) +
+      row("Intake survey", f ? esc("version " + f.intakeVersion + " (full survey " + f.fullVersion + ")") : "not read") +
+      row("Survey rules file", f ? esc("born-values.json, generated " + f.generated + ", hash " + f.hash) : "not read") +
+      row("Creating applications", BORN.ok ? "on: every rule matches the survey" + (BORN.notes.length ? " (the file has changed since this build; see New application)" : "") : '<span style="color:var(--red);font-weight:600">off</span> – ' + esc(BORN.why)) +
+      "</dl><p>Where the rules come from: the review stages run the rules of the Map Viewer forms in the web map; intake follows the survey's generator through the rules file above.</p>";
+  }
+  aboutDraw(); bornLoad();
 
   // ---------------- Documents tab (look only): the files attached to the application and to its field rows ----------------
   const DOC_GROUPS = [["cvf", "Cost verification packet", /cvf|cost|invoice|receipt/i], ["agr", "Agreement", /agree/i], ["lab", "Lab reports", /lab|soil/i],
@@ -1905,7 +2310,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (intake.loaded && !intake.submitted && !window.confirm("Close the survey? Anything typed into it and not submitted is lost.")) return;
     $("intake").hidden = true; $("intakeForm").innerHTML = ""; intake.form = null;
   }
-  $("newApp").addEventListener("click", openIntake);
+  $("newApp").addEventListener("click", () => { window.location.hash = "#/new"; });
   $("intakeClose").addEventListener("click", closeIntake);
   $("intake").addEventListener("click", (e) => {
     if (e.target.id === "intakeAgain") openIntake();

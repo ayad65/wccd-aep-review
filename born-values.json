@@ -1,0 +1,3337 @@
+{
+ "source": "build_form.py",
+ "note": "Generated. Do not hand-edit. Every value an intake-created record is born with, and the entry metadata for the typed ones. born = default | calculation | typed.",
+ "generated": "2026-11-13",
+ "fullVersion": "2.7.1",
+ "intakeVersion": "1.0.2",
+ "formVersionUsed": "intake-1.0.2",
+ "service": "https://services1.arcgis.com/PWtxnKIFOvE9zUTs/arcgis/rest/services/service_c7930b13bea94980a4d2250169939107/FeatureServer",
+ "layer": "WCCD_AgLime_Consolidated",
+ "hash": "ae0ca9f678700d50",
+ "parent": [
+  {
+   "field": "svc_applications",
+   "born": "default",
+   "page": "cfg",
+   "order": 1,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "value": "https://services1.arcgis.com/PWtxnKIFOvE9zUTs/arcgis/rest/services/service_c7930b13bea94980a4d2250169939107/FeatureServer/0",
+   "readonly": "yes",
+   "label": "Applications feature service URL"
+  },
+  {
+   "field": "svc_fields",
+   "born": "typed",
+   "page": "cfg",
+   "order": 2,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "readonly": "yes",
+   "label": "Fields table URL"
+  },
+  {
+   "field": "svc_aliases",
+   "born": "typed",
+   "page": "cfg",
+   "order": 3,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Field alias table URL"
+  },
+  {
+   "field": "svc_reserved1",
+   "born": "typed",
+   "page": "cfg",
+   "order": 4,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Reserved service URL 1"
+  },
+  {
+   "field": "svc_reserved2",
+   "born": "typed",
+   "page": "cfg",
+   "order": 5,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Reserved service URL 2"
+  },
+  {
+   "field": "FormVersionUsed",
+   "born": "default",
+   "page": "cfg",
+   "order": 6,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 25,
+   "value": "intake-1.0.2",
+   "label": "Form version used"
+  },
+  {
+   "field": "Stage",
+   "born": "default",
+   "page": "stage_control",
+   "order": 7,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "value": "1_Intake",
+   "label": "Current stage",
+   "choices": "list_Stage",
+   "select": "one",
+   "readBy": [
+    "both apps: stage scoping"
+   ]
+  },
+  {
+   "field": "AppStatus",
+   "born": "default",
+   "page": "stage_control",
+   "order": 8,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "value": "Draft",
+   "label": "Application status",
+   "hint": "Only 'Approved — funded' writes this record into the 3-year field history. 'Ranked but not funded' is the one that keeps a field's eligibility intact.",
+   "choices": "list_AppStatus",
+   "select": "one",
+   "readBy": [
+    "both apps: funded test, worklist"
+   ]
+  },
+  {
+   "field": "AEPCounty",
+   "born": "default",
+   "page": "identity",
+   "order": 9,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 5,
+   "value": "63",
+   "label": "County code"
+  },
+  {
+   "field": "FiscalYear",
+   "born": "typed",
+   "page": "identity",
+   "order": 10,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "required": true,
+   "constraint": ". >= 2000 and . <= 2100",
+   "label": "Funding fiscal year",
+   "hint": "The FY the award belongs to. This is what the 3-year rule measures."
+  },
+  {
+   "field": "ApplicationYear",
+   "born": "typed",
+   "page": "identity",
+   "order": 11,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "label": "Application year"
+  },
+  {
+   "field": "AEPSequence",
+   "born": "typed",
+   "page": "identity",
+   "order": 12,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "required": true,
+   "label": "Sequence number within the fiscal year"
+  },
+  {
+   "field": "AEPID",
+   "born": "calculation",
+   "page": "identity",
+   "order": 13,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "calculation": "if(${AEPCounty}!='' and ${FiscalYear}!='' and ${AEPSequence}!='',concat('AEP',${AEPCounty},'-',substr(concat(${FiscalYear}),2,4),'-',if(${AEPSequence}<10,concat('00',${AEPSequence}),if(${AEPSequence}<100,concat('0',${AEPSequence}),concat(${AEPSequence})))),'')",
+   "label": "AEP ID",
+   "alias": "AEP ID",
+   "readBy": [
+    "every document, every list"
+   ]
+  },
+  {
+   "field": "AEPIDOverride",
+   "born": "typed",
+   "page": "identity",
+   "order": 14,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "label": "AEP ID override — use only if the generated ID above is wrong"
+  },
+  {
+   "field": "LegacyRecordID",
+   "born": "typed",
+   "page": "identity",
+   "order": 15,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Legacy dashboard record ID"
+  },
+  {
+   "field": "ApplicationID",
+   "born": "typed",
+   "page": "identity",
+   "order": 16,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Application ID (map join key)"
+  },
+  {
+   "field": "SourceFileName",
+   "born": "typed",
+   "page": "identity",
+   "order": 17,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Source PDF filename"
+  },
+  {
+   "field": "BMPType",
+   "born": "default",
+   "page": "identity",
+   "order": 18,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "value": "Lime",
+   "label": "BMP type",
+   "choices": "list_BMP",
+   "select": "one"
+  },
+  {
+   "field": "ProgramName",
+   "born": "default",
+   "page": "identity",
+   "order": 19,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 100,
+   "value": "Agricultural Enhancement Program",
+   "label": "Program"
+  },
+  {
+   "field": "ThreeYearWindow",
+   "born": "default",
+   "page": "identity",
+   "order": 20,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "value": "3",
+   "label": "Restriction window (fiscal years)",
+   "hint": "Editable so the rule can change without republishing the survey. Defined here because the field rows below read it.",
+   "readBy": [
+    "three-year check (live)"
+   ]
+  },
+  {
+   "field": "ApplicationDate",
+   "born": "typed",
+   "page": "applicant",
+   "order": 21,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "required": true,
+   "label": "Application Date",
+   "readBy": [
+    "ranking Q9 (live)"
+   ]
+  },
+  {
+   "field": "ApplicantLegalName",
+   "born": "typed",
+   "page": "applicant",
+   "order": 22,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "required": true,
+   "label": "Name",
+   "hint": "Exactly as written on the Name line. May be a person or a business."
+  },
+  {
+   "field": "ApplicantEntityType",
+   "born": "typed",
+   "page": "applicant",
+   "order": 23,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Entity type",
+   "choices": "list_EntityType",
+   "select": "one"
+  },
+  {
+   "field": "FirstName",
+   "born": "typed",
+   "page": "applicant",
+   "order": 24,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "label": "First name"
+  },
+  {
+   "field": "LastName",
+   "born": "typed",
+   "page": "applicant",
+   "order": 25,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "label": "Last name"
+  },
+  {
+   "field": "Salutation",
+   "born": "typed",
+   "page": "applicant",
+   "order": 26,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "label": "Courtesy title",
+   "hint": "Used only for the greeting on the approval letter. Leave blank if unsure.",
+   "choices": "list_Salutation",
+   "select": "one"
+  },
+  {
+   "field": "LetterSalutation",
+   "born": "calculation",
+   "page": "applicant",
+   "order": 27,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "calculation": "if(${Salutation}='',${LastName},concat(${Salutation},' ',${LastName}))",
+   "label": "Greeting name",
+   "alias": "Letter greeting name"
+  },
+  {
+   "field": "ApplicantRole",
+   "born": "default",
+   "page": "applicant",
+   "order": 28,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "value": "Both",
+   "label": "The applicant is",
+   "choices": "list_ApplicantRole",
+   "select": "one"
+  },
+  {
+   "field": "LandownerName",
+   "born": "typed",
+   "page": "applicant",
+   "order": 29,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "relevant": "selected(${ApplicantRole},'Operator') or selected(${ApplicantRole},'Other')",
+   "label": "Landowner"
+  },
+  {
+   "field": "OperatorName",
+   "born": "typed",
+   "page": "applicant",
+   "order": 30,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "relevant": "selected(${ApplicantRole},'Landowner') or selected(${ApplicantRole},'Other')",
+   "label": "Operator"
+  },
+  {
+   "field": "ApplicantNameAsWritten",
+   "born": "typed",
+   "page": "applicant",
+   "order": 31,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Name exactly as written (if different)"
+  },
+  {
+   "field": "SignerName",
+   "born": "calculation",
+   "page": "applicant",
+   "order": 32,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "calculation": "if(${FirstName}!='' and ${LastName}!='',concat(${FirstName},' ',${LastName}),if(${LastName}!='',${LastName},if(${FirstName}!='',${FirstName},${ApplicantLegalName})))",
+   "label": "Signed by",
+   "hint": "Filled from the first and last name above. Change it if someone else signed."
+  },
+  {
+   "field": "Email",
+   "born": "typed",
+   "page": "applicant",
+   "order": 33,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Email"
+  },
+  {
+   "field": "Phone",
+   "born": "typed",
+   "page": "applicant",
+   "order": 34,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "label": "Phone"
+  },
+  {
+   "field": "Phone2",
+   "born": "typed",
+   "page": "applicant",
+   "order": 35,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "label": "Alternate phone"
+  },
+  {
+   "field": "Address1",
+   "born": "typed",
+   "page": "applicant",
+   "order": 36,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Mailing address"
+  },
+  {
+   "field": "Address2",
+   "born": "typed",
+   "page": "applicant",
+   "order": 37,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Address line 2"
+  },
+  {
+   "field": "City",
+   "born": "typed",
+   "page": "applicant",
+   "order": 38,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "label": "City"
+  },
+  {
+   "field": "StateAbr",
+   "born": "default",
+   "page": "applicant",
+   "order": 39,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 5,
+   "value": "PA",
+   "label": "State",
+   "choices": "list_State",
+   "select": "one"
+  },
+  {
+   "field": "Zip",
+   "born": "typed",
+   "page": "applicant",
+   "order": 40,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 12,
+   "label": "ZIP"
+  },
+  {
+   "field": "FamilyMemberWCCD",
+   "born": "default",
+   "page": "applicant",
+   "order": 41,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Are you a family member of a Washington County Conservation District employee or director?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "HasConsPlan",
+   "born": "typed",
+   "page": "applicant",
+   "order": 42,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 12,
+   "required": true,
+   "label": "Does the farm have a current conservation plan or Agricultural E&S plan?",
+   "choices": "yesnona",
+   "select": "one"
+  },
+  {
+   "field": "APPLICANT_TXT01",
+   "born": "typed",
+   "page": "applicant",
+   "order": 43,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Applicant reserve text 01"
+  },
+  {
+   "field": "APPLICANT_TXT02",
+   "born": "typed",
+   "page": "applicant",
+   "order": 44,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Applicant reserve text 02"
+  },
+  {
+   "field": "APPLICANT_TXT03",
+   "born": "typed",
+   "page": "applicant",
+   "order": 45,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Applicant reserve text 03"
+  },
+  {
+   "field": "APPLICANT_TXT04",
+   "born": "typed",
+   "page": "applicant",
+   "order": 46,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Applicant reserve text 04"
+  },
+  {
+   "field": "FarmName",
+   "born": "calculation",
+   "page": "farm",
+   "order": 47,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "calculation": "${ApplicantLegalName}",
+   "label": "Farm Name",
+   "hint": "Filled from the applicant name. Change it if the farm is named differently."
+  },
+  {
+   "field": "FarmID",
+   "born": "typed",
+   "page": "farm",
+   "order": 48,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "Farm #",
+   "hint": "Text, not a number — some records carry no farm number and some carry two. The three-year check and the map both need it, so fill it in if you have it.",
+   "readBy": [
+    "three-year check (live)",
+    "map"
+   ]
+  },
+  {
+   "field": "TractNumber",
+   "born": "typed",
+   "page": "farm",
+   "order": 49,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "Tract #"
+  },
+  {
+   "field": "FieldNumbersAsWritten",
+   "born": "typed",
+   "page": "farm",
+   "order": 50,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Field # or #’s",
+   "hint": "Retired v2.6.1 — the field list comes from the FieldRows repeat."
+  },
+  {
+   "field": "AttendedEvent",
+   "born": "typed",
+   "page": "farm",
+   "order": 51,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "required": true,
+   "label": "Have you attended a conservation district event in the past year?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "AttendedEventDetail",
+   "born": "typed",
+   "page": "farm",
+   "order": 52,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 200,
+   "relevant": "selected(${AttendedEvent},'Yes')",
+   "label": "If Yes, list the event title"
+  },
+  {
+   "field": "AttendedEventDate",
+   "born": "typed",
+   "page": "farm",
+   "order": 53,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "relevant": "selected(${AttendedEvent},'Yes')",
+   "label": "Event date"
+  },
+  {
+   "field": "HasManurePlan",
+   "born": "typed",
+   "page": "farm",
+   "order": 54,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 12,
+   "required": true,
+   "label": "Does the farm have a current manure management plan or ACT 38 NMP?",
+   "choices": "yesnona",
+   "select": "one"
+  },
+  {
+   "field": "FarmNumberConflict",
+   "born": "default",
+   "page": "farm",
+   "order": 55,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Do the farm or tract numbers conflict between documents?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "FarmIDAlt",
+   "born": "typed",
+   "page": "farm",
+   "order": 56,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Conflicting Farm # seen elsewhere"
+  },
+  {
+   "field": "TractNumberAlt",
+   "born": "typed",
+   "page": "farm",
+   "order": 57,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Conflicting Tract # seen elsewhere"
+  },
+  {
+   "field": "FarmIDSource",
+   "born": "typed",
+   "page": "farm",
+   "order": 58,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 100,
+   "label": "Where the farm number came from"
+  },
+  {
+   "field": "CountyName",
+   "born": "default",
+   "page": "farm",
+   "order": 59,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "value": "Washington",
+   "label": "County"
+  },
+  {
+   "field": "Municipality",
+   "born": "typed",
+   "page": "farm",
+   "order": 60,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Municipality / township"
+  },
+  {
+   "field": "Watershed",
+   "born": "typed",
+   "page": "farm",
+   "order": 61,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Watershed"
+  },
+  {
+   "field": "TotalFarmAcres",
+   "born": "typed",
+   "page": "farm",
+   "order": 62,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Total farm acres"
+  },
+  {
+   "field": "FarmGlobalID",
+   "born": "typed",
+   "page": "farm",
+   "order": 63,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Farm GlobalID",
+   "hint": "GlobalID of the farm polygon. A stable join key that survives a FarmID edit."
+  },
+  {
+   "field": "FarmLocation",
+   "born": "typed",
+   "page": "farm",
+   "order": 64,
+   "shown": true,
+   "label": "Farm location",
+   "hint": "Tap the farm on the map. This makes the application record spatial, so the dashboard can zoom to it without a join view."
+  },
+  {
+   "field": "FarmCentroidLat",
+   "born": "typed",
+   "page": "farm",
+   "order": 65,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Farm centroid latitude"
+  },
+  {
+   "field": "FarmCentroidLon",
+   "born": "typed",
+   "page": "farm",
+   "order": 66,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Farm centroid longitude"
+  },
+  {
+   "field": "CapAcresMax",
+   "born": "default",
+   "page": "intake",
+   "order": 67,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "value": "20",
+   "label": "Acres maximum"
+  },
+  {
+   "field": "CapTonsPerAcreMax",
+   "born": "default",
+   "page": "intake",
+   "order": 68,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "value": "3",
+   "label": "Ton / Acre maximum application rate"
+  },
+  {
+   "field": "PricePerTonCap",
+   "born": "calculation",
+   "page": "intake",
+   "order": 69,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${FiscalYear} >= 2027,30,22)",
+   "label": "Cost share rate — up to $ / Ton",
+   "hint": "$30 from FY2027 (applications submitted in 2026), $22 before.",
+   "readBy": [
+    "Agreement"
+   ]
+  },
+  {
+   "field": "CostShareMultiplier",
+   "born": "calculation",
+   "page": "intake",
+   "order": 70,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${FiscalYear} >= 2027,1,0.75)",
+   "constraint": ". > 0 and . <= 1",
+   "label": "Cost share — proportion of lime cost",
+   "hint": "1 = 100% from FY2027, 0.75 = 75% before."
+  },
+  {
+   "field": "CostSharePercent",
+   "born": "calculation",
+   "page": "intake",
+   "order": 71,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${CostShareMultiplier}='','',round(${CostShareMultiplier} * 100,0))",
+   "label": "Cost share percent",
+   "alias": "Cost share %"
+  },
+  {
+   "field": "AmountRequestedTons",
+   "born": "typed",
+   "page": "intake",
+   "order": 72,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Amount Requested (Tons)",
+   "hint": "As written by the applicant. The ranking form supersedes this."
+  },
+  {
+   "field": "FieldsCount",
+   "born": "typed",
+   "page": "intake",
+   "order": 73,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "constraint": ". >= 1 and . <= 40",
+   "label": "Number of fields in this application",
+   "hint": "As stated on the application. Add the field rows themselves with the + button; this number is checked against them."
+  },
+  {
+   "field": "FieldsSelected",
+   "born": "typed",
+   "page": "intake",
+   "order": 74,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 2000,
+   "label": "Field IDs selected",
+   "hint": "Reserved for the field pick-list. Holds the chosen FieldIDs."
+  },
+  {
+   "field": "FSAEmployeeName",
+   "born": "typed",
+   "page": "intake",
+   "order": 75,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Farm Service Agency Employee Name"
+  },
+  {
+   "field": "FSAEmployeeSignDate",
+   "born": "typed",
+   "page": "intake",
+   "order": 76,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date"
+  },
+  {
+   "field": "FSACertComplete",
+   "born": "calculation",
+   "page": "intake",
+   "order": 77,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "calculation": "if(${FSAEmployeeName}!='' and ${FSAEmployeeSignDate}!='','Yes','No')",
+   "label": "FSA certification block complete (name and date recorded)",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "ApplicantSignatureDate",
+   "born": "typed",
+   "page": "intake",
+   "order": 78,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Applicant Signature Date"
+  },
+  {
+   "field": "RecordFSAMap",
+   "born": "default",
+   "page": "intake",
+   "order": 79,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Record the FSA farm map details?",
+   "hint": "Program year, map created date and tract cropland total. Rarely needed.",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "FSAMapProgramYear",
+   "born": "typed",
+   "page": "fsa_map",
+   "order": 80,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "label": "Program Year"
+  },
+  {
+   "field": "FSAMapCreatedDate",
+   "born": "typed",
+   "page": "fsa_map",
+   "order": 81,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Map Created"
+  },
+  {
+   "field": "TractCroplandTotal",
+   "born": "typed",
+   "page": "fsa_map",
+   "order": 82,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Tract Cropland Total (acres)"
+  },
+  {
+   "field": "FSAMapNotes",
+   "born": "typed",
+   "page": "fsa_map",
+   "order": 83,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 500,
+   "label": "Notes from the map"
+  },
+  {
+   "field": "FieldCountMismatch",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 225,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${FieldsCount}!='' and ${FieldsCount} != sum(${f_HasNum}),1,0)",
+   "label": "Stated field count differs from rows entered",
+   "alias": "Field count mismatch (flag)"
+  },
+  {
+   "field": "RecordAliases",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 226,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Record alternative field names from the paperwork?",
+   "hint": "For packets where one written name covers two fields, or names differ between documents in ways the field rows cannot express.",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "AliasCount",
+   "born": "calculation",
+   "page": "alias_wrap",
+   "order": 227,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "sum(${a_HasText})",
+   "readonly": "yes",
+   "label": "Number of aliases recorded"
+  },
+  {
+   "field": "pHTotalForAllFields",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 241,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "round(sum(${f_pHForSum}),2)",
+   "readonly": "yes",
+   "label": "Total pH across all fields"
+  },
+  {
+   "field": "FieldCountWithpH",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 242,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "calculation": "sum(${f_HasPH})",
+   "readonly": "yes",
+   "label": "Fields with a pH result"
+  },
+  {
+   "field": "pHAverage",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 243,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(sum(${f_HasPH}) > 0,round(sum(${f_pHForSum}) div sum(${f_HasPH}),2),'')",
+   "readonly": "yes",
+   "label": "Average field pH"
+  },
+  {
+   "field": "TotalTreatedAcres",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 244,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "round(sum(${f_AcresForSum}),2)",
+   "readonly": "yes",
+   "label": "Total treated acres"
+  },
+  {
+   "field": "TotalTonsRanked",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 245,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "round(sum(${TotalTonsForField}),2)",
+   "readonly": "yes",
+   "label": "Total tons of lime"
+  },
+  {
+   "field": "FieldCountEntered",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 246,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "sum(${f_HasNum})",
+   "label": "Fields entered",
+   "alias": "Fields entered"
+  },
+  {
+   "field": "AverageTonnage",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 247,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${TotalTreatedAcres} > 0,round(${TotalTonsRanked} div ${TotalTreatedAcres},2),'')",
+   "readonly": "yes",
+   "label": "Average tonnage (tons/acre)"
+  },
+  {
+   "field": "LimeScore",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 248,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${AverageTonnage}='',0,round(${AverageTonnage} * 20,2))",
+   "readonly": "yes",
+   "label": "What is your application lime score?",
+   "hint": "Average tonnage multiplied by 20.",
+   "alias": "Lime score"
+  },
+  {
+   "field": "CapAcresExceeded",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 249,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${CapAcresMax}!='' and ${TotalTreatedAcres} > ${CapAcresMax},1,0)",
+   "label": "Acre cap exceeded",
+   "alias": "Acre cap exceeded (flag)"
+  },
+  {
+   "field": "CapRateExceeded",
+   "born": "calculation",
+   "page": "ranking_calc",
+   "order": 250,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${CapTonsPerAcreMax}!='' and ${AverageTonnage}!='' and ${AverageTonnage} > ${CapTonsPerAcreMax},1,0)",
+   "label": "Rate cap exceeded",
+   "alias": "Rate cap exceeded (flag)"
+  },
+  {
+   "field": "CapOverride",
+   "born": "default",
+   "page": "ranking_calc",
+   "order": 251,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Override a cap?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "ApprovalOverride",
+   "born": "default",
+   "page": "approval",
+   "order": 252,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Approve figures other than the suggestion",
+   "alias": "Approve different figures?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "FundingSource",
+   "born": "default",
+   "page": "approval",
+   "order": 253,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "value": "AEP",
+   "label": "Funding source / account",
+   "readBy": [
+    "EB approval form"
+   ]
+  },
+  {
+   "field": "AgreementWCCDRepTitle",
+   "born": "default",
+   "page": "agreement",
+   "order": 254,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "value": "District Manager",
+   "label": "Title",
+   "readBy": [
+    "Agreement"
+   ]
+  },
+  {
+   "field": "PracticeLifespanYears",
+   "born": "default",
+   "page": "agreement",
+   "order": 255,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "value": "3",
+   "label": "Practice lifespan (years)",
+   "readBy": [
+    "Agreement"
+   ]
+  },
+  {
+   "field": "PracticeDeadline",
+   "born": "calculation",
+   "page": "agreement",
+   "order": 256,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "calculation": "if(${FiscalYear}='','',concat(${FiscalYear},'-11-01'))",
+   "label": "Practice completion deadline",
+   "hint": "1 November of the funding fiscal year.",
+   "readBy": [
+    "Agreement"
+   ]
+  },
+  {
+   "field": "CVFDeadline",
+   "born": "calculation",
+   "page": "agreement",
+   "order": 257,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "calculation": "if(${FiscalYear}='','',concat(${FiscalYear},'-12-01'))",
+   "label": "Cost verification form deadline",
+   "hint": "1 December of the funding fiscal year.",
+   "readBy": [
+    "Agreement"
+   ]
+  },
+  {
+   "field": "FileApplicationPacket",
+   "born": "typed",
+   "page": "attachments",
+   "order": 258,
+   "shown": true,
+   "label": "Application packet (PDF)"
+  },
+  {
+   "field": "Notes",
+   "born": "typed",
+   "page": "attachments",
+   "order": 259,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 2000,
+   "label": "General notes"
+  },
+  {
+   "field": "DiscrepancyNotes",
+   "born": "typed",
+   "page": "attachments",
+   "order": 260,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 2000,
+   "label": "Known discrepancies in the source paperwork"
+  },
+  {
+   "field": "RankingOverride",
+   "born": "default",
+   "page": "eb_defaults",
+   "order": 261,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Override automatic ranking answers",
+   "alias": "Override automatic answers?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "Q06NotOnTime",
+   "born": "default",
+   "page": "eb_defaults",
+   "order": 262,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Prior contracts NOT completed on time (returning applicant)",
+   "alias": "Prior contracts not completed on time?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "ThreeYearOverride",
+   "born": "default",
+   "page": "eb_defaults",
+   "order": 263,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Override the restriction?",
+   "choices": "yesno",
+   "select": "one"
+  }
+ ],
+ "FieldRows": [
+  {
+   "field": "f_AEPID",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 84,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "calculation": "${AEPID}",
+   "label": "AEP ID",
+   "alias": "AEP ID"
+  },
+  {
+   "field": "f_FiscalYear",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 85,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "${FiscalYear}",
+   "label": "Fiscal year",
+   "alias": "Fiscal year"
+  },
+  {
+   "field": "f_RowPos",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 86,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "position(..)",
+   "label": "Row position",
+   "alias": "Row position"
+  },
+  {
+   "field": "f_HasNum",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 87,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${FieldNum}!='',1,0)",
+   "label": "Row has a field number",
+   "alias": "Has field number (helper)"
+  },
+  {
+   "field": "f_HasPH",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 88,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${SoilpH}!='',1,0)",
+   "label": "Row has a pH result",
+   "alias": "Has pH result (helper)"
+  },
+  {
+   "field": "f_pHForSum",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 89,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${SoilpH}='',0,${SoilpH})",
+   "label": "pH for summing",
+   "alias": "pH for summing (helper)"
+  },
+  {
+   "field": "f_AcresForSum",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 90,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${TreatedAcresInField}='',0,${TreatedAcresInField})",
+   "label": "Treated acres for summing",
+   "alias": "Treated acres for summing (helper)"
+  },
+  {
+   "field": "f_LabCurrent",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 91,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${ApplicationDate}='',0,if(${DateSampled}!='',if(decimal-date-time(${ApplicationDate}) - decimal-date-time(${DateSampled}) <= 365,1,0),if(${LabReportDate}!='' and decimal-date-time(${ApplicationDate}) - decimal-date-time(${LabReportDate}) <= 365,1,0)))",
+   "label": "Row's soil test is current",
+   "alias": "Soil test current (at entry)"
+  },
+  {
+   "field": "FieldNum",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 92,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "required": true,
+   "label": "Field #",
+   "hint": "Text. Handles 4A, '7 & 6', or a name like 'Maple Field E+W'.",
+   "readBy": [
+    "Application Summary",
+    "Agreement"
+   ]
+  },
+  {
+   "field": "FieldKey",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 93,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "calculation": "concat(${FarmID},'-',${FieldNum})",
+   "label": "Field key",
+   "alias": "Field key"
+  },
+  {
+   "field": "FieldGlobalID",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 94,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Field polygon GlobalID",
+   "hint": "Stable link to the Fields polygon, independent of the FieldID string."
+  },
+  {
+   "field": "FieldNamesDiffer",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 95,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Is this field written differently on any of the documents?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "FieldNumAsWritten",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 96,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "As written on the application"
+  },
+  {
+   "field": "FieldNameLocal",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 97,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Local field name / nickname"
+  },
+  {
+   "field": "FieldLabelOnAgreement",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 98,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Label used on the agreement"
+  },
+  {
+   "field": "FieldLabelResolved",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 99,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "calculation": "if(${FieldLabelOnAgreement}!='',${FieldLabelOnAgreement},${FieldNum})",
+   "label": "Field label to print",
+   "alias": "Field label to print",
+   "readBy": [
+    "Application Summary"
+   ]
+  },
+  {
+   "field": "FSACLU",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 100,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "FSA CLU number"
+  },
+  {
+   "field": "FSATractNum",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 101,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "FSA tract #"
+  },
+  {
+   "field": "FSAFieldNum",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 102,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "FSA field #"
+  },
+  {
+   "field": "FSASubLetter",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 103,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "label": "FSA sub-field letter"
+  },
+  {
+   "field": "FieldStatus",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 104,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "value": "Included",
+   "label": "Status",
+   "hint": "Set to Excluded to record a field that has a soil test on file but is not part of this request.",
+   "choices": "list_FieldStatus",
+   "select": "one",
+   "readBy": [
+    "every roll-up, both apps"
+   ]
+  },
+  {
+   "field": "TotalAcresInField",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 105,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "required": true,
+   "label": "Total acres in field",
+   "readBy": [
+    "partial-acre check (B18)"
+   ]
+  },
+  {
+   "field": "TreatedAcresInField",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 106,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "constraint": ". <= ${TotalAcresInField} or ${TotalAcresInField} = ''",
+   "label": "Acres (treated in this application)",
+   "hint": "The number the tonnage is calculated from.",
+   "readBy": [
+    "Application Summary"
+   ]
+  },
+  {
+   "field": "AcreageSourcesDisagree",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 107,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Do the map, lab report and ranking form disagree on the acreage?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "AcresFromMap",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 108,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Acres per the map"
+  },
+  {
+   "field": "AcresFromLab",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 109,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Acres per the lab report"
+  },
+  {
+   "field": "AcresFromRanking",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 110,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Acres per the ranking form"
+  },
+  {
+   "field": "AcreageConflictNote",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 111,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "What differs, and which was used"
+  },
+  {
+   "field": "AcreageConflict",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 112,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(selected(${AcreageSourcesDisagree},'Yes'),1,0)",
+   "label": "Acreage sources disagree",
+   "alias": "Acreage sources disagree (flag)"
+  },
+  {
+   "field": "IsPasture",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 113,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Is this field pasture?",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "HELClass",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 114,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "HEL class",
+   "choices": "list_HEL",
+   "select": "one"
+  },
+  {
+   "field": "LabName",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 115,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Laboratory",
+   "choices": "list_Lab",
+   "select": "one"
+  },
+  {
+   "field": "LabNameOther",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 116,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "relevant": "selected(${LabName},'Other')",
+   "label": "Laboratory name"
+  },
+  {
+   "field": "SampleIDAsPrinted",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 117,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Sample / Field ID exactly as printed",
+   "hint": "e.g. 'MCCRAKINS', 'Field 3', '7 & 6'."
+  },
+  {
+   "field": "LabNo",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 118,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "Lab no."
+  },
+  {
+   "field": "LabReportDate",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 119,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date on the report",
+   "hint": "The single date printed on the report. Required."
+  },
+  {
+   "field": "DateSampled",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 120,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date sampled (if shown separately)",
+   "hint": "Ranking Q9 is scored on the sample date where the report gives one."
+  },
+  {
+   "field": "LabDateForScoring",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 121,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "calculation": "if(${DateSampled}!='',${DateSampled},${LabReportDate})",
+   "label": "Date used for scoring",
+   "alias": "Soil test date used for scoring"
+  },
+  {
+   "field": "AcresTested",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 122,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Acres as tested"
+  },
+  {
+   "field": "LabReportIsShared",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 123,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Lab report shared with another field?",
+   "hint": "Tick when one soil test covers this field and another, e.g. '7 & 6'.",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "LabSharedWithFields",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 124,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "relevant": "selected(${LabReportIsShared},'Yes')",
+   "label": "Shared with which field(s)"
+  },
+  {
+   "field": "SoilpH",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 125,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Soil pH",
+   "readBy": [
+    "Application Summary"
+   ]
+  },
+  {
+   "field": "Phosphorus",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 126,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Phosphorus (P) ppm"
+  },
+  {
+   "field": "Potassium",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 127,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Potassium (K) ppm"
+  },
+  {
+   "field": "Magnesium",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 128,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Magnesium (Mg) ppm"
+  },
+  {
+   "field": "Calcium",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 129,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Calcium (Ca) ppm"
+  },
+  {
+   "field": "CEC",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 130,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "CEC (meq/100 g)"
+  },
+  {
+   "field": "KSaturation",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 131,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "% sat. of CEC — K"
+  },
+  {
+   "field": "MgSaturation",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 132,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "% sat. of CEC — Mg"
+  },
+  {
+   "field": "CaSaturation",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 133,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "% sat. of CEC — Ca"
+  },
+  {
+   "field": "BufferpH",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 134,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Buffer pH"
+  },
+  {
+   "field": "ExchAcidity",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 135,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Exchangeable acidity (meq/100 g)"
+  },
+  {
+   "field": "OrganicMatter",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 136,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Organic matter (%)"
+  },
+  {
+   "field": "Sulfur",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 137,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Sulfur (S) ppm"
+  },
+  {
+   "field": "Zinc",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 138,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Zinc (Zn) ppm"
+  },
+  {
+   "field": "Copper",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 139,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Copper (Cu) ppm"
+  },
+  {
+   "field": "Boron",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 140,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Boron (B) ppm"
+  },
+  {
+   "field": "Iron",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 141,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Iron (Fe) ppm"
+  },
+  {
+   "field": "Manganese",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 142,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Manganese (Mn) ppm"
+  },
+  {
+   "field": "K_MgRatio",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 143,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "K/Mg ratio"
+  },
+  {
+   "field": "Ca_MgRatio",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 144,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Ca/Mg ratio"
+  },
+  {
+   "field": "LimeRecLbPerAcre",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 145,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Limestone recommendation (lb/acre CaCO3)"
+  },
+  {
+   "field": "LimeRecTonsPerAcre",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 146,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${LimeRecLbPerAcre}!='',round(${LimeRecLbPerAcre} div 2000,3),'')",
+   "label": "Limestone recommendation (tons/acre)",
+   "readBy": [
+    "Application Summary"
+   ]
+  },
+  {
+   "field": "LimeRecUnitAsWritten",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 147,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "Rate exactly as written",
+   "hint": "Penn State lb/A; GROWMARK lb CaCO3/A with a C or D suffix; Waypoint both. Keep the verbatim string."
+  },
+  {
+   "field": "TargetpH",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 148,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Target pH"
+  },
+  {
+   "field": "LimeTypeFlag",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 149,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Lime type (C / D)",
+   "choices": "list_LimeType",
+   "select": "one"
+  },
+  {
+   "field": "CurrentCrop",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 150,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Crop"
+  },
+  {
+   "field": "MoreLabResults",
+   "born": "default",
+   "page": "fields_wrap",
+   "order": 151,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 10,
+   "value": "No",
+   "label": "Add more lab results?",
+   "hint": "Opens the values that most reports leave blank.",
+   "choices": "yesno",
+   "select": "one"
+  },
+  {
+   "field": "SoilSeries",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 152,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Soil series"
+  },
+  {
+   "field": "LabReportNo",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 153,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "Report no."
+  },
+  {
+   "field": "LabSerialNo",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 154,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "Serial no."
+  },
+  {
+   "field": "LabCustNo",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 155,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "Customer no."
+  },
+  {
+   "field": "LabHID",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 156,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 40,
+   "label": "HID"
+  },
+  {
+   "field": "LabCounty",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 157,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "label": "County"
+  },
+  {
+   "field": "DateReceived",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 158,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date received"
+  },
+  {
+   "field": "DateTested",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 159,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date tested"
+  },
+  {
+   "field": "DateReported",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 160,
+   "shown": true,
+   "type": "esriFieldTypeDate",
+   "label": "Date reported / printed"
+  },
+  {
+   "field": "MagnesiumRecLbPerAcre",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 161,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Magnesium recommendation (lb/A)"
+  },
+  {
+   "field": "PreviousCrop",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 162,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Previous crop"
+  },
+  {
+   "field": "CropYr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 163,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Plan year 1 - crop"
+  },
+  {
+   "field": "YieldYr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 164,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 1 - expected yield"
+  },
+  {
+   "field": "YieldUnitYr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 165,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "Plan year 1 - yield unit"
+  },
+  {
+   "field": "NYr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 166,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 1 - N (lb/A)"
+  },
+  {
+   "field": "P2O5Yr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 167,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 1 - P2O5 (lb/A)"
+  },
+  {
+   "field": "K2OYr1",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 168,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 1 - K2O (lb/A)"
+  },
+  {
+   "field": "CropYr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 169,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Plan year 2 - crop"
+  },
+  {
+   "field": "YieldYr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 170,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 2 - expected yield"
+  },
+  {
+   "field": "YieldUnitYr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 171,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "Plan year 2 - yield unit"
+  },
+  {
+   "field": "NYr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 172,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 2 - N (lb/A)"
+  },
+  {
+   "field": "P2O5Yr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 173,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 2 - P2O5 (lb/A)"
+  },
+  {
+   "field": "K2OYr2",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 174,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 2 - K2O (lb/A)"
+  },
+  {
+   "field": "CropYr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 175,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 80,
+   "label": "Plan year 3 - crop"
+  },
+  {
+   "field": "YieldYr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 176,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 3 - expected yield"
+  },
+  {
+   "field": "YieldUnitYr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 177,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 20,
+   "label": "Plan year 3 - yield unit"
+  },
+  {
+   "field": "NYr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 178,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 3 - N (lb/A)"
+  },
+  {
+   "field": "P2O5Yr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 179,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 3 - P2O5 (lb/A)"
+  },
+  {
+   "field": "K2OYr3",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 180,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Plan year 3 - K2O (lb/A)"
+  },
+  {
+   "field": "OptpHLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 181,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "pH optimal low"
+  },
+  {
+   "field": "OptpHHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 182,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "pH optimal high"
+  },
+  {
+   "field": "OptPLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 183,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Phosphorus optimal low"
+  },
+  {
+   "field": "OptPHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 184,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Phosphorus optimal high"
+  },
+  {
+   "field": "OptKLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 185,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Potassium optimal low"
+  },
+  {
+   "field": "OptKHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 186,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Potassium optimal high"
+  },
+  {
+   "field": "OptMgLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 187,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Magnesium optimal low"
+  },
+  {
+   "field": "OptMgHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 188,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Magnesium optimal high"
+  },
+  {
+   "field": "OptCaLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 189,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Calcium optimal low"
+  },
+  {
+   "field": "OptCaHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 190,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Calcium optimal high"
+  },
+  {
+   "field": "OptOMLow",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 191,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Organic matter optimal low"
+  },
+  {
+   "field": "OptOMHigh",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 192,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "label": "Organic matter optimal high"
+  },
+  {
+   "field": "LabComments",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 193,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 1000,
+   "label": "Laboratory comments"
+  },
+  {
+   "field": "TotalTonsForField",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 194,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${TreatedAcresInField}!='' and ${LimeRecTonsPerAcre}!='',round(${TreatedAcresInField} * ${LimeRecTonsPerAcre},2),0)",
+   "label": "Total Tons",
+   "alias": "Total tons for field",
+   "readBy": [
+    "Application Summary"
+   ]
+  },
+  {
+   "field": "TonsForFieldRounded",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 195,
+   "shown": true,
+   "type": "esriFieldTypeDouble",
+   "calculation": "if(${TotalTonsForField}!='',round(${TotalTonsForField},1),0)",
+   "label": "Total tons as the paper form would write it",
+   "alias": "Total tons for field (rounded)"
+  },
+  {
+   "field": "NameMismatch",
+   "born": "calculation",
+   "page": "fields_wrap",
+   "order": 196,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${FieldNumAsWritten}!='' and ${SampleIDAsPrinted}!='' and not(contains(translate(${FieldNumAsWritten},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),translate(${SampleIDAsPrinted},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'))) and not(contains(translate(${SampleIDAsPrinted},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),translate(${FieldNumAsWritten},'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'))),1,0)",
+   "label": "Written name and sample ID differ",
+   "alias": "Field name differs from sample ID (flag)"
+  },
+  {
+   "field": "FieldNotes",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 197,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 500,
+   "label": "Field notes"
+  },
+  {
+   "field": "FIELD_NUM01",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 198,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 01"
+  },
+  {
+   "field": "FIELD_NUM02",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 199,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 02"
+  },
+  {
+   "field": "FIELD_NUM03",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 200,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 03"
+  },
+  {
+   "field": "FIELD_NUM04",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 201,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 04"
+  },
+  {
+   "field": "FIELD_NUM05",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 202,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 05"
+  },
+  {
+   "field": "FIELD_NUM06",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 203,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 06"
+  },
+  {
+   "field": "FIELD_NUM07",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 204,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 07"
+  },
+  {
+   "field": "FIELD_NUM08",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 205,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 08"
+  },
+  {
+   "field": "FIELD_NUM09",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 206,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 09"
+  },
+  {
+   "field": "FIELD_NUM10",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 207,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 10"
+  },
+  {
+   "field": "FIELD_NUM11",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 208,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 11"
+  },
+  {
+   "field": "FIELD_NUM12",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 209,
+   "shown": false,
+   "type": "esriFieldTypeDouble",
+   "label": "Field reserve number 12"
+  },
+  {
+   "field": "FIELD_TXT01",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 210,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 01"
+  },
+  {
+   "field": "FIELD_TXT02",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 211,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 02"
+  },
+  {
+   "field": "FIELD_TXT03",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 212,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 03"
+  },
+  {
+   "field": "FIELD_TXT04",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 213,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 04"
+  },
+  {
+   "field": "FIELD_TXT05",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 214,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 05"
+  },
+  {
+   "field": "FIELD_TXT06",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 215,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 06"
+  },
+  {
+   "field": "FIELD_TXT07",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 216,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 07"
+  },
+  {
+   "field": "FIELD_TXT08",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 217,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Field reserve text 08"
+  },
+  {
+   "field": "FIELD_DATE01",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 218,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "label": "Field reserve date 01"
+  },
+  {
+   "field": "FIELD_DATE02",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 219,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "label": "Field reserve date 02"
+  },
+  {
+   "field": "FIELD_DATE03",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 220,
+   "shown": false,
+   "type": "esriFieldTypeDate",
+   "label": "Field reserve date 03"
+  },
+  {
+   "field": "FIELD_INT01",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 221,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "label": "Field reserve integer 01"
+  },
+  {
+   "field": "FIELD_INT02",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 222,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "label": "Field reserve integer 02"
+  },
+  {
+   "field": "FIELD_INT03",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 223,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "label": "Field reserve integer 03"
+  },
+  {
+   "field": "FIELD_INT04",
+   "born": "typed",
+   "page": "fields_wrap",
+   "order": 224,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "label": "Field reserve integer 04"
+  }
+ ],
+ "AliasRows": [
+  {
+   "field": "a_AEPID",
+   "born": "calculation",
+   "page": "alias_wrap",
+   "order": 228,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 30,
+   "calculation": "${AEPID}",
+   "label": "AEP ID",
+   "alias": "AEP ID"
+  },
+  {
+   "field": "a_HasText",
+   "born": "calculation",
+   "page": "alias_wrap",
+   "order": 229,
+   "shown": false,
+   "type": "esriFieldTypeInteger",
+   "calculation": "if(${AliasText}!='',1,0)",
+   "label": "Row has an alias",
+   "alias": "Has alias text (helper)"
+  },
+  {
+   "field": "a_FieldKey",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 230,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 60,
+   "required": true,
+   "label": "Field key"
+  },
+  {
+   "field": "AliasText",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 231,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "required": true,
+   "label": "Alias exactly as written"
+  },
+  {
+   "field": "AliasType",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 232,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Alias type",
+   "choices": "list_AliasType",
+   "select": "one"
+  },
+  {
+   "field": "SourceDocType",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 233,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "label": "Source document",
+   "choices": "list_DocType",
+   "select": "one"
+  },
+  {
+   "field": "SourceDocID",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 234,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 120,
+   "label": "Source AEP ID or filename"
+  },
+  {
+   "field": "SourcePage",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 235,
+   "shown": true,
+   "type": "esriFieldTypeInteger",
+   "label": "Page"
+  },
+  {
+   "field": "AliasConfidence",
+   "born": "default",
+   "page": "alias_wrap",
+   "order": 236,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 50,
+   "value": "Confirmed",
+   "label": "Confidence",
+   "choices": "list_Confidence",
+   "select": "one"
+  },
+  {
+   "field": "AliasNotes",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 237,
+   "shown": true,
+   "type": "esriFieldTypeString",
+   "length": 255,
+   "label": "Notes"
+  },
+  {
+   "field": "ALIAS_TXT01",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 238,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Alias reserve text 01"
+  },
+  {
+   "field": "ALIAS_TXT02",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 239,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Alias reserve text 02"
+  },
+  {
+   "field": "ALIAS_TXT03",
+   "born": "typed",
+   "page": "alias_wrap",
+   "order": 240,
+   "shown": false,
+   "type": "esriFieldTypeString",
+   "length": 150,
+   "label": "Alias reserve text 03"
+  }
+ ],
+ "choices": {
+  "yesno": [
+   [
+    "Yes",
+    "Yes"
+   ],
+   [
+    "No",
+    "No"
+   ]
+  ],
+  "yesnona": [
+   [
+    "Yes",
+    "Yes"
+   ],
+   [
+    "No",
+    "No"
+   ],
+   [
+    "NA",
+    "N/A"
+   ]
+  ],
+  "list_Salutation": [
+   [
+    "Mr.",
+    "Mr."
+   ],
+   [
+    "Mrs.",
+    "Mrs."
+   ],
+   [
+    "Ms.",
+    "Ms."
+   ],
+   [
+    "Dr.",
+    "Dr."
+   ]
+  ],
+  "list_Stage": [
+   [
+    "1_Intake",
+    "1 · Intake"
+   ],
+   [
+    "2_Review",
+    "2 · Review & Ranking"
+   ],
+   [
+    "3_Approval",
+    "3 · Approval"
+   ],
+   [
+    "4_Agreement",
+    "4 · Agreement"
+   ],
+   [
+    "5_Reimbursement",
+    "5 · Reimbursement"
+   ],
+   [
+    "6_Closed",
+    "6 · Closed"
+   ]
+  ],
+  "list_AppStatus": [
+   [
+    "Draft",
+    "Draft"
+   ],
+   [
+    "Approved",
+    "Approved — funded"
+   ],
+   [
+    "NotFunded",
+    "Ranked but not funded"
+   ],
+   [
+    "Ineligible",
+    "Ineligible"
+   ],
+   [
+    "Withdrawn",
+    "Withdrawn"
+   ]
+  ],
+  "list_BMP": [
+   [
+    "Lime",
+    "Lime"
+   ],
+   [
+    "CoverCrop",
+    "Cover Crop"
+   ],
+   [
+    "Fencing",
+    "Fencing"
+   ],
+   [
+    "ManureStorage",
+    "Manure Storage"
+   ],
+   [
+    "HeavyUseArea",
+    "Heavy Use Area"
+   ],
+   [
+    "StreamCrossing",
+    "Stream Crossing"
+   ],
+   [
+    "Other",
+    "Other BMP"
+   ]
+  ],
+  "list_Lab": [
+   [
+    "PennState",
+    "Penn State AASL"
+   ],
+   [
+    "Waypoint",
+    "Waypoint Analytical"
+   ],
+   [
+    "Growmark",
+    "GROWMARK FS / Spectrum Analytic"
+   ],
+   [
+    "AgriAnalysis",
+    "Agri Analysis"
+   ],
+   [
+    "Brookside",
+    "Brookside Laboratories"
+   ],
+   [
+    "Other",
+    "Other laboratory"
+   ]
+  ],
+  "list_LimeType": [
+   [
+    "Calcitic",
+    "Calcitic (C)"
+   ],
+   [
+    "Dolomitic",
+    "Dolomitic (D)"
+   ],
+   [
+    "Either",
+    "Either"
+   ],
+   [
+    "Unknown",
+    "Not stated"
+   ]
+  ],
+  "list_AliasType": [
+   [
+    "FSACLU",
+    "FSA Common Land Unit number"
+   ],
+   [
+    "HandDrawn",
+    "Hand-drawn number or sub-letter on map"
+   ],
+   [
+    "FarmName",
+    "Farm nickname / local field name"
+   ],
+   [
+    "LabSample",
+    "Laboratory sample ID"
+   ],
+   [
+    "RankingRow",
+    "Ranking form row number"
+   ],
+   [
+    "AgreementText",
+    "Field text on the agreement"
+   ],
+   [
+    "CropName",
+    "Crop name used as a field label"
+   ],
+   [
+    "PAOneStop",
+    "PAOneStop / conservation plan label"
+   ],
+   [
+    "Other",
+    "Other"
+   ]
+  ],
+  "list_Confidence": [
+   [
+    "Confirmed",
+    "Confirmed"
+   ],
+   [
+    "Inferred",
+    "Inferred"
+   ],
+   [
+    "Uncertain",
+    "Uncertain — needs review"
+   ]
+  ],
+  "list_DocType": [
+   [
+    "Application",
+    "Application form"
+   ],
+   [
+    "Ranking",
+    "Ranking form"
+   ],
+   [
+    "FSAMap",
+    "FSA farm map"
+   ],
+   [
+    "PlanMap",
+    "Conservation plan map"
+   ],
+   [
+    "LabReport",
+    "Laboratory report"
+   ],
+   [
+    "Agreement",
+    "Agreement"
+   ],
+   [
+    "CVF",
+    "Cost Verification Form"
+   ],
+   [
+    "Letter",
+    "Approval letter"
+   ],
+   [
+    "Receipt",
+    "Receipt / invoice"
+   ],
+   [
+    "Other",
+    "Other"
+   ]
+  ],
+  "list_FieldStatus": [
+   [
+    "Included",
+    "Included in application"
+   ],
+   [
+    "Excluded",
+    "Excluded during review"
+   ],
+   [
+    "Withdrawn",
+    "Withdrawn by applicant"
+   ],
+   [
+    "Substituted",
+    "Substituted for another field"
+   ]
+  ],
+  "list_EntityType": [
+   [
+    "Individual",
+    "Individual"
+   ],
+   [
+    "LLC",
+    "LLC"
+   ],
+   [
+    "Partnership",
+    "Partnership"
+   ],
+   [
+    "Corporation",
+    "Corporation"
+   ],
+   [
+    "Trust",
+    "Trust"
+   ],
+   [
+    "Estate",
+    "Estate"
+   ],
+   [
+    "Other",
+    "Other"
+   ]
+  ],
+  "list_HEL": [
+   [
+    "HEL",
+    "HEL — Highly Erodible Land"
+   ],
+   [
+    "UHEL",
+    "UHEL"
+   ],
+   [
+    "NHEL",
+    "NHEL"
+   ],
+   [
+    "NI",
+    "NI — Not Identified"
+   ],
+   [
+    "Unknown",
+    "Unknown"
+   ]
+  ],
+  "list_State": [
+   [
+    "PA",
+    "PA"
+   ],
+   [
+    "WV",
+    "WV"
+   ],
+   [
+    "OH",
+    "OH"
+   ],
+   [
+    "MD",
+    "MD"
+   ],
+   [
+    "NY",
+    "NY"
+   ]
+  ],
+  "list_Points": [
+   [
+    "0",
+    "0"
+   ],
+   [
+    "1",
+    "1"
+   ],
+   [
+    "2",
+    "2"
+   ],
+   [
+    "3",
+    "3"
+   ],
+   [
+    "4",
+    "4"
+   ],
+   [
+    "5",
+    "5"
+   ],
+   [
+    "6",
+    "6"
+   ],
+   [
+    "7",
+    "7"
+   ],
+   [
+    "8",
+    "8"
+   ],
+   [
+    "9",
+    "9"
+   ],
+   [
+    "10",
+    "10"
+   ],
+   [
+    "11",
+    "11"
+   ],
+   [
+    "12",
+    "12"
+   ],
+   [
+    "13",
+    "13"
+   ],
+   [
+    "14",
+    "14"
+   ],
+   [
+    "15",
+    "15"
+   ],
+   [
+    "16",
+    "16"
+   ],
+   [
+    "17",
+    "17"
+   ],
+   [
+    "18",
+    "18"
+   ],
+   [
+    "19",
+    "19"
+   ],
+   [
+    "20",
+    "20"
+   ]
+  ],
+  "list_ApplicantRole": [
+   [
+    "Both",
+    "Landowner and operator"
+   ],
+   [
+    "Landowner",
+    "Landowner only"
+   ],
+   [
+    "Operator",
+    "Operator only"
+   ],
+   [
+    "Other",
+    "Other arrangement"
+   ]
+  ],
+  "list_Q1": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "3",
+    "Yes"
+   ]
+  ],
+  "list_Q2Q4": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "2",
+    "Yes"
+   ]
+  ],
+  "list_Q3": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "3",
+    "Yes or N/A"
+   ]
+  ],
+  "list_Q5": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "20",
+    "Yes"
+   ]
+  ],
+  "list_Q6": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "10",
+    "Yes"
+   ]
+  ],
+  "list_Q7toQ10": [
+   [
+    "0",
+    "No"
+   ],
+   [
+    "5",
+    "Yes"
+   ]
+  ],
+  "list_Q11": [
+   [
+    "0",
+    "6.6 or above"
+   ],
+   [
+    "5",
+    "6.1 - 6.5"
+   ],
+   [
+    "10",
+    "5.1 - 6.0"
+   ],
+   [
+    "15",
+    "5.0 or below"
+   ]
+  ]
+ }
+}
