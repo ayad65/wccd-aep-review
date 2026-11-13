@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B8b, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B9a, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -337,6 +337,7 @@
   };
   // Worklist tabs. Each stage tab lists the stored values in the order and with the labels of that layer's Map Viewer form.
   const TABS = [
+    { key: "intake", label: "Intake", layer: CFG.layerTitle, synth: true },      // no Map Viewer form exists for intake: the app supplies the layout (INTAKE below)
     { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows" },
     { key: "appr", label: "Approval", layer: "App-Approval" }, { key: "agr", label: "Agreement", layer: "App-Agreement" },
     { key: "cvf", label: "Cost verification", layer: "App-CVF" }, { key: "map", label: "Map" }, { key: "docs", label: "Documents" }
@@ -378,13 +379,43 @@
   const lower = (list) => Object.fromEntries((list || []).map((f) => [f.name.toLowerCase(), f]));
   const normId = (v) => String(v ?? "").replace(/[{}]/g, "").toLowerCase();
   // The fields of a Map Viewer form, in order, with their group and label. Only read; the form itself is never opened here.
-  function formList(lyr) {
+  // The Intake tab. There is no Map Viewer form for the intake answers, so the groups, order and the few rules below live in the app (Yasser, 12 Nov).
+  // A field is listed as "Name" or ["Name", { radio, area, d: description, label }]. Fields the layer does not have are skipped.
+  const INTAKE = [
+    { label: "Applicant and farm", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", ["FarmID", { d: "The three-year check and the map match on this number." }], "TractNumber"] },
+    { label: "Answers that feed the ranking", fields: [["ApplicationDate", { d: "Ranking question 9 counts a soil test as current within 12 months of this date." }],
+        ["HasConsPlan", { radio: true, d: "Feeds ranking question 1: Yes = 3 points." }], ["HasManurePlan", { radio: true, d: "Feeds ranking question 3: Yes or N/A = 3 points." }],
+        ["AttendedEvent", { radio: true, d: "Feeds ranking question 8: Yes = 5 points." }], "AttendedEventDetail", "AttendedEventDate"] },
+    { label: "Request and certification", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
+    { label: "Notes", fields: [["Notes", { area: true }], ["DiscrepancyNotes", { area: true }]] },
+    { label: "Contact details", fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip", ["LetterSalutation", { calc: "greeting" }]] },
+    { label: "Conflicting farm or tract numbers", fields: ["FarmNumberConflict", "FarmIDAlt", "TractNumberAlt", "FarmIDSource"] },
+    { label: "FSA farm map", fields: ["FSAMapProgramYear", "FSAMapCreatedDate", "TractCroplandTotal", ["FSAMapNotes", { area: true }]] },
+    { label: "Identity and program limits (locked)", locked: true, fields: ["AEPID", "FiscalYear", "AEPSequence", "ThreeYearWindow", "CapAcresMax", "CapTonsPerAcreMax", "PricePerTonCap", "CostShareMultiplier"] }
+  ];
+  const INTAKE_RANKING = ["HasConsPlan", "HasManurePlan", "AttendedEvent", "ApplicationDate"];       // a change here makes the stored ranking figures out of date
+  function intakeTemplate(lyr) {            // shaped like a Map Viewer form, so the same editing code runs it
+    const has = new Set(lyr.fields.map((f) => f.name.toLowerCase())), real = (n) => lyr.fields.find((f) => f.name.toLowerCase() === n.toLowerCase()).name;
+    const elements = INTAKE.map((g) => ({ type: "group", label: g.label, elements: g.fields.map((x) => Array.isArray(x) ? x : [x, {}]).filter(([n]) => has.has(n.toLowerCase())).map(([n, o]) => {
+      const el = { type: "field", fieldName: real(n), label: o.label || "" };
+      if (o.d) el.description = o.d;
+      if (o.radio) el.input = { type: "radio-buttons", showNoValueOption: true, noValueOptionLabel: "Not answered" };
+      if (o.area) el.input = { type: "text-area" };
+      if (g.locked) el.editableExpression = "expr/never";
+      if (o.calc) { el.valueExpression = "expr/" + o.calc; el.visibilityExpression = "expr/never"; }
+      return el; }) })).filter((g) => g.elements.length);
+    return { elements, expressionInfos: [
+      { name: "expr/never", title: "Never", expression: "return false;" },
+      // the letter greeting Survey123 worked out at entry (courtesy title + last name); kept in step when either changes
+      { name: "expr/greeting", title: "Letter greeting", expression: 'var s = $feature.Salutation; var l = $feature.LastName; if (IsEmpty(s)) { return IIf(IsEmpty(l), null, l); } return IIf(IsEmpty(l), s, s + " " + l);' }] };
+  }
+  function formList(lyr, tmpl) {
     const out = [];
     const walk = (els, grp) => { for (const e of els || []) {
       if (e.type === "group") walk(e.elements, e.label || grp);
       else if (e.type === "field" && e.fieldName) out.push({ group: grp || "", label: e.label || "", field: e.fieldName });
     } };
-    walk(lyr.formTemplate && lyr.formTemplate.elements, "");
+    walk(tmpl ? tmpl.elements : lyr.formTemplate && lyr.formTemplate.elements, "");
     return out;
   }
   try {
@@ -446,7 +477,7 @@
         const l = webmap.allLayers.find((x) => x.title === t.layer);
         if (!l) throw new Error('no layer titled "' + t.layer + '" in the web map');
         await l.load();
-        const list = formList(l);
+        const list = t.synth ? formList(l, intakeTemplate(l)) : formList(l);
         forms[t.key] = list.length ? { list } : { list: l.fields.map((f) => ({ group: "", label: "", field: f.name })), noForm: true };
       } catch (e) { forms[t.key] = { list: [], error: mask(e.message || e) }; }
     }
@@ -478,6 +509,10 @@
     const r = { id, applicant: String(g("applicant") ?? ""), fy, stageN, ended, closed: ended || stageN === 6,
                 status, statusText: statusLabel[status] || status || "No status", viewOnly: CFG.viewOnly.some((v) => id.includes(v)),
                 red: [], notes: [], plain: [], a, gid: a[gidField] };
+    // The Ranking form never moves the stage (a record goes from Intake to Approval when a decision is saved), so "ranked" is read from the answers:
+    // eligibility and the five reviewer questions are all stored. Such a record is shown at the decision step.
+    r.ranked = !ended && stageN <= 2 && ["EligibilityMet", "Q02ConsPlanVerified", "Q04ActPlanVerified", "Q05FirstTime", "Q07AllPasture", "Q10DistrictVisit"].every((n) => { const v = attr(a, n); return v != null && v !== ""; });
+    r.dispN = r.ranked ? 3 : stageN;
 
     const reqAc = num(g("reqAcres")), rankT = num(g("rankTons")), apAc = num(g("apprAcres")), apT = num(g("apprTons"));
     const approved = status === "Approved";
@@ -514,15 +549,15 @@
   }
 
   // ---------------- Rendering ----------------
-  const segClass = (r, k) => r.ended ? (k <= r.stageN ? "end" : "") : (k < r.stageN || r.stageN === 6 ? "done" : (k === r.stageN ? "now" : ""));
+  const segClass = (r, k) => r.ended ? (k <= r.stageN ? "end" : "") : (k < r.dispN || r.stageN === 6 ? "done" : (k === r.dispN ? "now" : ""));
   // At Approval, the next step depends on whether the decision has been recorded.
-  const nextStepOf = (r) => (r.stageN === 3 && r.status === "Approved") ? "approved · next: record the signatures" : NEXT[r.stageN - 1];
+  const nextStepOf = (r) => (r.stageN === 3 && r.status === "Approved") ? "approved · next: record the signatures" : r.ranked ? "next: record the decision" : NEXT[r.stageN - 1];
   const msgsHtml = (r) => r.red.map((m) => '<div class="msg red">' + ICON.red + "<span>" + esc(m) + "</span></div>").join("") +
                           r.notes.map((m) => '<div class="msg note">' + ICON.note + "<span>" + esc(m) + "</span></div>").join("") +
                           r.plain.map((m) => '<div class="msg plain"><span>' + esc(m) + "</span></div>").join("");
   function rowHtml(r) {
     const segs = STAGES.map((_, i) => '<i class="' + segClass(r, i + 1) + '"></i>').join("");
-    const stageLine = r.ended ? "Ended at " + STAGES[r.stageN - 1] : STAGES[r.stageN - 1] + " · " + nextStepOf(r);
+    const stageLine = r.ended ? "Ended at " + STAGES[r.stageN - 1] : (r.ranked ? "Ranked" : STAGES[r.stageN - 1]) + " · " + nextStepOf(r);
     const href = "#/work/" + encodeURIComponent(r.id);
     const att = msgsHtml(r);
     return "<tr>" +
@@ -548,8 +583,8 @@
   }
   // ---------------- Worklist (read-only) ----------------
   let curId = null, curTab = null, showEmpty = false;
-  const stepOf = (r) => r.closed ? -1 : r.stageN <= 2 ? 0 : r.stageN === 3 ? (r.status === "Approved" ? 2 : 1) : r.stageN === 4 ? 2 : 3;
-  const defaultTab = (r) => r.ended ? "appr" : r.stageN <= 2 ? "rank" : r.stageN === 3 ? "appr" : r.stageN === 4 ? "agr" : "cvf";
+  const stepOf = (r) => r.closed ? -1 : r.ranked ? 1 : r.stageN <= 2 ? 0 : r.stageN === 3 ? (r.status === "Approved" ? 2 : 1) : r.stageN === 4 ? 2 : 3;
+  const defaultTab = (r) => r.ended ? "appr" : r.ranked ? "appr" : r.stageN <= 2 ? "rank" : r.stageN === 3 ? "appr" : r.stageN === 4 ? "agr" : "cvf";
   function show(f, v) {            // a stored value as text, or null when it is empty
     if (v == null || v === "") return null;
     const cv = f && f.domain && f.domain.codedValues && f.domain.codedValues.find((c) => String(c.code) === String(v));
@@ -562,6 +597,8 @@
   // ---- Stored values as cards in two columns. Each form group is a card; RULES place the known groups, the rest fall in automatically. ----
   // w: "L" / "R" = left or right column, "full" = full width with the values in two columns, "figs" = a strip of figures. open:false = starts collapsed.
   const RULES = {
+    intake: [{ re: /applicant and farm/i, w: "L", row: 1 }, { re: /feed/i, w: "R", row: 1, tint: true }, { re: /request/i, w: "L", row: 2 }, { re: /^notes$/i, w: "R", row: 2 },
+             { re: /contact/i, w: "L", row: 3, open: false }, { re: /conflict/i, w: "R", row: 3, open: false }, { re: /fsa/i, w: "L", row: 4, open: false }, { re: /identity/i, w: "R", row: 4, open: false }],
     cvf:  [{ re: /^General$/, w: "figs", title: "Lime and cost" }, { re: /internal/i, w: "L" }, { re: /payment|invoice/i, w: "R", tint: true }],
     appr: [{ re: /decision/i, w: "L" }, { re: /sign/i, w: "R", tint: true }, { re: /program limit/i, w: "R" }, { re: /three/i, w: "R" }],
     agr:  [{ re: /signature/i, w: "full" }],
@@ -653,7 +690,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     }
     const v = cardsHtml(t.key, fm.list, r.a, appFields, calc != null ? "calculated score " + fmt(calc) : "");
     return "<h2>" + esc(t.label) + "</h2><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
-      " fields have a value. Messages the form works out on screen are not shown. " + "</p>" + top +
+      " fields have a value. " + (t.synth ? "What the application says. There is no Map Viewer form for intake, so this layout comes from the app." : "Messages the form works out on screen are not shown.") + " </p>" + top +
       emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>');
   }
   function itemHtml(r) {
@@ -678,7 +715,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       (id ? esc(id) + " is not in the list. " : "") + "Pick an application from the To do list, or from the Home page.</p></div>"; return; }
     const g = (k) => (F[k] ? r.a[F[k]] : undefined);
     const farm = String(g("farmNo") ?? "").trim();
-    const line = r.statusText + " · " + (r.ended ? "ended at " + STAGES[r.stageN - 1] : r.stageN === 6 ? "closed" : "at " + STAGES[r.stageN - 1] + " · " + nextStepOf(r));
+    const line = r.statusText + " · " + (r.ended ? "ended at " + STAGES[r.stageN - 1] : r.stageN === 6 ? "closed" : (r.ranked ? "ranked" : "at " + STAGES[r.stageN - 1]) + " · " + nextStepOf(r));
     const steps = STAGES.map((n, i) => '<li class="' + segClass(r, i + 1) + '"><i></i>' + n + "</li>").join("");
     const nRows = fr.rows ? fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "").length : null;
     const reqAc = num(g("reqAcres")), aw = num(g("awarded")), calc = num(g("calc")), apT = num(g("apprTons")), apAc = num(g("apprAcres")), amt = num(g("apprAmt")), paid = num(g("paid"));
@@ -719,7 +756,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
 
   // ---------------- Editing: Approval tab only, TEST records only (safe save, as proven on the test page, Run 14) ----------------
   const EDIT_TAB = "appr";                                  // the one tab the Esri-form fallback can edit
-  const EDIT_TABS = ["rank", "appr", "agr", "cvf"];         // tabs our own layout can edit
+  const EDIT_TABS = ["intake", "rank", "appr", "agr", "cvf"];         // tabs our own layout can edit
   let ed = null, saveNote = null, loadedAll = false, Graphic = null, arcade = null;
   // Which records may be saved (Yasser, 12 Nov): every open application; never a view-only record (Campbell); a closed application only if it is one of the TEST records.
   const isTest = (r) => CFG.editable.some((t) => r.id.endsWith(t));
@@ -938,6 +975,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     // textsRight = typed boxes on the left, the form's result lines on the right; splitRight = fields whose label matches go to the right half;
     // closed = starts collapsed; order = position (default: the form's own order).
     const SPEC = {
+      intake: [{ re: /applicant and farm/i, col: "L", row: 1, tint: false, order: 1 }, { re: /feed/i, col: "R", row: 1, tint: true, order: 2 },
+               { re: /request/i, col: "L", row: 2, tint: false, order: 3 }, { re: /^notes$/i, col: "R", row: 2, tint: false, order: 4 },
+               { re: /contact/i, col: "L", row: 3, tint: false, closed: true, order: 5 }, { re: /conflict/i, col: "R", row: 3, tint: false, closed: true, order: 6 },
+               { re: /fsa/i, col: "L", row: 4, tint: false, closed: true, order: 7 }, { re: /identity/i, col: "R", row: 4, tint: false, closed: true, order: 8 }, { re: /./, col: "full", order: 9 }],
       appr: [{ re: /decision/i, col: "L" }, { re: /./, col: "R" }],
       rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", two: true, order: 3 },
              { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
@@ -1270,12 +1311,12 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const layer = isRow ? fr.table : webmap.allLayers.find((l) => l.title === tab.layer);
         if (!layer) throw new Error('no layer titled "' + title + '" in the web map');
         await layer.load();
-        if (!layer.formTemplate) throw new Error(title + " has no Map Viewer form");
+        if (!tab.synth && !layer.formTemplate) throw new Error(title + " has no Map Viewer form");
         const q = isRow ? await layer.queryFeatures({ objectIds: [Number(rowOid)], outFields: ["*"] })
                         : await layer.queryFeatures({ where: F.id + " = '" + r.id.replace(/'/g, "''") + "'", outFields: ["*"], returnGeometry: true });
         if (my !== token || ed !== e) return;
         if (q.features.length !== 1) throw new Error(q.features.length + " records matched in " + title);
-        const feature = q.features[0], tmpl = layer.formTemplate.clone();           // always a copy of the form
+        const feature = q.features[0], tmpl = tab.synth ? intakeTemplate(layer) : layer.formTemplate.clone();           // always a copy of the form (Intake: the app's own layout)
         e.original = { ...feature.attributes };
         const keys = new Map(); let n = 0;
         S = { id: r.id, what: isRow ? "field " + rowName + " of " + r.id : r.id, tabKey, openCards: new Set(), layer, tmpl, feature, oid: feature.attributes[layer.objectIdField], original: { ...feature.attributes }, values: { ...feature.attributes },
@@ -1323,6 +1364,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         "<div><b>You changed</b>" + ul(p.you, line) + "</div>" +
         "<div><b>Calculated by the form</b>" + ul(p.calc, line) + "</div>" +
         '<div><b>Emptied because your change hid them</b> <span class="small">(go back to the form to restore any of these)</span>' + ul(p.emptied, (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → (empty)") + "</div>" +
+        (S.tabKey === "intake" && p.you.some((x) => x.k.toLowerCase() === "farmid") ? '<div class="error" style="margin:8px 0">Farm # is changing. The field rows keep the field key built from the old farm number at entry; the three-year check and the map compare the farm and field numbers directly, so they follow the new number. Check the Map tab after saving.</div>' : "") +
         (missingLocked().length ? '<div><b>Still missing after this save</b> <span class="small">(required by the form, but not filled on this tab)</span>' + ul(missingLocked(), (x) => x) + "</div>" : "") +
         '<div class="edBtns"><span>This writes to the real record. Nothing else is written.</span><button type="button" class="btn" id="edBack">Back to the form</button><button type="button" class="btn go" id="edConfirm">Confirm and save</button></div>';
       $("edReview").hidden = false; $("edBtns").hidden = true;
@@ -1355,6 +1397,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const id = s.id, text = keys.map((k) => labelOf(k) + " = " + dispV(k, attrs[k])).join(" · ");
         saveNote = bad.length ? { id, tab: s.tabKey, cls: "error", text: "Saved, but the check afterwards found differences:\n" + bad.join("\n") }
                               : { id, tab: s.tabKey, cls: "okmsg", text: "Saved and verified (" + keys.length + " field" + (keys.length === 1 ? "" : "s") + "): " + text };
+        if (s.tabKey === "intake" && !bad.length && keys.some((k) => INTAKE_RANKING.some((n) => n.toLowerCase() === k.toLowerCase()))) saveNote.text += "\nAn answer that feeds the ranking changed. Open Ranking, click Edit, and save to refresh the score.";
         if (s.tabKey === "rows" && !bad.length) saveNote.text += "\nThe application's stored totals may now be out of date. Open Ranking, click Edit, and save to refresh them.";
         closeEdit();
         try { if (saveNote.tab === "rows") fr.rows = (await fr.table.queryFeatures({ where: "1=1", outFields: ["*"] })).features.map((f) => f.attributes); await reloadRows(); }
