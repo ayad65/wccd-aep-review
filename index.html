@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12d, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12e, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -598,7 +598,9 @@
     // The Ranking form never moves the stage (a record goes from Intake to Approval when a decision is saved), so "ranked" is read from the answers:
     // eligibility and the five reviewer questions are all stored. Such a record is shown at the decision step.
     r.ranked = !ended && stageN <= 2 && ["EligibilityMet", "Q02ConsPlanVerified", "Q04ActPlanVerified", "Q05FirstTime", "Q07AllPasture", "Q10DistrictVisit"].every((n) => { const v = attr(a, n); return v != null && v !== ""; });
-    r.dispN = r.ranked ? 3 : stageN;
+    // At the Agreement stage, once the landowner and WCCD signature dates are both stored, the signatures are done and the next step is the cost verification.
+    r.signed = !ended && stageN === 4 && ["AgreementLandownerSignDate", "AgreementWCCDSignDate"].every((n) => { const v = attr(a, n); return v != null && v !== ""; });
+    r.dispN = r.ranked ? 3 : r.signed ? 5 : stageN;
 
     const reqAc = num(g("reqAcres")), rankT = num(g("rankTons")), apAc = num(g("apprAcres")), apT = num(g("apprTons"));
     const approved = status === "Approved";
@@ -637,7 +639,7 @@
   // ---------------- Rendering ----------------
   const segClass = (r, k) => r.ended ? (k <= r.stageN ? "end" : "") : (k < r.dispN || r.stageN === 6 ? "done" : (k === r.dispN ? "now" : ""));
   // At Approval, the next step depends on whether the decision has been recorded.
-  const nextStepOf = (r) => (r.stageN === 3 && r.status === "Approved") ? "approved · next: record the signatures" : r.ranked ? "next: record the decision" : NEXT[r.stageN - 1];
+  const nextStepOf = (r) => r.signed ? "agreement signed · next: check the cost verification" : (r.stageN === 3 && r.status === "Approved") ? "approved · next: record the signatures" : r.ranked ? "next: record the decision" : NEXT[r.stageN - 1];
   const msgsHtml = (r) => r.red.map((m) => '<div class="msg red">' + ICON.red + "<span>" + esc(m) + "</span></div>").join("") +
                           r.notes.map((m) => '<div class="msg note">' + ICON.note + "<span>" + esc(m) + "</span></div>").join("") +
                           r.plain.map((m) => '<div class="msg plain"><span>' + esc(m) + "</span></div>").join("");
@@ -669,8 +671,8 @@
   }
   // ---------------- Worklist (read-only) ----------------
   let curId = null, curTab = null, showEmpty = false;
-  const stepOf = (r) => r.closed ? -1 : r.ranked ? 1 : r.stageN <= 2 ? 0 : r.stageN === 3 ? (r.status === "Approved" ? 2 : 1) : r.stageN === 4 ? 2 : 3;
-  const defaultTab = (r) => r.ended ? "appr" : r.ranked ? "appr" : r.stageN <= 2 ? "rank" : r.stageN === 3 ? "appr" : r.stageN === 4 ? "agr" : "cvf";
+  const stepOf = (r) => r.closed ? -1 : r.ranked ? 1 : r.stageN <= 2 ? 0 : r.stageN === 3 ? (r.status === "Approved" ? 2 : 1) : r.stageN === 4 ? (r.signed ? 3 : 2) : 3;
+  const defaultTab = (r) => r.ended ? "appr" : r.ranked ? "appr" : r.stageN <= 2 ? "rank" : r.stageN === 3 ? "appr" : r.stageN === 4 ? (r.signed ? "cvf" : "agr") : "cvf";
   function show(f, v) {            // a stored value as text, or null when it is empty
     if (v == null || v === "") return null;
     const cv = f && f.domain && f.domain.codedValues && f.domain.codedValues.find((c) => String(c.code) === String(v));
@@ -1846,7 +1848,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12d", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12e", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2399,10 +2401,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           "<p><b>If I do not complete my practice by " + T(r, "PracticeDeadline") + ", or submit the cost verification form by " + T(r, "CVFDeadline") + ", I will forfeit my right to any cost share payment. No extensions will be granted.</b></p>" +
           "<p><b>Section 4 – Agreement Signatures</b></p><p>In Witness Whereof, the parties hereto have executed this Agreement.</p><p><b>Landowner(s)/Operator(s):</b></p>" + sig("Landowner Signature") + sig("Operator Signature (if different than Landowner)") +
           "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "</div>"; } },
-      cvf: { label: "Cost Verification Form", group: "cvf", when: (r) => r.status === "Approved" && r.stageN >= 5 ? "" : "Offered at the Reimbursement stage or later.",
+      cvf: { label: "Cost Verification Form", group: "cvf", when: (r) => r.status === "Approved" && (r.stageN >= 5 || r.signed) ? "" : "Offered once the agreement is signed.",
         need: [["Applicant name", "ApplicantLegalName"], ["Tons purchased", "TonsPurchased"], ["Tons eligible", "TonsEligible"], ["Cost per ton", "ActualCostPerTon"], ["Reimbursement rate", "RatePerTon"], ["Total reimbursement request", "TotalReimbursementRequest"]],
         html(r) { const ln = (l, v, w) => "<p>" + l + " &nbsp;" + blank(v, w) + "</p>";
-          return '<div class="letter">' + head + '<p class="c"><b>WCCD Agricultural Enhancement Program – Cost Verification Form</b></p>' +
+          return '<div class="letter cvf">' + head + '<p class="c"><b>WCCD Agricultural Enhancement Program – Cost Verification Form</b></p>' +
           "<p>This form is for requesting reimbursement payment for the WCCD Agricultural Enhancement Program project listed below. The form along with invoice or receipts should be submitted within 30 days of implementation of the project and 7 days before the next district meeting. A reimbursement check will be mailed after the district meeting following this submission (district meetings are the second Tuesday of every month).</p>" +
           ln("Applicant Name:", T(r, "ApplicantLegalName"), 260) + ln("A. &nbsp; Amount of Lime Purchased (Tons):", N(r, "TonsPurchased", 2, 2)) + ln("B. &nbsp; Amount of Lime Eligible for Reimbursement (Tons):", N(r, "TonsEligible", 0, 2)) + ln("C. &nbsp; Cost per Ton (Lime Only):", N(r, "ActualCostPerTon", 2, 2)) +
           '<p class="small">** If Cost per Ton is less than $' + (N(r, "PricePerTonCap", 0, 2) || "22") + ", Cost of lime per ton (C) x " + (has(r, "CostShareMultiplier") ? N(r, "CostShareMultiplier", 0, 2) : "0.75") + " to get reimbursement rate.</p>" +
@@ -2410,15 +2412,39 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           "<p><b>WCCD Internal Use:</b></p>" + ln("Account funds to be paid from:", T(r, "AccountFundsFrom")) + "<p><b>Verification:</b></p>" + ln("Amount of Lime matches agreement:", T(r, "AmountMatchesAgreement")) + ln("Reimbursement amount matches agreement:", T(r, "ReimbursementMatchesAgreement")) + ln("Was the lime certified:", T(r, "LimeCertified")) + ln("Spot check of application:", T(r, "SpotCheckDone")) +
           ln("Checked by:", T(r, "CheckedBy"), 200) + ln("Date:", T(r, "CVFReceivedDate"), 160) + ln("Reimbursement approved:", T(r, "CVFApprovedBy"), 220) + '<p style="margin-left:42%">District Manager &nbsp;&nbsp;&nbsp;&nbsp; Date: ' + blank(T(r, "CVFApprovedDate"), 140) + "</p></div>"; } }
     };
-    const css = "@page{size:letter;margin:0.9in}html{background:#8A9199}body{margin:0;font:12pt/1.38 'Times New Roman',Times,serif;color:#000}" +
-      ".page{background:#fff;width:6.7in;margin:18px auto;padding:0.9in;box-shadow:0 2px 10px rgba(0,0,0,.35)}@media print{html{background:#fff}.page{margin:0;padding:0;width:auto;box-shadow:none}}" +
+    const css = "@page{size:letter;margin:0}html{background:#8A9199}body{margin:0;font:12pt/1.38 'Times New Roman',Times,serif;color:#000}#src{position:absolute;left:-9999px;top:0;width:6.7in}" +
+      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}" +
+      "@media print{html{background:#fff}.page{margin:0;box-shadow:none;height:10.97in;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}}" +
       ".lh{text-align:center;margin-bottom:14pt}.c{text-align:center}.ind{margin-left:.5in}.small{font-size:10pt}.foot{font-size:9pt;color:#444;margin-top:18pt}p{margin:0 0 9pt}ol{margin:0 0 9pt;padding-left:.45in}li{margin-bottom:5pt}" +
       "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}.sig td:last-child{width:28%}" +
-      ".blank{display:inline-block;border-bottom:1px solid #000}.agr{font-size:11pt}.agr li{text-align:justify}" +
+      ".blank{display:inline-block;border-bottom:1px solid #000}.agr{font-size:10.5pt}.agr p{margin-bottom:7pt}.agr li{text-align:justify;margin-bottom:4pt}.agr th,.agr td{font-size:10.5pt}.cvf{font-size:11.5pt}.cvf p{margin-bottom:6.5pt}.cvf .lh{margin-bottom:10pt}" +
       ".sum{font:10pt/1.3 Arial,Helvetica,sans-serif}.sum h1{font-size:15pt;margin:0}.sum .sub{margin-bottom:8pt}.sum h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:12pt 0 5pt;border-bottom:1.5px solid #000;padding-bottom:2pt}" +
       ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.idbar{display:flex;justify-content:space-between;align-items:baseline;border:1.5px solid #000;padding:5pt 8pt;margin-bottom:6pt}.idbar b{font-size:13pt}" +
       ".band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}.two{display:grid;grid-template-columns:1fr 1fr;gap:0 18pt}.kv{display:flex;justify-content:space-between;gap:10pt;border-bottom:1px dotted #999;padding:2pt 0}.kv b{text-align:right}";
-    return { docs, has, css };
+    // Runs inside the preview: deals the document's blocks onto Letter sheets, so the preview and the printout break at the same places.
+    // A list is dealt item by item (numbering carried on); a short bold heading is never left alone at the foot of a sheet.
+    const paginate = "(" + function () {
+      var src = document.getElementById("src"), root = src.firstElementChild, cls = root.className, blocks = [];
+      Array.prototype.slice.call(root.children).forEach(function (el) {
+        if (el.tagName === "OL") { Array.prototype.slice.call(el.children).forEach(function (li, i) { var o = document.createElement("ol"); o.start = i + 1; o.appendChild(li); blocks.push(o); }); }
+        else blocks.push(el);
+      });
+      var limit = 9.2 * 96 - 4, pages = [], cur = null;
+      function sheet() { var p = document.createElement("div"); p.className = "page"; var c = document.createElement("div"); c.className = cls; p.appendChild(c); document.body.appendChild(p); pages.push(p); cur = c; }
+      function heading(el) { if (!el) return false; if (el.tagName === "H2") return true; var b = el.firstElementChild; return el.tagName === "P" && el.children.length === 1 && b.tagName === "B" && el.textContent.trim() === b.textContent.trim() && el.textContent.length < 110; }
+      sheet();
+      blocks.forEach(function (el) {
+        cur.appendChild(el);
+        if (cur.offsetHeight > limit && cur.children.length > 1) {
+          var prev = el.previousElementSibling, carry = heading(prev) && cur.children.length > 2 ? prev : null, old = cur;
+          sheet(); if (carry) cur.appendChild(carry); cur.appendChild(el);
+          if (old.lastElementChild) old.lastElementChild.style.marginBottom = "0";
+        }
+      });
+      src.parentNode.removeChild(src);
+      if (pages.length > 1) pages.forEach(function (p, i) { var n = document.createElement("div"); n.className = "pgno"; n.textContent = "Page " + (i + 1) + " of " + pages.length; p.appendChild(n); });
+    }.toString() + ")();";
+    return { docs, has, css, paginate };
   })();
   function prCard(r) {
     const el = $("prCard"); if (!el) return;
@@ -2431,7 +2457,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
     dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
       '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Printing changes nothing on the record. To keep a copy with the application, choose “Save as PDF” in the print window, then use Add file under ' + esc(grp) + '.</span><button type="button" class="btn" id="prClose">Close</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
-    dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div class="page">' + d.html(r) + "</div></body></html>";
+    dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div id="src">' + d.html(r) + "</div><script>" + PR.paginate + "<\/script></body></html>";
     if (!dlg.open) dlg.showModal();
   }
   $("detail").addEventListener("click", (e) => { const b = e.target.closest("[data-pr]"); if (!b || b.disabled) return; const r = rows.find((x) => x.id === curId); if (r) prOpen(r, b.dataset.pr); });
