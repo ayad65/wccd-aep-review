@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12e, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12f, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -814,7 +814,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     let figs = fig("Requested acres", reqAc != null ? fmt(reqAc) : "—", nRows == null ? "field rows not read" : nRows + (nRows === 1 ? " field row" : " field rows")) +
       fig("Official score", official != null ? fmt(official) : "—",
           aw != null && calc != null ? "awarded " + fmt(aw) + " · calculated " + fmt(calc) : aw != null ? "awarded; no calculated score stored" : calc != null ? "calculated; no awarded score stored" : "not ranked yet") +
-      fig("Approved", r.status === "Approved" && apT != null ? fmt(apT) + " t" + (apAc != null ? " on " + fmt(apAc) + " ac" : "") : "—",
+      fig("Approved", r.status === "Approved" && apT != null ? fmt(apT) + (apT === 1 ? " ton" : " tons") + (apAc != null ? " on " + fmt(apAc) + " acres" : "") : "—",
           r.status === "Approved" ? (amt != null ? "up to " + money(amt) : "approved") : r.ended ? r.statusText : "no decision yet");
     if (paid != null) figs += fig("Paid", money(paid), r.stageN === 6 ? "closed" : "recorded so far");
     d.innerHTML =
@@ -1848,7 +1848,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12e", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12f", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2357,20 +2357,20 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const docs = {
       summary: { label: "Application Summary", group: "other", when: () => "", need: [],
         html(r) { const rs = included(r), ef = earlierFunding(r).out, hit = rs.filter((x) => ef.has(normKey(attr(x, "FieldNum")))).length;
-          const kv = (pairs) => pairs.map(([l, v]) => '<div class="kv"><span>' + l + "</span><b>" + (v || "–") + "</b></div>").join("");
+          const kv = (pairs) => '<table class="kvt">' + pairs.map(([l, v]) => "<tr><td>" + l + '</td><td class="r"><b>' + (v || "–") + "</b></td></tr>").join("") + "</table>";
           const q = (k) => { const v = raw(r, k), t = txt(r, k); return nb(v) ? "–" : esc(t) + (String(t) === String(v) ? " pts" : " (" + esc(String(v)) + ")"); };
           return '<div class="sum"><h1>Washington County Conservation District</h1><div class="sub">Agricultural Enhancement Program · Lime · Application Summary</div>' +
-            '<div class="idbar"><b>' + T(r, "AEPID") + "</b><span>Fiscal year " + N(r, "FiscalYear", 0, 0).replace(/,/g, "") + " · " + T(r, "Stage") + " · " + T(r, "AppStatus") + "</span></div>" +
+            '<table class="idbar"><tr><td><b>' + T(r, "AEPID") + '</b></td><td class="r">Fiscal year ' + N(r, "FiscalYear", 0, 0).replace(/,/g, "") + " · " + T(r, "Stage") + " · " + T(r, "AppStatus") + "</td></tr></table>" +
             '<div class="band ' + (hit ? "warn" : "ok") + '">' + (hit ? "THREE-YEAR RESTRICTION: " + hit + " field(s) on this farm were funded within the last three years — see the 3-year check column below before approving." : "THREE-YEAR CHECK: No field on this farm has been funded in the last three years.") + "</div>" +
-            '<div class="two"><div>' + kv([["Applicant", T(r, "ApplicantLegalName")], ["Contact", esc([txt(r, "FirstName"), txt(r, "LastName")].filter(Boolean).join(" "))], ["Greeting", T(r, "LetterSalutation")], ["Role", T(r, "ApplicantRole")], ["Landowner", T(r, "LandownerName")], ["Email", T(r, "Email")], ["Phone", T(r, "Phone")], ["Address", T(r, "Address1")], ["", esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "))]]) + "</div><div>" +
-              kv([["Farm name", T(r, "FarmName")], ["Farm #", T(r, "FarmID")], ["Tract #", T(r, "TractNumber")], ["County", T(r, "CountyName")], ["Application date", T(r, "ApplicationDate")], ["Requested (tons)", N(r, "AmountRequestedTons", 0, 2)], ["Fields stated", T(r, "FieldsCount")], ["Conservation plan", T(r, "HasConsPlan")], ["Manure plan", T(r, "HasManurePlan")]]) + "</div></div>" +
+            '<table class="lay"><tr><td>' + kv([["Applicant", T(r, "ApplicantLegalName")], ["Contact", esc([txt(r, "FirstName"), txt(r, "LastName")].filter(Boolean).join(" "))], ["Greeting", T(r, "LetterSalutation")], ["Role", T(r, "ApplicantRole")], ["Landowner", T(r, "LandownerName")], ["Email", T(r, "Email")], ["Phone", T(r, "Phone")], ["Address", T(r, "Address1")], ["", esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "))]]) + '</td><td class="gap"></td><td>' +
+              kv([["Farm name", T(r, "FarmName")], ["Farm #", T(r, "FarmID")], ["Tract #", T(r, "TractNumber")], ["County", T(r, "CountyName")], ["Application date", T(r, "ApplicationDate")], ["Requested (tons)", N(r, "AmountRequestedTons", 0, 2)], ["Fields stated", T(r, "FieldsCount")], ["Conservation plan", T(r, "HasConsPlan")], ["Manure plan", T(r, "HasManurePlan")]]) + "</td></tr></table>" +
             "<h2>Fields and soil tests</h2><table><thead><tr><th>Field #</th><th>Field name</th><th>Acres</th><th>Soil pH</th><th>Tons / acre</th><th>Total tons</th><th>3-year check</th></tr></thead><tbody>" +
               (rs.map((x) => { const e = ef.get(normKey(attr(x, "FieldNum"))); return "<tr><td>" + esc(attr(x, "FieldNum") ?? "") + "</td><td>" + esc(attr(x, "FieldLabelResolved") ?? "") + '</td><td class="r">' + esc(n(attr(x, "TreatedAcresInField"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "SoilpH"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "LimeRecTonsPerAcre"), 3, 3)) + '</td><td class="r">' + esc(n(attr(x, "TotalTonsForField"), 2, 2)) + "</td><td>" + (e ? "<b>FUNDED " + esc(String(e.yr)) + "</b>" : "clear") + "</td></tr>"; }).join("") || '<tr><td colspan="7">No field rows.</td></tr>') +
               '<tr class="tot"><td></td><td>Total</td><td class="r">' + N(r, "TotalTreatedAcres", 0, 2) + '</td><td class="r">' + N(r, "pHAverage", 0, 2) + '</td><td class="r">' + N(r, "AverageTonnage", 2, 2) + '</td><td class="r">' + N(r, "TotalTonsRanked", 2, 2) + "</td><td></td></tr></tbody></table>" +
-            '<h2>Ranking and approval</h2><div class="two"><div>' + kv([["1. Current conservation plan or Ag E&amp;S plan", q("Q01ConsPlan")], ["2. Conservation plan verified by the district", q("Q02ConsPlanVerified")], ["3. Current ACT 38 NMP or manure management plan", q("Q03ActPlan")], ["4. Manure plan verified by the district", q("Q04ActPlanVerified")], ["5. First-time or previously non-funded applicant", q("Q05FirstTime")], ["6. Prior contracts completed on time", q("Q06PriorOnTime")], ["7. All selected fields pasture", q("Q07AllPasture")], ["8. District event in the past 12 months", q("Q08AttendedEvent")], ["9. Soil test dated within the last 12 months", q("Q09SoilTestCurrent")], ["10. District visit within the past year", q("Q10DistrictVisit")], ["11. Soil pH band (average of all fields)", q("Q11pHBand")], ["General ranking total", T(r, "TotalGeneralRanking")], ["Lime score", T(r, "LimeScore")], ["TOTAL APPLICATION SCORE", T(r, "TotalApplicationScore")]]) + "</div><div>" +
-              kv([["Approved tons", N(r, "ApprovedTons", 0, 2)], ["Approved acres", N(r, "ApprovedAcres", 0, 2)], ["Max assistance", N(r, "ApprovedAmountUSD", 2, 2)], ["Rate ($/ton)", N(r, "PricePerTonCap", 2, 2)], ["Cost share", has(r, "CostSharePercent") ? T(r, "CostSharePercent") + "%" : ""], ["Approval letter", T(r, "ApprovalLetterDate")], ["Approved by", T(r, "ApprovedBy")], ["Practice lifespan", has(r, "PracticeLifespanYears") ? T(r, "PracticeLifespanYears") + " years" : ""], ["Practice deadline", T(r, "PracticeDeadline")], ["CVF deadline", T(r, "CVFDeadline")]]) + "</div></div>" +
-            '<h2>Agreement and reimbursement</h2><div class="two"><div>' + kv([["Landowner signed", T(r, "AgreementLandownerSignDate")], ["WCCD signed", T(r, "AgreementWCCDSignDate")], ["WCCD representative", T(r, "AgreementWCCDRepName")], ["A · Lime purchased (t)", N(r, "TonsPurchased", 2, 2)], ["B · Eligible (t)", N(r, "TonsEligible", 2, 2)]]) + "</div><div>" +
-              kv([["C · Cost per ton", N(r, "ActualCostPerTon", 2, 2)], ["D · Rate ($/ton)", N(r, "RatePerTon", 2, 2)], ["Total request (B x D)", N(r, "TotalReimbursementRequest", 2, 2)], ["Total paid", N(r, "TotalReimbursementPaid", 2, 2)], ["Check / date", esc([txt(r, "CheckNumber"), txt(r, "PaymentDate")].filter(Boolean).join("   "))]]) + "</div></div>" +
+            '<h2>Ranking and approval</h2><table class="lay"><tr><td>' + kv([["1. Current conservation plan or Ag E&amp;S plan", q("Q01ConsPlan")], ["2. Conservation plan verified by the district", q("Q02ConsPlanVerified")], ["3. Current ACT 38 NMP or manure management plan", q("Q03ActPlan")], ["4. Manure plan verified by the district", q("Q04ActPlanVerified")], ["5. First-time or previously non-funded applicant", q("Q05FirstTime")], ["6. Prior contracts completed on time", q("Q06PriorOnTime")], ["7. All selected fields pasture", q("Q07AllPasture")], ["8. District event in the past 12 months", q("Q08AttendedEvent")], ["9. Soil test dated within the last 12 months", q("Q09SoilTestCurrent")], ["10. District visit within the past year", q("Q10DistrictVisit")], ["11. Soil pH band (average of all fields)", q("Q11pHBand")], ["General ranking total", T(r, "TotalGeneralRanking")], ["Lime score", T(r, "LimeScore")], ["TOTAL APPLICATION SCORE", T(r, "TotalApplicationScore")]]) + '</td><td class="gap"></td><td>' +
+              kv([["Approved tons", N(r, "ApprovedTons", 0, 2)], ["Approved acres", N(r, "ApprovedAcres", 0, 2)], ["Max assistance", N(r, "ApprovedAmountUSD", 2, 2)], ["Rate ($/ton)", N(r, "PricePerTonCap", 2, 2)], ["Cost share", has(r, "CostSharePercent") ? T(r, "CostSharePercent") + "%" : ""], ["Approval letter", T(r, "ApprovalLetterDate")], ["Approved by", T(r, "ApprovedBy")], ["Practice lifespan", has(r, "PracticeLifespanYears") ? T(r, "PracticeLifespanYears") + " years" : ""], ["Practice deadline", T(r, "PracticeDeadline")], ["CVF deadline", T(r, "CVFDeadline")]]) + "</td></tr></table>" +
+            '<h2>Agreement and reimbursement</h2><table class="lay"><tr><td>' + kv([["Landowner signed", T(r, "AgreementLandownerSignDate")], ["WCCD signed", T(r, "AgreementWCCDSignDate")], ["WCCD representative", T(r, "AgreementWCCDRepName")], ["A · Lime purchased (t)", N(r, "TonsPurchased", 2, 2)], ["B · Eligible (t)", N(r, "TonsEligible", 2, 2)]]) + '</td><td class="gap"></td><td>' +
+              kv([["C · Cost per ton", N(r, "ActualCostPerTon", 2, 2)], ["D · Rate ($/ton)", N(r, "RatePerTon", 2, 2)], ["Total request (B x D)", N(r, "TotalReimbursementRequest", 2, 2)], ["Total paid", N(r, "TotalReimbursementPaid", 2, 2)], ["Check / date", esc([txt(r, "CheckNumber"), txt(r, "PaymentDate")].filter(Boolean).join("   "))]]) + "</td></tr></table>" +
             "<h2>Notes</h2><p>" + (T(r, "Notes") || "–") + '</p><p class="foot">Generated from the WCCD Agricultural Lime application record on ' + esc(longDate(Date.now())) + ".</p></div>"; } },
       letter: { label: "Approval Letter", group: "other", when: (r) => r.status === "Approved" ? "" : "Offered once the application is Approved.",
         need: [["Approval letter date", "ApprovalLetterDate"], ["Signed by (name on the letter)", "SignerName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Greeting", "LetterSalutation"], ["Signing window start", "SigningWindowStart"], ["Signing window end", "SigningWindowEnd"], ["Approved by", "ApprovedBy"], ["Title", "ApprovedByTitle"]],
@@ -2403,24 +2403,71 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "</div>"; } },
       cvf: { label: "Cost Verification Form", group: "cvf", when: (r) => r.status === "Approved" && (r.stageN >= 5 || r.signed) ? "" : "Offered once the agreement is signed.",
         need: [["Applicant name", "ApplicantLegalName"], ["Tons purchased", "TonsPurchased"], ["Tons eligible", "TonsEligible"], ["Cost per ton", "ActualCostPerTon"], ["Reimbursement rate", "RatePerTon"], ["Total reimbursement request", "TotalReimbursementRequest"]],
-        html(r) { const ln = (l, v, w) => "<p>" + l + " &nbsp;" + blank(v, w) + "</p>";
-          return '<div class="letter cvf">' + head + '<p class="c"><b>WCCD Agricultural Enhancement Program – Cost Verification Form</b></p>' +
+        html(r) {
+          const u = (t, w) => { const pad = "&nbsp;".repeat(Math.max(2, Math.round(((w || 16) - String(t).replace(/&[a-z]+;/g, "x").length) / 2))); return "<u>" + pad + (t === "" ? "" : "<b>" + t + "</b>") + pad + "</u>"; };
+          const tick = (k) => { const v = txt(r, k); return v === "" ? u("", 12) : u(/^yes$/i.test(v) ? "&#10003;" : esc(v), 12); };
+          const item = (l, v, w) => '<p class="it">' + l + " &nbsp;" + u(v, w) + "</p>";
+          return '<div class="letter cvf">' + head + '<p class="c ttl">WCCD Agricultural Enhancement Program – Cost Verification Form</p>' +
           "<p>This form is for requesting reimbursement payment for the WCCD Agricultural Enhancement Program project listed below. The form along with invoice or receipts should be submitted within 30 days of implementation of the project and 7 days before the next district meeting. A reimbursement check will be mailed after the district meeting following this submission (district meetings are the second Tuesday of every month).</p>" +
-          ln("Applicant Name:", T(r, "ApplicantLegalName"), 260) + ln("A. &nbsp; Amount of Lime Purchased (Tons):", N(r, "TonsPurchased", 2, 2)) + ln("B. &nbsp; Amount of Lime Eligible for Reimbursement (Tons):", N(r, "TonsEligible", 0, 2)) + ln("C. &nbsp; Cost per Ton (Lime Only):", N(r, "ActualCostPerTon", 2, 2)) +
-          '<p class="small">** If Cost per Ton is less than $' + (N(r, "PricePerTonCap", 0, 2) || "22") + ", Cost of lime per ton (C) x " + (has(r, "CostShareMultiplier") ? N(r, "CostShareMultiplier", 0, 2) : "0.75") + " to get reimbursement rate.</p>" +
-          ln("D. &nbsp; Cost per Ton Reimbursement Rate:", N(r, "RatePerTon", 2, 2)) + ln("Total Reimbursement Request (B x D): &nbsp; $", N(r, "TotalReimbursementRequest", 2, 2)) + '<p class="small">(Amount of Lime Eligible for Reimbursement x Cost per Ton Reimbursement Rate)</p>' +
-          "<p><b>WCCD Internal Use:</b></p>" + ln("Account funds to be paid from:", T(r, "AccountFundsFrom")) + "<p><b>Verification:</b></p>" + ln("Amount of Lime matches agreement:", T(r, "AmountMatchesAgreement")) + ln("Reimbursement amount matches agreement:", T(r, "ReimbursementMatchesAgreement")) + ln("Was the lime certified:", T(r, "LimeCertified")) + ln("Spot check of application:", T(r, "SpotCheckDone")) +
-          ln("Checked by:", T(r, "CheckedBy"), 200) + ln("Date:", T(r, "CVFReceivedDate"), 160) + ln("Reimbursement approved:", T(r, "CVFApprovedBy"), 220) + '<p style="margin-left:42%">District Manager &nbsp;&nbsp;&nbsp;&nbsp; Date: ' + blank(T(r, "CVFApprovedDate"), 140) + "</p></div>"; } }
+          '<p class="sp">Applicant Name: &nbsp;' + u(T(r, "ApplicantLegalName"), 56) + "</p>" +
+          item("A. &nbsp; Amount of Lime Purchased (Tons):", N(r, "TonsPurchased", 2, 2), 26) + item("B. &nbsp; Amount of Lime Eligible for Reimbursement (Tons):", N(r, "TonsEligible", 0, 2), 20) + item("C. &nbsp; Cost per Ton (Lime Only):", has(r, "ActualCostPerTon") ? "$ " + N(r, "ActualCostPerTon", 2, 2) : "", 22) +
+          '<p class="note"><b>**</b> If Cost per Ton is less than $' + (N(r, "PricePerTonCap", 0, 2) || "22") + ", Cost of lime per ton (C) x " + (has(r, "CostShareMultiplier") ? N(r, "CostShareMultiplier", 0, 2) : "0.75") + " to get reimbursement rate.</p>" +
+          item("D. &nbsp; Cost per Ton Reimbursement Rate:", has(r, "RatePerTon") ? "$ " + N(r, "RatePerTon", 2, 2) : "", 22) +
+          '<p class="sp">Total Reimbursement Request (B x D): &nbsp;' + u(has(r, "TotalReimbursementRequest") ? "$ " + N(r, "TotalReimbursementRequest", 2, 2) : "", 26) + '</p><p class="it small">(Amount of Lime Eligible for Reimbursement x Cost per Ton Reimbursement Rate)</p>' +
+          '<p class="rule"><b>WCCD Internal Use:</b><br>Account funds to be paid from: &nbsp;' + u(T(r, "AccountFundsFrom"), 30) + "</p>" +
+          "<p><b>Verification:</b><br>Amount of Lime matches agreement: &nbsp;" + tick("AmountMatchesAgreement") + "<br>Reimbursement amount matches agreement: &nbsp;" + tick("ReimbursementMatchesAgreement") + "<br>Was the lime certified: &nbsp;" + tick("LimeCertified") + "<br>Spot check of application: &nbsp;" + tick("SpotCheckDone") + "</p>" +
+          '<p class="sp">Checked by: &nbsp;' + u(T(r, "CheckedBy"), 40) + " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;" + u(T(r, "CVFReceivedDate"), 30) + "</p>" +
+          '<table class="lay signrow"><tr><td style="width:28%">Reimbursement approved:</td><td style="width:40%" class="line">' + (T(r, "CVFApprovedBy") || "&nbsp;") + '</td><td style="width:6%"></td><td style="width:26%" class="line">' + (T(r, "CVFApprovedDate") || "&nbsp;") + "</td></tr>" +
+          '<tr><td></td><td class="c">District Manager</td><td></td><td class="c">Date</td></tr></table></div>'; } }
     };
-    const css = "@page{size:letter;margin:0}html{background:#8A9199}body{margin:0;font:12pt/1.38 'Times New Roman',Times,serif;color:#000}#src{position:absolute;left:-9999px;top:0;width:6.7in}" +
-      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}" +
-      "@media print{html{background:#fff}.page{margin:0;box-shadow:none;height:10.97in;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}}" +
+    // docCss is the document's own typography, used by the preview and by the Word file; sheetCss is the Letter sheet, for the preview and the browser print only.
+    const docCss = "body{font:12pt/1.38 'Times New Roman',Times,serif;color:#000}" +
       ".lh{text-align:center;margin-bottom:14pt}.c{text-align:center}.ind{margin-left:.5in}.small{font-size:10pt}.foot{font-size:9pt;color:#444;margin-top:18pt}p{margin:0 0 9pt}ol{margin:0 0 9pt;padding-left:.45in}li{margin-bottom:5pt}" +
-      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}.sig td:last-child{width:28%}" +
-      ".blank{display:inline-block;border-bottom:1px solid #000}.agr{font-size:10.5pt}.agr p{margin-bottom:7pt}.agr li{text-align:justify;margin-bottom:4pt}.agr th,.agr td{font-size:10.5pt}.cvf{font-size:11.5pt}.cvf p{margin-bottom:6.5pt}.cvf .lh{margin-bottom:10pt}" +
+      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}" +
+      "table.lay,table.lay>tbody>tr>td,table.lay>tr>td{border:0;padding:0}table.lay>tbody>tr>td,table.lay>tr>td{width:48%}table.lay td.gap{width:4%}" +
+      "table.kvt{margin:0}table.kvt td{border:0;border-bottom:1px dotted #999;padding:2pt 0;font-size:10pt}table.kvt td.r{text-align:right}" +
+      "table.idbar{border:1.5px solid #000;margin-bottom:6pt}table.idbar td{border:0;padding:5pt 8pt;font-size:10pt}table.idbar b{font-size:13pt}" +
+      ".agr{font-size:10.5pt}.agr p{margin-bottom:7pt}.agr li{text-align:justify;margin-bottom:4pt}.agr th,.agr td{font-size:10.5pt}" +
+      ".cvf{font-size:11pt}.cvf p{margin-bottom:8pt}.cvf .lh{margin-bottom:12pt}.cvf .ttl{font-size:13.5pt;margin:4pt 0 12pt}.cvf .it{margin-left:.4in}.cvf .sp{margin-top:11pt}.cvf .note{margin:2pt 0 9pt .15in;font-size:10.5pt}" +
+      ".cvf .rule{border-top:1.5pt solid #000;padding-top:8pt;margin-top:16pt}.cvf p{line-height:1.5}table.signrow{margin-top:18pt}table.signrow td{font-size:11.5pt;width:auto}table.signrow td.line{border-bottom:1px solid #000;text-align:center}table.signrow td.c{text-align:center;font-size:10pt;padding-top:2pt}" +
       ".sum{font:10pt/1.3 Arial,Helvetica,sans-serif}.sum h1{font-size:15pt;margin:0}.sum .sub{margin-bottom:8pt}.sum h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:12pt 0 5pt;border-bottom:1.5px solid #000;padding-bottom:2pt}" +
-      ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.idbar{display:flex;justify-content:space-between;align-items:baseline;border:1.5px solid #000;padding:5pt 8pt;margin-bottom:6pt}.idbar b{font-size:13pt}" +
-      ".band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}.two{display:grid;grid-template-columns:1fr 1fr;gap:0 18pt}.kv{display:flex;justify-content:space-between;gap:10pt;border-bottom:1px dotted #999;padding:2pt 0}.kv b{text-align:right}";
+      ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}";
+    const sheetCss = "@page{size:letter;margin:0}html{background:#8A9199}body{margin:0}#src{position:absolute;left:-9999px;top:0;width:6.7in}" +
+      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}.sig td:last-child{width:28%}" +
+      "@media print{html{background:#fff}.page{margin:0;box-shadow:none;height:10.97in;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}}";
+    const css = docCss + sheetCss;
+    // The same document as a file Word opens on Letter paper (Word reads HTML; it is saved with a .doc name). Tables carry the layout because Word ignores grid and flex.
+    // Word honours a style written on each element far better than a style sheet, so the document is drawn off-screen once and every element is given the styles the browser worked out for it.
+    function word(d, r) {
+      const fr = document.createElement("iframe"); fr.setAttribute("aria-hidden", "true"); fr.style.cssText = "position:absolute;left:-9999px;top:0;width:6.7in;height:20px;border:0;visibility:hidden"; document.body.appendChild(fr);
+      let body = "";
+      try {
+        const doc = fr.contentDocument, win = fr.contentWindow; doc.open(); doc.write("<!doctype html><html><head><meta charset=\"utf-8\"><style>" + docCss + "body{margin:0;width:6.7in}</style></head><body>" + d.html(r) + "</body></html>"); doc.close();
+        const pt = (v) => String(v).replace(/(-?[\d.]+)px/g, (m, n) => (Math.round(Number(n) * 75) / 100) + "pt");
+        const hex = (c) => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(c); return !m || m[4] === "0" ? null : "#" + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, "0")).join(""); };
+        const BLOCK = new Set(["P", "DIV", "H1", "H2", "OL", "LI", "TABLE", "TD", "TH"]);
+        for (const el of doc.body.querySelectorAll("*")) {
+          const cs = win.getComputedStyle(el), st = [], T = el.tagName;
+          st.push("font-family:" + cs.fontFamily.replace(/"/g, "'"), "font-size:" + pt(cs.fontSize), "font-weight:" + (Number(cs.fontWeight) >= 600 ? "bold" : "normal"), "font-style:" + cs.fontStyle, "color:" + (hex(cs.color) || "#000000"));
+          if (cs.textTransform !== "none") st.push("text-transform:" + cs.textTransform);
+          if (BLOCK.has(T)) {
+            st.push("text-align:" + (cs.textAlign === "start" ? "left" : cs.textAlign), "line-height:" + pt(cs.lineHeight));
+            if (T !== "TD" && T !== "TH") st.push("margin:" + pt(cs.marginTop) + " " + (T === "TABLE" ? "0" : pt(cs.marginRight)) + " " + pt(cs.marginBottom) + " " + (T === "TABLE" ? "0" : pt(cs.marginLeft)));
+            if (T !== "TABLE" && T !== "LI") st.push("padding:" + pt(cs.paddingTop) + " " + pt(cs.paddingRight) + " " + pt(cs.paddingBottom) + " " + pt(cs.paddingLeft));
+            for (const side of ["Top", "Right", "Bottom", "Left"]) { const w = parseFloat(cs["border" + side + "Width"]) || 0, sty = cs["border" + side + "Style"];
+              st.push("border-" + side.toLowerCase() + ":" + (w > 0 && sty !== "none" ? Math.max(0.75, Math.round(w * 75) / 100) + "pt " + (sty === "dotted" ? "dotted" : "solid") + " " + (hex(cs["border" + side + "Color"]) || "#000000") : "none")); }
+            const bg = hex(cs.backgroundColor); if (bg && bg !== "#ffffff") st.push("background:" + bg);
+            if (T === "TD" || T === "TH") { st.push("vertical-align:" + cs.verticalAlign, "width:" + pt(cs.width)); if (parseFloat(cs.height) > 40) st.push("height:" + pt(cs.height)); }
+            if (T === "TABLE") { st.push("width:100%", "border-collapse:collapse"); el.setAttribute("cellspacing", "0"); el.setAttribute("cellpadding", "0"); el.setAttribute("width", "100%"); }
+          }
+          el.setAttribute("style", st.join(";"));
+        }
+        body = doc.body.innerHTML;
+      } finally { fr.remove(); }
+      return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title>" +
+        "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
+        "<style>@page WordSection1{size:8.5in 11.0in;margin:0.9in 0.9in 0.9in 0.9in}div.WordSection1{page:WordSection1}</style></head><body><div class=\"WordSection1\">" + body + "</div></body></html>";
+    }
     // Runs inside the preview: deals the document's blocks onto Letter sheets, so the preview and the printout break at the same places.
     // A list is dealt item by item (numbering carried on); a short bold heading is never left alone at the foot of a sheet.
     const paginate = "(" + function () {
@@ -2444,7 +2491,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       src.parentNode.removeChild(src);
       if (pages.length > 1) pages.forEach(function (p, i) { var n = document.createElement("div"); n.className = "pgno"; n.textContent = "Page " + (i + 1) + " of " + pages.length; p.appendChild(n); });
     }.toString() + ")();";
-    return { docs, has, css, paginate };
+    return { docs, has, css, paginate, word };
   })();
   function prCard(r) {
     const el = $("prCard"); if (!el) return;
@@ -2453,10 +2500,17 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function prOpen(r, k) {
     const d = PR.docs[k]; if (!d) return; const miss = d.need.filter(([, f]) => !PR.has(r, f)).map(([l]) => l);
     let dlg = $("prDlg"); if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "prDlg"; dlg.setAttribute("aria-labelledby", "prTitle"); document.body.appendChild(dlg);
-      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
+      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prWord" || e.target.id === "prAttach") { const pr = dlg._pr, r0 = pr && rows.find((x) => x.id === pr.rid); if (!r0) return;
+          const d0 = PR.docs[pr.k], name = (r0.id + " " + d0.label).replace(/[^\w\- ]+/g, "").trim() + ".doc", blob = new Blob(["\ufeff", PR.word(d0, r0)], { type: "application/msword" });
+          if (e.target.id === "prWord") { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+          else { dlg.close(); docUI.pending = { type: "add", group: d0.group, file: new File([blob], name, { type: "application/msword" }), rid: r0.id }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); if ($("docReview")) $("docReview").scrollIntoView({ block: "nearest" }); }
+          return; }
+        if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
     const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
     dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
-      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Printing changes nothing on the record. To keep a copy with the application, choose “Save as PDF” in the print window, then use Add file under ' + esc(grp) + '.</span><button type="button" class="btn" id="prClose">Close</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Nothing on the record changes until you attach. Attach saves the Word file under ' + esc(grp) + ', after a confirmation.</span><button type="button" class="btn" id="prClose">Close</button>' +
+      (canEdit(r) ? '<button type="button" class="btn" id="prAttach">Attach to this application</button>' : "") + '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+    dlg._pr = { rid: r.id, k };
     dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div id="src">' + d.html(r) + "</div><script>" + PR.paginate + "<\/script></body></html>";
     if (!dlg.open) dlg.showModal();
   }
