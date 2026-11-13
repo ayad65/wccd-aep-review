@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12f, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12g, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -1848,7 +1848,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12f", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12g", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2380,7 +2380,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           "<p><b>You are required to immediately notify the Washington County Conservation District in writing of any changes to this approved application, particularly if you do not plan to continue with the program.</b></p><p>The District looks forward to working in partnership with you.</p><p>Sincerely,</p><p><br><br>" + T(r, "ApprovedBy") + "<br>" + T(r, "ApprovedByTitle") + '</p><p>Enclosure: W9 Form</p><p class="foot">9.19.22</p></div>'; } },
       agreement: { label: "Agreement", group: "agr", when: (r) => r.status === "Approved" && r.stageN >= 4 ? "" : "Offered at the Agreement stage or later.",
         need: [["Applicant name", "ApplicantLegalName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Approved tons", "ApprovedTons"], ["Maximum assistance", "ApprovedAmountUSD"], ["Farm #", "FarmID"], ["Practice lifespan", "PracticeLifespanYears"], ["Rate per ton", "PricePerTonCap"], ["Practice deadline", "PracticeDeadline"], ["CVF deadline", "CVFDeadline"]],
-        html(r) { const li = (a) => "<ol>" + a.map((t) => "<li>" + t + "</li>").join("") + "</ol>", sig = (t) => '<table class="sig"><tr><td>' + t + "</td><td>Date</td></tr></table>";
+        html(r) { const li = (a) => "<ol>" + a.map((t) => "<li>" + t + "</li>").join("") + "</ol>", sig = (t) => '<table class="sig"><tr><td style="width:72%">' + t + '</td><td style="width:28%">Date</td></tr></table><p class="gapp">&nbsp;</p>';
           return '<div class="letter agr"><p class="c"><b><i>Washington County Conservation District<br>Agricultural Enhancement Program<br>Landowner/Operator Agreement</i></b></p>' +
           '<p>This Agreement is made by &nbsp; <u>&nbsp;' + T(r, "ApplicantLegalName") + '&nbsp;</u><br><span class="small">(Landowner / Operator Name)</span></p><p>Address: &nbsp; <u>&nbsp;' + [T(r, "Address1"), csz(r)].filter(Boolean).join(", ") + "&nbsp;</u></p>" +
           "<p><b>And Washington County Conservation District (WCCD), located at 50 Old Hickory Ridge Road, Suite 1, Washington, PA 15301 for the following practices:</b></p>" +
@@ -2417,23 +2417,22 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           '<p class="rule"><b>WCCD Internal Use:</b><br>Account funds to be paid from: &nbsp;' + u(T(r, "AccountFundsFrom"), 30) + "</p>" +
           "<p><b>Verification:</b><br>Amount of Lime matches agreement: &nbsp;" + tick("AmountMatchesAgreement") + "<br>Reimbursement amount matches agreement: &nbsp;" + tick("ReimbursementMatchesAgreement") + "<br>Was the lime certified: &nbsp;" + tick("LimeCertified") + "<br>Spot check of application: &nbsp;" + tick("SpotCheckDone") + "</p>" +
           '<p class="sp">Checked by: &nbsp;' + u(T(r, "CheckedBy"), 40) + " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;" + u(T(r, "CVFReceivedDate"), 30) + "</p>" +
-          '<table class="lay signrow"><tr><td style="width:28%">Reimbursement approved:</td><td style="width:40%" class="line">' + (T(r, "CVFApprovedBy") || "&nbsp;") + '</td><td style="width:6%"></td><td style="width:26%" class="line">' + (T(r, "CVFApprovedDate") || "&nbsp;") + "</td></tr>" +
-          '<tr><td></td><td class="c">District Manager</td><td></td><td class="c">Date</td></tr></table></div>'; } }
+          '<p class="sp">Reimbursement approved: &nbsp;' + u(T(r, "CVFApprovedBy"), 44) + " &nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;" + u(T(r, "CVFApprovedDate"), 26) + '</p><p class="dm">District Manager</p></div>'; } }
     };
     // docCss is the document's own typography, used by the preview and by the Word file; sheetCss is the Letter sheet, for the preview and the browser print only.
     const docCss = "body{font:12pt/1.38 'Times New Roman',Times,serif;color:#000}" +
       ".lh{text-align:center;margin-bottom:14pt}.c{text-align:center}.ind{margin-left:.5in}.small{font-size:10pt}.foot{font-size:9pt;color:#444;margin-top:18pt}p{margin:0 0 9pt}ol{margin:0 0 9pt;padding-left:.45in}li{margin-bottom:5pt}" +
-      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}" +
+      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}.sig td:last-child{width:28%}table.sig{margin:0}.gapp{font-size:5pt;line-height:6pt;margin:0}" +
       "table.lay,table.lay>tbody>tr>td,table.lay>tr>td{border:0;padding:0}table.lay>tbody>tr>td,table.lay>tr>td{width:48%}table.lay td.gap{width:4%}" +
       "table.kvt{margin:0}table.kvt td{border:0;border-bottom:1px dotted #999;padding:2pt 0;font-size:10pt}table.kvt td.r{text-align:right}" +
       "table.idbar{border:1.5px solid #000;margin-bottom:6pt}table.idbar td{border:0;padding:5pt 8pt;font-size:10pt}table.idbar b{font-size:13pt}" +
       ".agr{font-size:10.5pt}.agr p{margin-bottom:7pt}.agr li{text-align:justify;margin-bottom:4pt}.agr th,.agr td{font-size:10.5pt}" +
-      ".cvf{font-size:11pt}.cvf p{margin-bottom:8pt}.cvf .lh{margin-bottom:12pt}.cvf .ttl{font-size:13.5pt;margin:4pt 0 12pt}.cvf .it{margin-left:.4in}.cvf .sp{margin-top:11pt}.cvf .note{margin:2pt 0 9pt .15in;font-size:10.5pt}" +
-      ".cvf .rule{border-top:1.5pt solid #000;padding-top:8pt;margin-top:16pt}.cvf p{line-height:1.5}table.signrow{margin-top:18pt}table.signrow td{font-size:11.5pt;width:auto}table.signrow td.line{border-bottom:1px solid #000;text-align:center}table.signrow td.c{text-align:center;font-size:10pt;padding-top:2pt}" +
+      ".cvf{font-size:11pt}.cvf p{margin-bottom:6pt}.cvf .lh{margin-bottom:12pt}.cvf .ttl{font-size:13.5pt;margin:4pt 0 12pt}.cvf .it{margin-left:.4in}.cvf .sp{margin-top:9pt}.cvf .note{margin:2pt 0 9pt .15in;font-size:10.5pt}" +
+      ".cvf .rule{border-top:1.5pt solid #000;padding-top:7pt;margin-top:12pt}.cvf p{line-height:1.4}.cvf .dm{margin-left:2.2in;font-size:10pt}table.signrow{margin-top:18pt}table.signrow td{font-size:11.5pt;width:auto}table.signrow td.line{border-bottom:1px solid #000;text-align:center}table.signrow td.c{text-align:center;font-size:10pt;padding-top:2pt}" +
       ".sum{font:10pt/1.3 Arial,Helvetica,sans-serif}.sum h1{font-size:15pt;margin:0}.sum .sub{margin-bottom:8pt}.sum h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:12pt 0 5pt;border-bottom:1.5px solid #000;padding-bottom:2pt}" +
       ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}";
     const sheetCss = "@page{size:letter;margin:0}html{background:#8A9199}body{margin:0}#src{position:absolute;left:-9999px;top:0;width:6.7in}" +
-      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}.sig td:last-child{width:28%}" +
+      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}" +
       "@media print{html{background:#fff}.page{margin:0;box-shadow:none;height:10.97in;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}}";
     const css = docCss + sheetCss;
     // The same document as a file Word opens on Letter paper (Word reads HTML; it is saved with a .doc name). Tables carry the layout because Word ignores grid and flex.
