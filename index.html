@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12c, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12d, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -195,6 +195,12 @@
     #prDlg .prwrap { display: flex; flex-direction: column; height: 100%; } #prDlg .prhead { padding: 10px 16px; border-bottom: 1px solid var(--line); } #prDlg .prhead b { font-size: 16px; }
     #prDlg .prmiss { margin-top: 6px; background: #FBE4E4; color: var(--red); border-radius: 4px; padding: 6px 10px; font-size: 13.5px; } #prDlg iframe { flex: 1; border: 0; background: #8A9199; width: 100%; }
     #prDlg .prfoot { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); } #prDlg .prfoot .sp { flex: 1; font-size: 13px; color: var(--muted); }
+    .qhead { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; margin-bottom: 10px; } .qhead > .einfo { grid-column: 1 / -1; }
+    .qgrid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; border: 1px solid var(--line); border-radius: 4px; }
+    .qcell { padding: 10px 14px 12px; border-bottom: 1px solid var(--line); min-width: 0; } .qcell.l { border-right: 1px solid var(--line); } .qcell.last { border-bottom: 0; } .qcell > .fld { margin-bottom: 0; } .qcell > .fld + .fld { margin-top: 10px; }
+    .qcell.notes { display: flex; } .qcell.notes > .fld { display: flex; flex-direction: column; flex: 1; } .qcell.notes textarea { flex: 1; min-height: 72px; resize: vertical; }
+    .chg { display: block; } .chg .linkbtn { margin: 0; min-height: 0; font-size: inherit; font-weight: 600; }
+    @media (max-width: 900px) { .qgrid { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none !important; } .qcell.l { border-right: 0; } .qcell.last { border-bottom: 1px solid var(--line); } .qcell:last-child { border-bottom: 0; } .qhead { grid-template-columns: 1fr; } }
     #naSum { margin-top: 8px; padding: 8px 10px; background: #F1F5FA; border: 1px solid #B9CBE0; border-radius: 4px; } #naSum:empty { display: none; }
     .narows { width: 100%; min-width: 660px; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 124px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
     #naPane .fld input[type="date"] { max-width: 190px; } .napair:not(:has(> :not([hidden]))) { display: none; } .napair { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; } .napair > [data-nafld="AttendedEventDetail"] { flex: 1 1 240px; min-width: 0; } .napair > [data-nafld="AttendedEventDate"] { flex: 0 0 190px; }
@@ -255,7 +261,7 @@
     .edBar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
     .btn { height: 44px; padding: 0 18px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; }
     .btn.go { border: 0; background: var(--blue); color: #fff; font-weight: 700; }
-    .btn:disabled { background: var(--line); color: #2B3138; border-color: var(--line); cursor: default; }
+    .btn:disabled { background: #EEF0F2; color: #8B939C; border-color: #DADEE2; cursor: default; }
     .okmsg { background: #E3F1E6; color: #1E4D2B; border: 1px solid #1E4D2B; border-radius: 4px; padding: 12px 16px; font-size: 14px; font-weight: 600; white-space: pre-wrap; }
     .error { white-space: pre-wrap; }
     #edForm { border: 1px solid var(--line); border-radius: 4px; min-height: 80px; }
@@ -1062,7 +1068,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
                { re: /contact/i, col: "L", row: 3, tint: false, closed: true, order: 5 }, { re: /conflict/i, col: "R", row: 3, tint: false, closed: true, order: 6 },
                { re: /fsa/i, col: "L", row: 4, tint: false, closed: true, order: 7 }, { re: /identity/i, col: "R", row: 4, tint: false, closed: true, order: 8 }, { re: /./, col: "full", order: 9 }],
       appr: [{ re: /decision/i, col: "L" }, { re: /./, col: "R" }],
-      rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", two: true, order: 3 },
+      rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", qgrid: true, order: 3 },
              { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
       agr:  [{ re: /signature/i, col: "full", splitRight: /wccd|title|representative/i }, { re: /./, col: "full" }],
       // Field rows (Yasser, 12 Nov): Field | Lime recommendation on top; the field's naming and acreage groups under them; the lab block in green;
@@ -1223,6 +1229,11 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     }
     const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
     const restorable = () => S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.values[x.el.fieldName] == null && S.stash[x.el.fieldName] != null).map((x) => x.el.fieldName);
+    // An answer the form works out from another tab says where that is, as a link (the tab's own leave-the-edit check applies).
+    const CHANGE_AT = { q01consplan: ["intake", "Intake tab", "Answers that feed the ranking"], q03actplan: ["intake", "Intake tab", "Answers that feed the ranking"], q08attendedevent: ["intake", "Intake tab", "Answers that feed the ranking"],
+                        q09soiltestcurrent: ["rows", "Field rows tab", "each field's lab report date or date sampled"], q11phband: ["rows", "Field rows tab", "each field's soil pH"] };
+    function whereToChange(name) { const c = S.tabKey === "rank" && S.calc[name] ? CHANGE_AT[name.toLowerCase()] : null;
+      return c ? '<small class="chg">To change it: <button type="button" class="linkbtn" data-tab="' + c[0] + '">' + c[1] + "</button>, " + esc(c[2]) + ".</small>" : ""; }
     function elHtml(el) {
       const key = S.key(el);
       if (S.vis[key] === false) return "";
@@ -1233,7 +1244,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         ? '<button type="button" class="linkbtn" data-restore="' + esc(name) + '">Restore the earlier value: ' + esc(dispV(name, S.stash[name])) + "</button>" : "";
       const f = fieldOf(name), locked = S.calc[name] || S.edit[name] === false || (f && f.editable === false);
       if (locked) return '<div class="fld calcfld"><span class="lab">' + esc(labelOf(name)) + '</span><div class="cval">' + esc(show(f, normV(S.values[name])) ?? "—") + "</div>" +
-        (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
+        (el.description ? "<small>" + esc(el.description) + "</small>" : "") + whereToChange(name) + "</div>";
       return '<div class="fld"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
         inputHtml(el) + back + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
     }
@@ -1287,6 +1298,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         else if (r.textsRight) body = '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field").map(elHtml).join("") + '</div><div class="col tintcol">' + items.filter((el) => el.type !== "field").map(elHtml).join("") + "</div></div>";
         else if (r.splitRight) { const isR = (el) => el.type === "field" && r.splitRight.test(labelOf(el.fieldName));
           body = items.filter((el) => el.type !== "field").map(elHtml).join("") + '<div class="cols"><div class="col">' + items.filter((el) => el.type === "field" && !isR(el)).map(elHtml).join("") + '</div><div class="col tintcol">' + items.filter(isR).map(elHtml).join("") + "</div></div>"; }
+        else if (r.qgrid) {                 // the ranking questions as a two-column table: 1 beside 7 … 6 beside the notes
+          const isCell = (el) => el.type === "field" && (/^Q\d\d(?!NotOnTime)/i.test(el.fieldName) || /^RankNotes$/i.test(el.fieldName));
+          const headEls = [], cells = [];
+          for (const el of items) { if (isCell(el)) cells.push({ el, extra: [] }); else if (cells.length) cells[cells.length - 1].extra.push(el); else headEls.push(el); }
+          const n = Math.ceil(cells.length / 2);
+          body = (headEls.length ? '<div class="qhead">' + headEls.map(elHtml).join("") + "</div>" : "") + '<div class="qgrid" style="grid-template-rows:repeat(' + n + ',auto)">' +
+            cells.map((c, i) => '<div class="qcell' + (i < n ? " l" : "") + ((i + 1) % n === 0 || i === cells.length - 1 ? " last" : "") + (/^RankNotes$/i.test(c.el.fieldName) ? " notes" : "") + '">' + elHtml(c.el) + c.extra.map(elHtml).join("") + "</div>").join("") + "</div>";
+        }
         else body = items.map(elHtml).join("");
         const shade = r.tint === undefined ? r.col === "R" : r.tint;
         const cls = "ecard" + (shade === "green" ? " green" : shade ? " tint" : "") + (r.two ? " two" : "");
@@ -1827,7 +1846,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12c", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12d", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
