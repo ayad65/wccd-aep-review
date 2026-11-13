@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B11b, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B11c, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -167,8 +167,8 @@
     .nagrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; } @media (max-width: 900px) { .nagrid { grid-template-columns: 1fr; } }
     .nacol { display: flex; flex-direction: column; gap: 12px; min-width: 0; } .naid { font-size: 20px; font-weight: 700; letter-spacing: .02em; } .naid.bad { color: var(--red); }
     #naMap { height: 300px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--soft); position: relative; }
-    .narows { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 46px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
-    #naPane .fld input[type="date"] { max-width: 190px; } #naPane [data-nafld="AttendedEventDetail"] input { max-width: 380px; }
+    .narows { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; font-size: 14px; } .narows th:last-child, .narows td:last-child { width: 46px; padding-right: 0; } .narows input { box-sizing: border-box; min-width: 0; }
+    #naPane .fld input[type="date"] { max-width: 190px; } .napair:not(:has(> :not([hidden]))) { display: none; } .napair { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; } .napair > [data-nafld="AttendedEventDetail"] { flex: 1 1 240px; min-width: 0; } .napair > [data-nafld="AttendedEventDate"] { flex: 0 0 190px; }
     .nafarmtag { position: absolute; top: 8px; left: 8px; z-index: 2; pointer-events: none; background: rgba(255,255,255,.72); border: 1px solid rgba(26,29,33,.35); border-radius: 4px; padding: 3px 8px; font-size: 13px; font-weight: 600; color: #1A1D21; max-width: calc(100% - 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .narows th { text-align: left; font-size: 13px; padding: 4px 6px 4px 0; } .narows td { padding: 3px 6px 3px 0; }
     .narows input { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; } .narows .x { width: 40px; height: 40px; border: 1px solid #6B747E; border-radius: 4px; background: #fff; cursor: pointer; font-size: 16px; }
     .nabar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; } .nabar .sp { flex: 1; font-size: 13px; color: var(--muted); }
@@ -1790,7 +1790,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B11b", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B11c", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -1949,7 +1949,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       (k === "AEPSequence" ? '<small id="naSeqHint"></small>' : "") + "</div>";
   }
   function naGroup(g) {
-    const body = '<div class="ebody">' + g.fields.map(naField).join("") + (g.key === "id" ? '<div class="fld"><span class="lab">AEP ID</span><span class="naid" id="naId">—</span><small id="naIdNote"></small></div>' : "") + "</div>";
+    const pair = ["AttendedEventDetail", "AttendedEventDate"];
+    const body = '<div class="ebody">' + g.fields.filter((k) => k !== pair[1]).map((k) => k === pair[0] && g.fields.includes(pair[1]) ? '<div class="napair">' + naField(pair[0]) + naField(pair[1]) + "</div>" : naField(k)).join("") + (g.key === "id" ? '<div class="fld"><span class="lab">AEP ID</span><span class="naid" id="naId">—</span><small id="naIdNote"></small></div>' : "") + "</div>";
     return g.closed ? '<details class="ecard"><summary>' + esc(g.label) + "</summary>" + body + "</details>" : '<div class="ecard' + (g.tint ? " tint" : "") + '"><h3>' + esc(g.label) + "</h3>" + body + "</div>";
   }
   const naRowsHtml = () => '<table class="narows"><thead><tr><th>Field #</th><th>Total acres</th><th>Treated acres</th><th><span class="vh">Remove</span></th></tr></thead><tbody>' +
