@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B10a, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B10c, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -157,9 +157,9 @@
     .btn.del { border-color: var(--red); color: var(--red); background: #fff; } .dgrp .add { margin-top: 8px; height: 36px; padding: 0 14px; }
     #docReview .rev { border: 2px solid var(--blue); border-radius: 4px; background: #fff; padding: 12px 16px; margin: 12px 0; font-size: 14px; } #docReview .rev.del { border-color: var(--red); } #docReview .rev p { margin: 0 0 10px; } #docReview .btn { margin-right: 8px; }
     #docNote > div { margin: 12px 0 0; }
-    .tool { border: 2px solid var(--blue); border-radius: 4px; background: #fff; padding: 14px 16px; margin: 12px 0; font-size: 14px; } .tool.del { border-color: var(--red); } #appTool .tool { margin: 0 24px 12px; }
+    .tool { border: 2px solid var(--blue); border-radius: 4px; background: #fff; padding: 14px 16px; margin: 12px 0; font-size: 14px; } .tool.del { border-color: var(--red); background: var(--red-bg); } [data-rowtool] .tool { margin: 0 0 12px; } #appTool .tool { margin: 0 24px 12px; }
     .tool h3 { margin: 0 0 8px; font-size: 15px; } .tool p { margin: 0 0 10px; } .tool ul { margin: 0 0 10px 18px; padding: 0; } .tool .btn { margin-right: 8px; }
-    .tool .frow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; } .tool label { display: block; font-weight: 600; margin-bottom: 4px; }
+    .tool .frow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; } .tool .frow { align-items: end; } .pane .tool label, .tool label { display: block; font-weight: 600; margin: 0 0 4px; min-height: 0; }
     .tool input[type=text], .tool select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #6B747E; border-radius: 4px; font: inherit; font-size: 14px; background: #fff; }
     .tool .err { color: var(--red); font-weight: 600; } .rowBar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 13px; color: var(--muted); }
     .dcol > h3 { margin: 0 0 8px; font-size: 15px; } .dmiss { color: var(--red); font-weight: 600; font-size: 14px; margin: 8px 0 0; }
@@ -392,7 +392,7 @@
         ["FarmID", { d: "The three-year check and the map match on this number." }], "TractNumber"] },
     { label: "Answers that feed the ranking", fields: [["ApplicationDate", { d: "Ranking question 9 counts a soil test as current within 12 months of this date." }],
         ["HasConsPlan", { radio: true, omit: ["Unknown"], d: "Feeds ranking question 1: Yes = 3 points." }], ["HasManurePlan", { radio: true, omit: ["Unknown"], d: "Feeds ranking question 3: Yes or N/A = 3 points." }],
-        ["AttendedEvent", { radio: true, omit: ["Unknown"], d: "Feeds ranking question 8: Yes = 5 points." }], ["AttendedEventDetail", { vis: "event_yes" }], ["AttendedEventDate", { vis: "event_yes" }]] },
+        ["AttendedEvent", { radio: true, omit: ["Unknown", "NA"], d: "Feeds ranking question 8: Yes = 5 points." }], ["AttendedEventDetail", { vis: "event_yes" }], ["AttendedEventDate", { vis: "event_yes" }]] },
     { label: "Request and certification", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", ["FSAEmployeeSignDate", { label: "FSA employee signature date" }]] },
     { label: "Notes", fields: [["Notes", { area: true }], ["DiscrepancyNotes", { area: true }]] },
     { label: "Contact details", fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip", ["LetterSalutation", { calc: "greeting" }]] },
@@ -408,7 +408,7 @@
     const elements = INTAKE.map((g) => ({ type: "group", label: g.label, elements: g.fields.map((x) => Array.isArray(x) ? x : [x, {}]).filter(([n]) => has.has(n.toLowerCase())).map(([n, o]) => {
       const el = { type: "field", fieldName: real(n), label: o.label || "" };
       if (o.d) el.description = o.d;
-      if (o.radio) el.input = { type: "radio-buttons", showNoValueOption: true, noValueOptionLabel: "Not answered", inline: true };
+      if (o.radio) el.input = { type: "radio-buttons", showNoValueOption: false, inline: true };          // a blank answer shows as no choice selected, as in the survey
       if (o.omit) el.omitCodes = o.omit;                       // choices still in the layer's list that the survey no longer offers
       if (o.area) el.input = { type: "text-area" };
       if (g.locked) el.editableExpression = "expr/" + (o.edit || "never");
@@ -709,7 +709,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         mine.map((x) => "<tr>" + cols.map(([n]) => "<td>" + esc(show(fr.fields[n.toLowerCase()], attr(x, n)) ?? "—") + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" + emptyToggle();
       for (const x of mine) { const v = cardsHtml("rows", fr.list, x, fr.fields);
         h += '<details class="rowAll"' + (mine.length === 1 ? " open" : "") + "><summary>Field " + esc(key ? (show(fr.fields[key.toLowerCase()], attr(x, key)) ?? "?") : "") + " – details (" + v.filled + " of " + v.total + " filled)</summary>" +
-          (canEdit(r) && fr.table ? '<div class="edBar" style="margin:4px 0 12px"><button type="button" class="btn go" data-rowedit="' + esc(x[fr.oidField]) + '">Edit this field</button><button type="button" class="btn del" data-rowdel="' + esc(x[fr.oidField]) + '">Delete this field…</button><span>' + esc(editNote(r)) + '</span></div>' : "") + v.html + "</details>"; }
+          (canEdit(r) && fr.table ? '<div class="edBar" style="margin:4px 0 12px"><button type="button" class="btn go" data-rowedit="' + esc(x[fr.oidField]) + '">Edit this field</button><button type="button" class="btn del" data-rowdel="' + esc(x[fr.oidField]) + '">Delete this field…</button><span>' + esc(editNote(r)) + '</span></div><div data-rowtool="' + esc(x[fr.oidField]) + '"></div>' : "") + v.html + "</details>"; }
       return h;
     }
     const fm = forms[t.key] || { list: [], error: "not loaded" };
@@ -1657,7 +1657,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const r = rows.find((x) => x.id === curId); if (!r) return;
     const a = $("appTool"), b = $("rowTool");
     if (a) a.innerHTML = tool && tool.kind === "delapp" ? toolHtml(r) : "";
-    if (b) b.innerHTML = tool && tool.kind !== "delapp" ? toolHtml(r) : "";
+    if (b) b.innerHTML = tool && tool.kind === "add" ? toolHtml(r) : "";
+    for (const c of document.querySelectorAll("[data-rowtool]")) c.innerHTML = tool && tool.kind === "delrow" && String(tool.oid) === c.dataset.rowtool ? toolHtml(r) : "";
   }
   const toolRead = () => { const t = tool; if (!t) return;
     if (t.kind === "add" && $("taNum")) { t.num = $("taNum").value.trim(); t.totalTxt = $("taTotal").value.trim(); t.treatedTxt = $("taTreated").value.trim(); }
@@ -1678,7 +1679,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
             toolRead(); toolDraw(); } } catch { /* no polygons: type the field number */ }
         return; }
       if (delB && canEdit(r)) { const x = rowsOf(r).find((q) => String(q[fr.oidField]) === String(delB.dataset.rowdel)); if (!x) return;
-        tool = { kind: "delrow", id: r.id, oid: x[fr.oidField], name: String(attr(x, "FieldNum") ?? "(no number)") }; toolDraw(); $("rowTool").scrollIntoView({ block: "nearest" }); return; }
+        tool = { kind: "delrow", id: r.id, oid: x[fr.oidField], name: String(attr(x, "FieldNum") ?? "(no number)") }; toolDraw(); const at = document.querySelector('[data-rowtool="' + x[fr.oidField] + '"]'); if (at) at.scrollIntoView({ block: "nearest" }); return; }
       if (appB && deletable(r)) { const mine = rowsOf(r); tool = { kind: "delapp", id: r.id, nRows: mine.length, rowNames: mine.map((x) => attr(x, "FieldNum")).filter(Boolean).join(", "), nFiles: null, typed: "" }; toolDraw();
         try { if (canAttach(appLayer)) { const res = await appLayer.queryAttachments({ objectIds: [r.oid] }); if (tool && tool.kind === "delapp" && tool.id === r.id) { toolRead(); tool.nFiles = ((res && res[r.oid]) || []).length; toolDraw(); } } } catch { /* count unknown */ }
         return; }
@@ -1888,7 +1889,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     intake.submitted = true;
     inStatus("notice", "Submitted. Refreshing the list…");
     let made = [];
-    try { await reloadRows(); made = rows.filter((r) => !intake.before.has(r.id)); renderHome(); } catch (e) { console.error(e); }
+    try { if (fr.table) await reloadFieldRows().catch(() => {});          // the new application's field rows too, or it would be flagged as having none
+      await reloadRows(); made = rows.filter((r) => !intake.before.has(r.id)); renderHome(); } catch (e) { console.error(e); }
     let sent = ""; try { const f = data && data.surveyFeatureSet && data.surveyFeatureSet.features && data.surveyFeatureSet.features[0]; sent = (f && f.attributes && f.attributes[F.id]) || ""; } catch { /* not needed */ }
     const id = (made[0] && made[0].id) || sent;
     inStatus("", "");
