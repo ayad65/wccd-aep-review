@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B8a, 12 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B8b, 12 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -316,7 +316,7 @@
     layerTitle: "Applications",
     farmsItem: "94ab476757584a6a8505004bc59e594a",         // "Washington County Farms" (farm and field polygons), used by the Map tab when the web map does not hold it
     intakeTitle: "WCCD Ag Lime Applications Intake",     // the published intake survey behind "New application" (found by title)
-    viewOnly: ["AEP63-25-002"],                       // Campbell: never saved from this app
+    viewOnly: [],                                     // records never saved from this app (Campbell AEP63-25-002 was here until Yasser unlocked it, 12 Nov 18:20)
     editable: ["AEP63-26-999", "AEP63-26-998", "AEP63-26-997"],   // the only records this app may save, while both apps are evaluated
     editLayer: "App-Approval",
     editEngine: "own"                                 // "own" = our layout running the form's rules (test D1); "esri" = Esri's form component (fallback, build B2a)
@@ -1114,7 +1114,12 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       return !fld || fld.editable === false || sys.includes(k.toLowerCase());
     }
     const diffs = () => (S ? Object.keys(S.values).filter((k) => !same(S.values[k], S.original[k]) && !skip(k)) : []);
-    const missingReq = () => S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.req[x.el.fieldName] && S.values[x.el.fieldName] == null).map((x) => labelOf(x.el.fieldName));
+    // A required field that is empty blocks the save only when the user can fill it on this tab. One that is locked here (intake answer, or calculated from
+    // missing inputs) is listed as still missing but does not block: intake may be incomplete (Yasser, 12 Nov).
+    const lockedHere = (name) => { const f = fieldOf(name); return !!(S.calc[name] || S.edit[name] === false || (f && f.editable === false)); };
+    const missingAll = () => S.els.filter((x) => !x.isGroup && x.el.type === "field" && S.vis[S.key(x.el)] !== false && S.req[x.el.fieldName] && S.values[x.el.fieldName] == null).map((x) => x.el.fieldName);
+    const missingReq = () => missingAll().filter((n) => !lockedHere(n)).map(labelOf);
+    const missingLocked = () => missingAll().filter(lockedHere).map(labelOf);
     function plan() {
       const you = [], calc = [], emptied = [];
       for (const k of diffs()) {
@@ -1183,6 +1188,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         : p.calc.length + " calculated figure" + (p.calc.length === 1 ? " is" : "s are") + " out of date and will be refreshed if you save.");
       if (p.emptied.length) parts.push(p.emptied.length + " value" + (p.emptied.length === 1 ? " was" : "s were") + " emptied by hiding: " + p.emptied.map((x) => labelOf(x.k)).join(", ") + ".");
       if (miss.length) parts.push("Required and still empty: " + miss.join(", ") + ".");
+      const mLock = missingLocked();
+      if (mLock.length) parts.push("Still missing, but not filled on this tab (does not stop a save): " + mLock.join(", ") + ".");
       if ($("edChanged")) $("edChanged").textContent = parts.join(" ");
       if ($("edSave")) $("edSave").disabled = !n || miss.length > 0 || errs.length > 0;
       if ($("edRestore")) { $("edRestore").hidden = back.length < 2; $("edRestore").textContent = "Restore all " + back.length + " earlier values"; }
@@ -1316,6 +1323,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         "<div><b>You changed</b>" + ul(p.you, line) + "</div>" +
         "<div><b>Calculated by the form</b>" + ul(p.calc, line) + "</div>" +
         '<div><b>Emptied because your change hid them</b> <span class="small">(go back to the form to restore any of these)</span>' + ul(p.emptied, (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → (empty)") + "</div>" +
+        (missingLocked().length ? '<div><b>Still missing after this save</b> <span class="small">(required by the form, but not filled on this tab)</span>' + ul(missingLocked(), (x) => x) + "</div>" : "") +
         '<div class="edBtns"><span>This writes to the real record. Nothing else is written.</span><button type="button" class="btn" id="edBack">Back to the form</button><button type="button" class="btn go" id="edConfirm">Confirm and save</button></div>';
       $("edReview").hidden = false; $("edBtns").hidden = true;
       for (const el of $("own").querySelectorAll("input, select, textarea, button")) el.disabled = true;
