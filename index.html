@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12h, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B12i, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -746,8 +746,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const emptyToggle = () => '<label><input type="checkbox" id="showEmpty"' + (showEmpty ? " checked" : "") + "> Show empty fields too</label>";
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
-    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" hidden><div id="docBody"></div>' +
-      '<p>' + (canFiles(r) ? "Files can be attached or deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+    if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" accept="application/pdf,.pdf" hidden><div id="docBody"></div>' +
+      '<p>' + (canFiles(r) ? "PDF files can be attached, and files deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
@@ -1856,7 +1856,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12h", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B12i", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2298,7 +2298,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   }
   $("newapp").addEventListener("input", (e) => { if (!NA || NA.step !== "form") return; if (e.target.id === "na_AEPSequence") NA.seqTouched = e.target.value.trim() !== ""; naSync(); naSum(); });
   $("newapp").addEventListener("change", (e) => { if (!NA || NA.step !== "form") return;
-    if (e.target.id === "naFile") { NA.file = (e.target.files && e.target.files[0]) || null; $("naFileNote").textContent = NA.file ? "Chosen: " + NA.file.name : ""; return; }
+    if (e.target.id === "naFile") { const pick = (e.target.files && e.target.files[0]) || null;
+      if (pick && !isPdf(pick)) { NA.file = null; e.target.value = ""; $("naFileNote").textContent = pick.name + " was not taken: the packet must be a PDF file."; return; }
+      NA.file = pick; $("naFileNote").textContent = NA.file ? "Chosen: " + NA.file.name : ""; return; }
     naSync(); naSum(); if (e.target.id === "na_FarmID") naFarmChanged(); });
   $("newapp").addEventListener("click", (e) => {
     if (e.target.id === "naSurvey") { openIntake(); return; }
@@ -2512,16 +2514,15 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function prOpen(r, k) {
     const d = PR.docs[k]; if (!d) return; const miss = d.need.filter(([, f]) => !PR.has(r, f)).map(([l]) => l);
     let dlg = $("prDlg"); if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "prDlg"; dlg.setAttribute("aria-labelledby", "prTitle"); document.body.appendChild(dlg);
-      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prWord" || e.target.id === "prAttach") { const pr = dlg._pr, r0 = pr && rows.find((x) => x.id === pr.rid); if (!r0) return;
+      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prWord") { const pr = dlg._pr, r0 = pr && rows.find((x) => x.id === pr.rid); if (!r0) return;
           const d0 = PR.docs[pr.k], name = (r0.id + " " + d0.label).replace(/[^\w\- ]+/g, "").trim() + ".doc", blob = new Blob(["\ufeff", PR.word(d0, r0)], { type: "application/msword" });
-          if (e.target.id === "prWord") { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
-          else { dlg.close(); if (curTab !== "docs") { if (!leaveEdit()) return; curTab = "docs"; renderWork(curId); } docUI.pending = { type: "add", group: d0.group, file: new File([blob], name, { type: "application/msword" }), rid: r0.id }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); if ($("docReview")) $("docReview").scrollIntoView({ block: "nearest" }); }
+          { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
           return; }
         if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
     const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
     dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
-      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Nothing on the record changes until you attach. Attach saves the Word file under ' + esc(grp) + ', after a confirmation.</span><button type="button" class="btn" id="prClose">Close</button>' +
-      (canFiles(r) ? '<button type="button" class="btn" id="prAttach">Attach to this application</button>' : "") + '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Opening, printing or downloading saves nothing on the application. Only PDF files are attached: to keep a copy, save it as PDF from Word or the print window, then use Attach on the Documents tab (' + esc(grp) + ').</span><button type="button" class="btn" id="prClose">Close</button>' +
+      '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
     dlg._pr = { rid: r.id, k };
     dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div id="src">' + d.html(r) + "</div><script>" + PR.paginate + "<\/script></body></html>";
     if (!dlg.open) dlg.showModal();
@@ -2534,6 +2535,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   const DOC_KEYWORD = { app: "FileApplicationPacket", agr: "FileAgreement", cvf: "FileCVFPacket", other: "FileReserve1" };   // the survey's own question names, as EB and Survey123 tag files
   let docFiles = [], docUI = { pending: null, note: null, busy: false };
   const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  const isPdf = (f) => !!f && (/\.pdf$/i.test(f.name || "") || f.type === "application/pdf");      // attachments are PDF only (Yasser, 13 Nov); Word files are for downloading
   const canFiles = (r) => !!r && !r.viewOnly;      // files can be attached and deleted on every application, closed ones included (Yasser, 13 Nov)
   const canAttach = (l) => !!(l && typeof l.queryAttachments === "function" && (l.capabilities?.data?.supportsAttachment || l.hasAttachments));
   async function initDocs(r) {
@@ -2580,6 +2582,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         : "Remove <b>" + esc(p.f.name) + "</b> from <b>" + esc(p.rid) + "</b>? The file is deleted from the record and cannot be brought back.") + "</p>" +
       '<button type="button" class="btn go" data-docgo="1"' + (docUI.busy ? " disabled" : "") + ">" + (docUI.busy ? "Working…" : p.type === "add" ? "Confirm and upload" : "Confirm and remove") + '</button><button type="button" class="btn" data-doccancel="1"' + (docUI.busy ? " disabled" : "") + ">Cancel</button></div>"; };
   $("detail").addEventListener("change", (e) => { if (e.target.id !== "docPick") return; const file = e.target.files && e.target.files[0]; if (!file || !docUI.pick) return;
+    if (!isPdf(file)) { docUI.pending = null; docReview(); if ($("docNote")) $("docNote").innerHTML = '<div class="error">' + esc(file.name) + " was not attached: only PDF files can be attached. Save the document as PDF first.</div>"; return; }
     docUI.pending = { type: "add", group: docUI.pick, file, rid: curId }; docUI.note = null; if ($("docNote")) $("docNote").innerHTML = ""; docReview(); $("docReview").scrollIntoView({ block: "nearest" }); });
   $("detail").addEventListener("click", async (e) => {
     const add = e.target.closest("[data-docadd]"), del = e.target.closest("[data-docdel]");
