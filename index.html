@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B12i, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13a, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
   <script type="module" src="https://js.arcgis.com/5.2/"></script>
   <style>
     :root { --ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
@@ -284,19 +284,58 @@
     @media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
     @media (max-width: 600px) { .steps { padding: 14px 12px; } .steps li { font-size: 11px; } }
     [hidden] { display: none !important; }
+    /* ---------- Look B13a: "soil test strip". Each stage keeps one colour everywhere: its tile, its step, its bar segment. ---------- */
+    :root { --ink:#10242A; --muted:#47606A; --line:#C6D3D0; --soft:#DCE5E3; --bg:#F3F6F5; --blue:#14323A; --blue-bg:#E4EEEC; --amber:#F0A202;
+            --s1:#E4572E; --s2:#F0A202; --s3:#9BC53D; --s4:#1B8A5A; --s5:#0B7C8A; --s6:#2A4FA8; --rail:#14323A; }
+    body { font-family: "Public Sans", system-ui, "Segoe UI", Arial, sans-serif; padding-left: 96px; }
+    h1, h2, .brand span, .fig b, details.closed > summary { font-family: "Barlow Semi Condensed", "Public Sans", sans-serif; }
+    .brand span { font-size: 30px; } h1 { font-size: 30px; }
+    nav.rail { position: fixed; left: 0; top: 0; bottom: 0; width: 96px; background: var(--rail); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0; z-index: 20; overflow-y: auto; }
+    nav.rail .mark img { display: block; border-radius: 10px; } nav.rail .mark { width: 68px; height: 68px; border-radius: 14px; background: #fff; color: var(--rail); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; flex: none; }
+    nav.rail a { width: 76px; padding: 10px 0; border-radius: 12px; color: #E6F0EE; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; flex: none; }
+    nav.rail a:hover { background: rgba(255,255,255,.12); } nav.rail a[aria-current="page"] { background: #fff; color: var(--rail); font-weight: 700; } nav.rail a:focus-visible { outline: 3px solid var(--s2); outline-offset: 2px; }
+    nav.rail .grow { flex: 1; }
+    @media (max-width: 700px) { body { padding-left: 0; padding-top: 68px; } nav.rail { flex-direction: row; right: 0; bottom: auto; width: auto; height: 68px; padding: 6px 10px; gap: 4px; } nav.rail .mark { width: 48px; height: 48px; margin: 0 8px 0 0; } nav.rail .mark img { width: 40px; height: 40px; } nav.rail a { width: 64px; padding: 6px 0; font-size: 12px; } }
+    .primary, .btn, .tab, input, select, textarea { border-radius: 8px; } .detail, .box, .ecard, .dgrp { border-radius: 12px; }
+    .dash { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; } @media (max-width: 1100px) { .dash { grid-template-columns: repeat(3, minmax(0, 1fr)); } } @media (max-width: 560px) { .dash { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .tile { border: 0; border-radius: 14px; padding: 14px 16px 12px; min-height: 128px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; font: inherit; cursor: pointer; color: #fff; }
+    .tile b { font-family: "Barlow Semi Condensed", sans-serif; font-size: 44px; line-height: 1; } .tile span { font-weight: 700; } .tile small { font-size: 13px; }
+    .tile.s1 { background: var(--s1); } .tile.s2 { background: var(--s2); color: var(--ink); } .tile.s3 { background: var(--s3); color: var(--ink); } .tile.s4 { background: var(--s4); } .tile.s5 { background: var(--s5); } .tile.s6 { background: var(--s6); }
+    .tile[aria-pressed="true"] { outline: 4px solid var(--ink); outline-offset: 2px; } .tile:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+    .track { gap: 2px; } .track i { height: 10px; } .track i:first-child { border-radius: 5px 0 0 5px; } .track i:last-child { border-radius: 0 5px 5px 0; }
+    .track i.s1.done, .track i.s1.now { background: var(--s1); } .track i.s2.done, .track i.s2.now { background: var(--s2); } .track i.s3.done, .track i.s3.now { background: var(--s3); }
+    .track i.s4.done, .track i.s4.now { background: var(--s4); } .track i.s5.done, .track i.s5.now { background: var(--s5); } .track i.s6.done, .track i.s6.now { background: var(--s6); }
+    .steps { gap: 0; padding: 20px 12px 14px; } .steps li { position: relative; align-items: center; text-align: center; gap: 6px; color: var(--muted); }
+    .steps li i { position: relative; z-index: 1; width: 40px; height: 40px; border-radius: 50%; background: var(--soft); color: var(--muted); font-style: normal; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .steps li::before { content: ""; position: absolute; left: 50%; right: -50%; top: 17px; height: 6px; background: var(--soft); } .steps li:last-child::before { display: none; }
+    .steps li.done, .steps li.now { color: var(--ink); font-weight: 600; } .steps li.now { font-weight: 700; font-size: 14px; }
+    .steps li.now i { width: 48px; height: 48px; margin-top: -4px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 22px; box-shadow: 0 0 0 5px var(--blue-bg); }
+    .steps li.s1.done i, .steps li.s1.now i { background: var(--s1); color: #fff; } .steps li.s2.done i, .steps li.s2.now i { background: var(--s2); color: var(--ink); } .steps li.s3.done i, .steps li.s3.now i { background: var(--s3); color: var(--ink); }
+    .steps li.s4.done i, .steps li.s4.now i { background: var(--s4); color: #fff; } .steps li.s5.done i, .steps li.s5.now i { background: var(--s5); color: #fff; } .steps li.s6.done i, .steps li.s6.now i { background: var(--s6); color: #fff; }
+    .steps li.s1.done::before { background: var(--s2); } .steps li.s2.done::before { background: var(--s3); } .steps li.s3.done::before { background: var(--s4); } .steps li.s4.done::before { background: var(--s5); } .steps li.s5.done::before { background: var(--s6); }
+    .steps li.end i { background: #6B747E; color: #fff; }
+    @media (max-width: 600px) { .steps li i { width: 30px; height: 30px; font-size: 13px; } .steps li.now i { width: 36px; height: 36px; font-size: 16px; } .steps li::before { top: 12px; } }
+    .tabs { gap: 2px; padding: 8px 10px 0; background: #E4ECEA; border-bottom: 0; }
+    .tab { height: 48px; padding: 0 16px; border: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--muted); font-size: 15px; display: inline-flex; align-items: center; gap: 8px; }
+    .tab:hover { background: rgba(255,255,255,.6); color: var(--ink); } .tab[aria-pressed="true"] { border: 0; background: #fff; color: var(--ink); font-weight: 700; } .tab[aria-pressed="true"] svg { color: var(--s5); }
+    .tab:focus-visible { outline: 3px solid var(--s5); outline-offset: -3px; }
   </style>
 </head>
 <body>
+<nav class="rail" aria-label="Main">
+  <div class="mark"><img src="data:image/jpeg;base64,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" alt="Washington County Conservation District" width="56" height="56"></div>
+  <a href="#/" id="navHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Home</a>
+  <a href="#/work" id="navWork"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tasks</a>
+  <a href="#/new" id="navNew"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>New</a>
+  <span class="grow"></span>
+  <a href="#/" id="navAbout"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>About</a>
+</nav>
 <header class="top">
   <div class="wrap">
     <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
     <div class="bar">
       <div class="brand"><small>Washington County Conservation District · AEP</small><span>Lime applications</span></div>
       <div class="right">
-        <nav class="menu" aria-label="Main">
-          <a href="#/" id="navHome">Home</a>
-          <a href="#/work" id="navWork">Worklist</a>
-        </nav>
         <div><label for="q" class="vh">Find an application</label><input id="q" type="search" placeholder="Find AEP ID or applicant"></div>
       </div>
     </div>
@@ -314,6 +353,7 @@
           <div><h1>All applications</h1><p id="summary"></p></div>
           <button type="button" class="primary" id="newApp">New application</button>
         </div>
+        <div id="dash" class="dash" role="group" aria-label="Applications by stage"></div>
         <div id="newAppNote" class="okmsg" hidden></div>
         <div class="filters">
           <label for="fy">Fiscal year <select id="fy"></select></label>
@@ -400,10 +440,14 @@
   // Worklist tabs. Each stage tab lists the stored values in the order and with the labels of that layer's Map Viewer form.
   const TABS = [
     { key: "intake", label: "Intake", layer: CFG.layerTitle, synth: true },      // no Map Viewer form exists for intake: the app supplies the layout (INTAKE below)
-    { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows" },
+    { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows", short: "Fields" },
     { key: "appr", label: "Approval", layer: "App-Approval" }, { key: "agr", label: "Agreement", layer: "App-Agreement" },
-    { key: "cvf", label: "Cost verification", layer: "App-CVF" }, { key: "map", label: "Map" }, { key: "docs", label: "Documents" }
+    { key: "cvf", label: "Cost verification", layer: "App-CVF", short: "Costs" }, { key: "map", label: "Map" }, { key: "docs", label: "Documents", short: "Files" }
   ];
+  const tabIcon = (d) => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
+  const TAB_ICON = { intake: tabIcon('<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>'), rank: tabIcon('<path d="M6 20V10M12 20V4M18 20v-7"/>'), rows: tabIcon('<path d="M3 9l9-5 9 5-9 5z"/><path d="M3 14l9 5 9-5"/>'),
+    appr: tabIcon('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>'), agr: tabIcon('<path d="M4 20h16"/><path d="M6 16l9-9 3 3-9 9H6z"/>'), cvf: tabIcon('<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'),
+    map: tabIcon('<path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'), docs: tabIcon('<path d="M20 12l-8 8a5 5 0 01-7-7l8-8a3.5 3.5 0 015 5l-8 8a2 2 0 01-3-3l7-7"/>') };
   const ROWS_TABLE = "Field Rows";
   const ROW_COLS = [["FieldNum", "Field"], ["FieldStatus", "Status"], ["TreatedAcresInField", "Treated acres"], ["TotalAcresInField", "Total acres"],
                     ["SoilpH", "Soil pH"], ["LimeRecTonsPerAcre", "Tons per acre"], ["TotalTonsForField", "Tons for field"], ["DateSampled", "Sampled"]];
@@ -647,7 +691,7 @@
                           r.notes.map((m) => '<div class="msg note">' + ICON.note + "<span>" + esc(m) + "</span></div>").join("") +
                           r.plain.map((m) => '<div class="msg plain"><span>' + esc(m) + "</span></div>").join("");
   function rowHtml(r) {
-    const segs = STAGES.map((_, i) => '<i class="' + segClass(r, i + 1) + '"></i>').join("");
+    const segs = STAGES.map((_, i) => '<i class="s' + (i + 1) + " " + segClass(r, i + 1) + '"></i>').join("");
     const stageLine = r.ended ? "Ended at " + STAGES[r.stageN - 1] : (r.ranked ? "Ranked" : STAGES[r.stageN - 1]) + " · " + nextStepOf(r);
     const href = "#/work/" + encodeURIComponent(r.id);
     const att = msgsHtml(r);
@@ -659,10 +703,24 @@
       '<td class="att">' + (att || '<span class="none">Nothing to flag</span>') + "</td>" +
       '<td style="text-align:right"><a class="open" href="' + href + '">' + (r.closed || r.viewOnly ? "View" : "Open") + "</a></td></tr>";
   }
+  // The Home dashboard: one tile per step, counted the way the Tasks list groups applications. A tile filters the list under it.
+  const tileOf = (r) => r.closed ? 6 : (r.signed || r.stageN === 5) ? 5 : r.stageN === 4 ? 4 : r.stageN === 3 ? 3 : (r.ranked || r.stageN === 2) ? 2 : 1;
+  const TILES = [["Intake", "waiting to be ranked", '<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>'], ["Ranking", "ranked, decision due", '<path d="M6 20V10M12 20V4M18 20v-7"/>'],
+                 ["Approval", "approved, to be signed", '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>'], ["Agreement", "signatures to record", '<path d="M4 20h16"/><path d="M6 16l9-9 3 3-9 9H6z"/>'],
+                 ["Reimbursement", "cost verification to check", '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'], ["Closed", "closed or ended", '<path d="M5 8h14v11H5z"/><path d="M3 4h18v4H3z"/><path d="M10 12h4"/>']];
+  let dashPick = 0;
+  function dashDraw(list) {
+    const el = $("dash"); if (!el) return; const n = [0, 0, 0, 0, 0, 0]; let paid = 0;
+    for (const r of list) { const t = tileOf(r); n[t - 1]++; if (t === 6) { const p = Number(F.paid ? r.a[F.paid] : NaN); if (!isNaN(p)) paid += p; } }
+    el.innerHTML = TILES.map(([name, sub, icon], i) => '<button type="button" class="tile s' + (i + 1) + '" data-tile="' + (i + 1) + '" aria-pressed="' + (dashPick === i + 1) + '">' +
+      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icon + "</svg><b>" + n[i] + "</b><span>" + name + "</span><small>" +
+      esc(i === 5 && paid > 0 ? "paid " + money(paid) + " in total" : sub) + "</small></button>").join("");
+  }
   function renderHome() {
     const fy = $("fy").value, st = Number($("st").value), only = $("onlyAtt").checked, text = $("q").value.trim().toLowerCase();
-    const pass = (r) => (fy === "all" || r.fy === fy) && (!st || r.stageN === st) && (!only || r.red.length > 0) &&
-                        (!text || r.id.toLowerCase().includes(text) || r.applicant.toLowerCase().includes(text));
+    const pass0 = (r) => (fy === "all" || r.fy === fy) && (!text || r.id.toLowerCase().includes(text) || r.applicant.toLowerCase().includes(text));
+    try { dashDraw(rows.filter(pass0)); } catch (e) { console.warn("dashboard", e); }
+    const pass = (r) => pass0(r) && (!st || r.stageN === st) && (!only || r.red.length > 0) && (!dashPick || tileOf(r) === dashPick);
     const order = (a, b) => (b.red.length > 0) - (a.red.length > 0) || a.stageN - b.stageN || a.id.localeCompare(b.id);
     const open = rows.filter((r) => !r.closed && pass(r)).sort(order);
     const closed = rows.filter((r) => r.closed && pass(r)).sort((a, b) => b.fy.localeCompare(a.fy) || a.id.localeCompare(b.id));
@@ -675,7 +733,7 @@
   // ---------------- Worklist (read-only) ----------------
   let curId = null, curTab = null, showEmpty = false;
   const stepOf = (r) => r.closed ? -1 : r.ranked ? 1 : r.stageN <= 2 ? 0 : r.stageN === 3 ? (r.status === "Approved" ? 2 : 1) : r.stageN === 4 ? (r.signed ? 3 : 2) : 3;
-  const defaultTab = (r) => r.ended ? "appr" : r.ranked ? "appr" : r.stageN <= 2 ? "rank" : r.stageN === 3 ? "appr" : r.stageN === 4 ? (r.signed ? "cvf" : "agr") : "cvf";
+  const defaultTab = () => "intake";      // an application always opens on Intake (Yasser, 13 Nov)
   function show(f, v) {            // a stored value as text, or null when it is empty
     if (v == null || v === "") return null;
     const cv = f && f.domain && f.domain.codedValues && f.domain.codedValues.find((c) => String(c.code) === String(v));
@@ -809,7 +867,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const g = (k) => (F[k] ? r.a[F[k]] : undefined);
     const farm = String(g("farmNo") ?? "").trim();
     const line = r.statusText + " · " + (r.ended ? "ended at " + STAGES[r.stageN - 1] : r.stageN === 6 ? "closed" : (r.ranked ? "ranked" : "at " + STAGES[r.stageN - 1]) + " · " + nextStepOf(r));
-    const steps = STAGES.map((n, i) => '<li class="' + segClass(r, i + 1) + '"><i></i>' + n + "</li>").join("");
+    const steps = STAGES.map((n, i) => { const c = segClass(r, i + 1); return '<li class="s' + (i + 1) + " " + c + '"' + (c === "now" ? ' aria-current="step"' : "") + "><i>" + (c === "done" ? "&#10003;" : i + 1) + "</i>" + n + "</li>"; }).join("");
     const nRows = fr.rows ? fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "").length : null;
     const reqAc = num(g("reqAcres")), aw = num(g("awarded")), calc = num(g("calc")), apT = num(g("apprTons")), apAc = num(g("apprAcres")), amt = num(g("apprAmt")), paid = num(g("paid"));
     const fig = (lab, val, sub) => '<div class="fig"><small>' + lab + "</small><b>" + esc(val) + "</b><span>" + esc(sub) + "</span></div>";
@@ -827,7 +885,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       '<ol class="steps" aria-label="Stage ' + r.stageN + " of 6, " + STAGES[r.stageN - 1] + '">' + steps + "</ol>" +
       '<div class="figs">' + figs + "</div>" +
       '<div class="flags">' + (msgsHtml(r) || '<span class="none">Nothing to flag</span>') + "</div>" +
-      '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + t.label + "</button>").join("") + "</div>" +
+      '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + (TAB_ICON[t.key] || "") + (t.short || t.label) + "</button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
     if (curTab === "map") initMap(r);
     if (curTab === "docs") initDocs(r);
@@ -1546,7 +1604,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       if (!leaveEdit()) { window.location.hash = "#/work/" + encodeURIComponent(ed.r.id); return; }
     }
     $("home").hidden = isWork || isNew; $("work").hidden = !isWork; $("newapp").hidden = !isNew;
-    for (const [el, on] of [[$("navHome"), !isWork], [$("navWork"), isWork]]) {
+    for (const [el, on] of [[$("navHome"), !isWork && !isNew], [$("navWork"), isWork], [$("navNew"), isNew]]) {
       if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
     }
     if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else if (isNew) naOpen(); else renderHome();
@@ -1557,6 +1615,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("fy").innerHTML = '<option value="all">All years</option>' + years.map((y) => '<option value="' + esc(y) + '">' + esc(y) + "</option>").join("");
   $("st").innerHTML = '<option value="0">All stages</option>' + STAGES.map((s, i) => '<option value="' + (i + 1) + '">' + s + "</option>").join("");
   for (const id of ["fy", "st", "onlyAtt"]) $(id).addEventListener("change", renderHome);
+  $("dash").addEventListener("click", (e) => { const b = e.target.closest("[data-tile]"); if (!b) return; const k = Number(b.dataset.tile); dashPick = dashPick === k ? 0 : k; renderHome();
+    if (dashPick === 6 && $("closedBox")) { $("closedBox").open = true; $("closedBox").scrollIntoView({ block: "nearest" }); } });
+  $("navAbout").addEventListener("click", () => { setTimeout(() => { const d = $("about") && $("about").closest("details"); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } }, 60); });
   $("q").addEventListener("input", () => { if (!$("home").hidden) renderHome(); else window.location.hash = "#/"; });
   // ================= Map tab: the farm and its fields for the selected application (read-only) =================
   const MAPS = { ready: null, farms: [], fields: [], source: "", mods: null, el: null, byKey: new Map(), error: "" };
@@ -1856,7 +1917,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B12i", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13a", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2672,7 +2733,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     inStatus("", "");
     const d = $("intakeDone"); d.hidden = false;
     d.innerHTML = "<div>Application created" + (id ? ": <b>" + esc(id) + "</b>" : " (the list did not show a new record yet; close and reload the page)") + ".</div>" +
-      (made[0] ? '<button type="button" class="btn go" id="intakeOpen" data-id="' + esc(made[0].id) + '">Open it in the Worklist</button>' : "") +
+      (made[0] ? '<button type="button" class="btn go" id="intakeOpen" data-id="' + esc(made[0].id) + '">Open it in Tasks</button>' : "") +
       '<button type="button" class="btn" id="intakeAgain">Enter another</button>';
     $("intakeForm").innerHTML = "";
     $("newAppNote").hidden = false; $("newAppNote").textContent = "Application created" + (id ? ": " + id : "") + ".";
@@ -2689,7 +2750,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("intake").hidden) closeIntake(); });
   $("diag").innerHTML = "<p>" + esc(layerInfo) + ".</p><p>" +
-    (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p><p>Worklist: " +
+    (missing.length ? "Fields not found, so their checks are skipped: " + esc(missing.join("; ")) + "." : "All the fields this page uses were found.") + "</p><p>Tasks: " +
     esc(TABS.filter((t) => t.layer).map((t) => t.label + (forms[t.key].error ? " – NOT READ (" + forms[t.key].error + ")" : " – " + forms[t.key].list.length + " form fields" + (forms[t.key].noForm ? " (no form; all fields)" : " in groups [" + groupsOf(forms[t.key].list).map((g) => g.name + " " + g.items.length).join(", ") + "]"))).join("; ")) +
     "; Field rows – " + esc("SDK " + sdkVer + " · ") + esc(fr.rows ? fr.rows.length + " rows read" : "NOT READ (" + fr.error + ")") + ".</p>";
   window.addEventListener("hashchange", route);
