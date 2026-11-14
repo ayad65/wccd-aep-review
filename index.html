@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13a, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13b, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -319,11 +319,35 @@
     .tab { height: 48px; padding: 0 16px; border: 0; border-radius: 10px 10px 0 0; background: transparent; color: var(--muted); font-size: 15px; display: inline-flex; align-items: center; gap: 8px; }
     .tab:hover { background: rgba(255,255,255,.6); color: var(--ink); } .tab[aria-pressed="true"] { border: 0; background: #fff; color: var(--ink); font-weight: 700; } .tab[aria-pressed="true"] svg { color: var(--s5); }
     .tab:focus-visible { outline: 3px solid var(--s5); outline-offset: -3px; }
+    /* ---------- B13b: joined menu tab, coloured task groups, side tabs, theme tints ---------- */
+    :root { --teal:#1B8A5A; --teal-bg:#E3F1EA; --closed-bg:#E7ECF8; --closed-line:#9FB1DE; }
+    header.top { background: var(--bg); }
+    nav.rail a.mark { width: 68px; height: 68px; padding: 0; margin-bottom: 12px; border-radius: 14px; background: #fff; align-self: center; } nav.rail a.mark:hover { background: #fff; }
+    nav.rail a[aria-current="page"] { background: var(--bg); width: 86px; align-self: flex-end; border-radius: 14px 0 0 14px; padding-right: 10px; }
+    @media (max-width: 700px) { nav.rail a[aria-current="page"] { width: 64px; align-self: center; border-radius: 12px; padding-right: 0; } nav.rail a.mark { width: 48px; height: 48px; margin: 0 8px 0 0; } }
+    .grp h2 { border-bottom: 0; align-items: center; padding: 6px 10px; border-radius: 8px; color: #fff; } .grp h2 span:last-child { background: rgba(255,255,255,.9); color: var(--ink); border-radius: 10px; min-width: 26px; text-align: center; padding: 0 7px; }
+    .grp.g1 h2 { background: var(--s1); } .grp.g2 h2 { background: var(--s2); color: var(--ink); } .grp.g4 h2 { background: var(--s4); } .grp.g5 h2 { background: var(--s5); }
+    .grp.g1 .item { background: #FCEDE8; border-color: #F1B7A6; } .grp.g2 .item { background: #FEF5DD; border-color: #EDCB7A; } .grp.g4 .item { background: #E3F1EA; border-color: #A3D0BA; } .grp.g5 .item { background: #E0F0F2; border-color: #9CCAD0; }
+    .grp.g1 .item[aria-current="true"] { outline: 3px solid var(--s1); } .grp.g2 .item[aria-current="true"] { outline: 3px solid #B97A00; } .grp.g4 .item[aria-current="true"] { outline: 3px solid var(--s4); } .grp.g5 .item[aria-current="true"] { outline: 3px solid var(--s5); }
+    details.closedList { background: var(--closed-bg); border-color: var(--closed-line); } details.closedList .item[aria-current="true"] { outline: 3px solid var(--s6); }
+    details.gcard.tint, .ecard.tint { background: var(--blue-bg); border-color: #B5CBC6; } details.gcard.tint[open] > summary, .ecard.tint > h3 { border-bottom-color: #B5CBC6; }
+    .ecard.green, details.gcard.green { background: var(--teal-bg); border-color: #A3D0BA; } .ecard.green > h3, details.ecard.green[open] > summary, details.gcard.green[open] > summary { border-bottom-color: #A3D0BA; } .green .pair { border-bottom-color: #C5E0D2; }
+    .stabs { display: flex; align-items: flex-start; margin-top: 12px; }
+    .stnav { flex: 0 0 216px; display: flex; flex-direction: column; gap: 6px; }
+    .sttab { min-height: 48px; text-align: left; padding: 10px 14px; border: 1px solid var(--line); border-right: 0; border-radius: 10px 0 0 10px; background: #E4ECEA; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .sttab:hover { background: #EEF3F2; color: var(--ink); } .sttab[aria-selected="true"] { background: #fff; color: var(--ink); font-weight: 700; margin-right: -1px; position: relative; z-index: 1; } .sttab:focus-visible { outline: 3px solid var(--s5); outline-offset: -3px; }
+    .stmark { width: 10px; height: 10px; border-radius: 50%; background: #C81E1E; flex: none; }
+    .stbody { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 0 12px 12px 12px; background: #fff; padding: 16px 18px 18px; min-height: 250px; }
+    .stbody .gcard, .stbody .ecard { border: 0; background: transparent; margin: 0; padding: 0; border-radius: 0; } .stbody .gcard > summary, .stbody details.ecard > summary, .stbody .ecard > h3 { display: none; }
+    .stbody .stpanel.multi .ecard > h3 { display: block; padding: 0 0 6px; margin: 0 0 10px; border-bottom: 1px solid var(--soft); background: transparent; } .stbody .stpanel.multi .ecard + .ecard { margin-top: 18px; }
+    .stbody .ecard > .ebody { padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; align-items: start; } .stbody .ecard > .ebody > :not(.fld) { grid-column: 1 / -1; } .stbody .ecard > .ebody > .fld:has(textarea) { grid-column: 1 / -1; }
+    .stbody dl.vals { padding-left: 0; padding-right: 0; }
+    @media (max-width: 860px) { .stabs { flex-direction: column; align-items: stretch; } .stnav { flex: none; flex-direction: row; flex-wrap: wrap; } .sttab { border-right: 1px solid var(--line); border-radius: 10px; } .sttab[aria-selected="true"] { margin-right: 0; outline: 2px solid var(--ink); } .stbody { border-radius: 12px; margin-top: 8px; } .stbody .ecard > .ebody { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 <nav class="rail" aria-label="Main">
-  <div class="mark"><img src="data:image/jpeg;base64,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" alt="Washington County Conservation District" width="56" height="56"></div>
+  <a class="mark" href="#/" aria-label="Home"><img src="data:image/jpeg;base64,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" alt="Washington County Conservation District" width="56" height="56"></a>
   <a href="#/" id="navHome"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Home</a>
   <a href="#/work" id="navWork"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tasks</a>
   <a href="#/new" id="navNew"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>New</a>
@@ -490,15 +514,15 @@
   // A field is listed as "Name" or ["Name", { radio, area, d: description, label }]. Fields the layer does not have are skipped.
   const INTAKE = [
     { label: "Applicant and farm", fields: ["ApplicantLegalName", "ApplicantRole", ["LandownerName", { vis: "role_land" }], ["OperatorName", { vis: "role_oper" }], "FarmName",
-        ["FarmID", { d: "The three-year check and the map match on this number." }], "TractNumber"] },
-    { label: "Answers that feed the ranking", fields: [["ApplicationDate", { d: "Ranking question 9 counts a soil test as current within 12 months of this date." }],
+        ["FarmID", { d: "The three-year check and the map match on this number." }], "TractNumber",
+        ["ApplicationDate", { d: "Ranking question 9 counts a soil test as current within 12 months of this date." }],
         ["HasConsPlan", { radio: true, omit: ["Unknown"], d: "Feeds ranking question 1: Yes = 3 points." }], ["HasManurePlan", { radio: true, omit: ["Unknown"], d: "Feeds ranking question 3: Yes or N/A = 3 points." }],
         ["AttendedEvent", { radio: true, omit: ["Unknown", "NA"], d: "Feeds ranking question 8: Yes = 5 points." }], ["AttendedEventDetail", { vis: "event_yes" }], ["AttendedEventDate", { vis: "event_yes" }]] },
-    { label: "Request and certification", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", ["FSAEmployeeSignDate", { label: "FSA employee signature date" }]] },
-    { label: "Notes", fields: [["Notes", { area: true }], ["DiscrepancyNotes", { area: true }]] },
     { label: "Contact details", fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip", ["LetterSalutation", { calc: "greeting" }]] },
+    { label: "Request and certification", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", ["FSAEmployeeSignDate", { label: "FSA employee signature date" }]] },
     { label: "Conflicting farm or tract numbers", fields: ["FarmNumberConflict", ["FarmIDAlt", { vis: "conflict_yes" }], ["TractNumberAlt", { vis: "conflict_yes" }], ["FarmIDSource", { vis: "conflict_yes" }]] },
     { label: "FSA farm map", fields: ["FSAMapProgramYear", "FSAMapCreatedDate", "TractCroplandTotal", ["FSAMapNotes", { area: true }]] },
+    { label: "Notes", fields: [["Notes", { area: true }], ["DiscrepancyNotes", { area: true }]] },
     // AEP ID, fiscal year and sequence are locked, except on a record born with no AEP ID: there the year and sequence open up and the ID is built as the survey builds it.
     { label: "Identity and program limits (locked)", locked: true, fields: [["AEPID", { calc: "aepid", show: true }], ["FiscalYear", { edit: "id_missing" }], ["AEPSequence", { edit: "id_missing" }],
         "ThreeYearWindow", "CapAcresMax", "CapTonsPerAcreMax", "PricePerTonCap", "CostShareMultiplier"] }
@@ -746,8 +770,7 @@
   // ---- Stored values as cards in two columns. Each form group is a card; RULES place the known groups, the rest fall in automatically. ----
   // w: "L" / "R" = left or right column, "full" = full width with the values in two columns, "figs" = a strip of figures. open:false = starts collapsed.
   const RULES = {
-    intake: [{ re: /applicant and farm/i, w: "L", row: 1 }, { re: /feed/i, w: "R", row: 1, tint: true }, { re: /request/i, w: "L", row: 2 }, { re: /^notes$/i, w: "R", row: 2 },
-             { re: /contact/i, w: "L", row: 3, open: false }, { re: /conflict/i, w: "R", row: 3, open: false }, { re: /fsa/i, w: "L", row: 4, open: false }, { re: /identity/i, w: "R", row: 4, open: false }],
+    intake: [{ re: /applicant and farm/i, w: "full" }, { re: /contact/i, w: "full" }, { re: /request/i, w: "full" }, { re: /conflict/i, w: "full" }, { re: /fsa/i, w: "full" }, { re: /identity/i, w: "full", title: "Identity and limits" }, { re: /^notes$/i, w: "full" }],
     cvf:  [{ re: /^General$/, w: "figs", title: "Lime and cost" }, { re: /internal/i, w: "L" }, { re: /payment|invoice/i, w: "R", tint: true }],
     appr: [{ re: /decision/i, w: "L" }, { re: /sign/i, w: "R", tint: true }, { re: /program limit/i, w: "R" }, { re: /three/i, w: "R" }],
     agr:  [{ re: /signature/i, w: "full" }],
@@ -850,6 +873,43 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       : r.viewOnly ? '<span class="sub">View only</span>' : "";
     return '<a class="item" href="#/work/' + encodeURIComponent(r.id) + '"' + (r.id === curId ? ' aria-current="true"' : "") + "><b>" + esc(r.id) + "</b><span>" + esc(r.applicant) + "</span>" + sub + "</a>";
   }
+  // ---------------- Side tabs: the sections of a pane as a column of tabs on its left, one section showing at a time ----------------
+  // Works on what a pane has already drawn: every titled card becomes a tab (cards that name the same tab share it). A tab with an empty required box carries a red mark.
+  const stSel = {};
+  const stLabel = (c) => c.dataset.st || (c.querySelector(":scope > summary > span") || c.querySelector(":scope > summary, :scope > h3") || {}).textContent || "";
+  function stMarks(wrap) {
+    for (const p of wrap.querySelectorAll(":scope > .stbody > .stpanel")) {
+      let miss = !!p.querySelector(".miss, .st.bad");
+      if (!miss) for (const f of p.querySelectorAll(".fld")) { if (!f.querySelector(".req") || f.hidden) continue; const ins = [...f.querySelectorAll("input:not([type=file]), select, textarea")].filter((x) => !x.disabled); if (!ins.length) continue;
+        if (ins[0].type === "radio" ? !ins.some((x) => x.checked && x.value !== "") : ins.every((x) => !String(x.value || "").trim())) { miss = true; break; } }
+      const b = wrap.querySelector(':scope > .stnav > [data-stp="' + p.dataset.stp + '"]'); if (b) { let m = b.querySelector(".stmark"); if (miss && !m) { m = document.createElement("span"); m.className = "stmark"; m.setAttribute("role", "img"); m.setAttribute("aria-label", "has an empty required box"); b.appendChild(m); } else if (!miss && m) m.remove(); }
+    }
+  }
+  function sideTabs(root, key, sel) {
+    if (!root) return;
+    const cards = [...root.querySelectorAll(sel || ".ecard")].filter((c) => !c.closest(".stabs") && stLabel(c).trim());
+    const groups = []; for (const c of cards) { const l = stLabel(c).trim(); let g = groups.find((x) => x.label === l); if (!g) groups.push(g = { label: l, cards: [] }); g.cards.push(c); }
+    if (groups.length < 2) return;
+    let anchor = cards[0]; while (anchor.parentNode !== root) anchor = anchor.parentNode;
+    const wrap = document.createElement("div"), nav = document.createElement("div"), body = document.createElement("div");
+    wrap.className = "stabs"; wrap.dataset.stkey = key; nav.className = "stnav"; nav.setAttribute("role", "tablist"); nav.setAttribute("aria-orientation", "vertical"); body.className = "stbody";
+    root.insertBefore(wrap, anchor); wrap.append(nav, body);
+    const pick = groups.some((g) => g.label === stSel[key]) ? stSel[key] : groups[0].label, parents = new Set();
+    groups.forEach((g, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "sttab"; b.dataset.stp = String(i); b.setAttribute("role", "tab"); b.setAttribute("aria-selected", g.label === pick ? "true" : "false");
+      const t = document.createElement("span"); t.textContent = g.label; b.appendChild(t); nav.appendChild(b);
+      const p = document.createElement("div"); p.className = "stpanel" + (g.cards.length > 1 ? " multi" : ""); p.dataset.stp = String(i); p.dataset.stl = g.label; p.setAttribute("role", "tabpanel"); p.hidden = g.label !== pick;
+      for (const c of g.cards) { parents.add(c.parentNode); if (c.tagName === "DETAILS") c.open = true; for (const dl of c.querySelectorAll("dl.vals")) dl.classList.add("two"); p.appendChild(c); }
+      body.appendChild(p);
+    });
+    for (let el of parents) while (el && el !== root && el !== wrap && !el.children.length && !el.textContent.trim()) { const up = el.parentNode; el.remove(); el = up; }
+    stMarks(wrap);
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest(".sttab"); if (!b) return; const wrap = b.closest(".stabs"); if (!wrap) return;
+    for (const x of wrap.querySelectorAll(":scope > .stnav > .sttab")) x.setAttribute("aria-selected", x === b ? "true" : "false");
+    for (const p of wrap.querySelectorAll(":scope > .stbody > .stpanel")) { p.hidden = p.dataset.stp !== b.dataset.stp; if (!p.hidden) stSel[wrap.dataset.stkey] = p.dataset.stl; }
+    window.dispatchEvent(new Event("resize")); });
+  for (const ev of ["input", "change"]) document.addEventListener(ev, () => { for (const w of document.querySelectorAll(".stabs")) stMarks(w); });
   function renderWork(id) {
     const r = rows.find((x) => x.id === id) || null;
     if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; saveNote = null; }
@@ -857,7 +917,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const closed = rows.filter((x) => x.closed).sort((a, b) => b.fy.localeCompare(a.fy) || a.id.localeCompare(b.id));
     $("todo").innerHTML = "<h1>To do</h1><p>Open applications, grouped by the next step.</p>" +
       GROUPS.map((gname, gi) => { const items = rows.filter((x) => stepOf(x) === gi).sort(order);
-        return '<div class="grp"><h2><span>' + gname + "</span><span>" + items.length + "</span></h2>" + (items.map(itemHtml).join("") || '<span class="none">None</span>') + "</div>"; }).join("") +
+        return '<div class="grp g' + [1, 2, 4, 5][gi] + '"><h2><span>' + gname + "</span><span>" + items.length + "</span></h2>" + (items.map(itemHtml).join("") || '<span class="none">None</span>') + "</div>"; }).join("") +
       '<details class="closedList"' + (r && r.closed ? " open" : "") + "><summary>Closed (" + closed.length + ")</summary>" + (closed.map(itemHtml).join("") || '<span class="none">None</span>') + "</details>";
     if (ed && r && ed.r.id === r.id) return;          // the form is open: leave it alone
     const d = $("detail");
@@ -887,6 +947,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       '<div class="flags">' + (msgsHtml(r) || '<span class="none">Nothing to flag</span>') + "</div>" +
       '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + (TAB_ICON[t.key] || "") + (t.short || t.label) + "</button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
+    try { if (curTab === "rows") { for (const c of d.querySelectorAll("details.rowAll .cards")) sideTabs(c, "v:rows", "details.gcard"); } else sideTabs(d.querySelector(".pane"), "v:" + curTab, "details.gcard"); } catch (e) { console.warn("side tabs", e); }
     if (curTab === "map") initMap(r);
     if (curTab === "docs") initDocs(r);
   }
@@ -1126,10 +1187,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     // textsRight = typed boxes on the left, the form's result lines on the right; splitRight = fields whose label matches go to the right half;
     // closed = starts collapsed; order = position (default: the form's own order).
     const SPEC = {
-      intake: [{ re: /applicant and farm/i, col: "L", row: 1, tint: false, order: 1 }, { re: /feed/i, col: "R", row: 1, tint: true, order: 2 },
-               { re: /request/i, col: "L", row: 2, tint: false, order: 3 }, { re: /^notes$/i, col: "R", row: 2, tint: false, order: 4 },
-               { re: /contact/i, col: "L", row: 3, tint: false, closed: true, order: 5 }, { re: /conflict/i, col: "R", row: 3, tint: false, closed: true, order: 6 },
-               { re: /fsa/i, col: "L", row: 4, tint: false, closed: true, order: 7 }, { re: /identity/i, col: "R", row: 4, tint: false, closed: true, order: 8 }, { re: /./, col: "full", order: 9 }],
+      intake: [{ re: /applicant and farm/i, col: "full", tint: false, order: 1 }, { re: /contact/i, col: "full", tint: false, order: 2 }, { re: /request/i, col: "full", tint: false, order: 3 },
+               { re: /conflict/i, col: "full", tint: false, order: 4 }, { re: /fsa/i, col: "full", tint: false, order: 5 }, { re: /identity/i, col: "full", tint: false, order: 6, title: "Identity and limits" }, { re: /^notes$/i, col: "full", tint: false, order: 7 }, { re: /./, col: "full", order: 9 }],
       appr: [{ re: /decision/i, col: "L" }, { re: /./, col: "R" }],
       rank: [{ re: /^loose0$/, col: "L", title: "Eligibility", order: 1 }, { re: /reviewer/i, col: "R", order: 2 }, { re: /question/i, col: "full", qgrid: true, order: 3 },
              { re: /total/i, col: "full", strip: true, order: 4 }, { re: /awarded/i, col: "full", closed: true, order: 5 }, { re: /./, col: "full", order: 6 }],
@@ -1387,6 +1446,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       html = (top ? '<div class="ecard"><div class="ebody">' + top + "</div></div>" : "") + html;
       const act = document.activeElement, keep = act && host.contains(act) ? { id: act.id, name: act.name, val: act.value, type: act.type, a: act.selectionStart, f: act.dataset.f } : null;
       host.innerHTML = html;
+      try { sideTabs(host, "e:" + S.tabKey); } catch (e) { console.warn("side tabs", e); }
       if (keep) {      // keep the cursor, and anything being typed, where it was
         const el = keep.type === "radio" ? [...host.querySelectorAll('input[type="radio"]')].find((x) => x.name === keep.name && x.value === keep.val) : (keep.id && document.getElementById(keep.id));
         if (el && !el.disabled) {
@@ -1917,7 +1977,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13a", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13b", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2004,10 +2064,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // What the entry page asks. Labels, hints, choices and "required" come from the file; only the grouping is the app's.
   const NA_GROUPS = [
     { key: "id", label: "Identity", col: "L", fields: ["FiscalYear", "AEPSequence"] },
-    { key: "app", label: "Applicant and farm", col: "L", tint: true, fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber"] },
-    { key: "rank", label: "Answers that feed the ranking", col: "R", tint: true, fields: ["ApplicationDate", "HasConsPlan", "HasManurePlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate"] },
-    { key: "req", label: "Request and certification", col: "R", tint: true, fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
-    { key: "con", label: "Contact details", col: "L", closed: true, fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip"] },
+    { key: "app", label: "Applicant and farm", col: "L", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber", "ApplicationDate", "HasConsPlan", "HasManurePlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate"] },
+    { key: "req", label: "Request and certification", col: "R", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
+    { key: "con", label: "Contact details", col: "L", fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip"] },
     { key: "notes", label: "Notes", col: "L", fields: ["Notes", "DiscrepancyNotes"] }
   ];
   const NA_FIELDS = new Set(NA_GROUPS.flatMap((g) => g.fields));
@@ -2063,8 +2122,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   let NA = null;
   const naMeta = (k) => BORN.P[k] || { field: k, label: k };
   const naChoices = (m) => (m.choices && BORN.file.choices[m.choices]) || null;
+  const NA_REQ = new Set(["FarmID"]);      // required on a new application only (Yasser, 13 Nov): fields come from the farm's map, and the three-year check needs it
   function naField(k) {
-    const m = naMeta(k), v = NA.v[k], id = "na_" + k, ch = naChoices(m), req = m.required ? ' <span class="req">* required</span>' : "";
+    const m = naMeta(k), v = NA.v[k], id = "na_" + k, ch = naChoices(m), req = m.required || NA_REQ.has(k) ? ' <span class="req">* required</span>' : "";
     const label = esc(NA_LABEL[k] || m.label || k);
     let box;
     if (ch && ch.length <= 3) box = '<span class="opts inline" role="radiogroup" aria-label="' + label + '">' + ch.map(([c, t]) => '<label><input type="radio" name="' + id + '" value="' + esc(c) + '"' + (v === c ? " checked" : "") + "> " + esc(t) + "</label>").join("") + "</span>";
@@ -2208,15 +2268,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const col = (c) => NA_GROUPS.filter((g) => g.col === c);
     pane.innerHTML = "<h2>New application</h2>" + '<div class="notice">The boxes marked required, and the starred values of each field, are needed now. Everything else can be completed later on the Intake and Field rows tabs. Nothing is created until you review and confirm.</div>' +
       BORN.notes.map((n) => '<div class="notice" style="margin-top:8px">' + esc(n) + "</div>").join("") +
-      '<datalist id="naFarms"></datalist><div class="nagrid" style="margin-top:12px;align-items:stretch">' + ["id", "rank"].map((k) => naGroup(NA_GROUPS.find((g) => g.key === k))).join("") +
-      '<div class="nacol grow">' + naGroup(NA_GROUPS.find((g) => g.key === "con")) + naGroup(NA_GROUPS.find((g) => g.key === "app")) + "</div>" + naGroup(NA_GROUPS.find((g) => g.key === "req")) + "</div>" +
-      '<div class="ecard" style="margin-top:12px"><h3>Fields</h3><div class="ebody"><div class="small">Click a field on the map to add it and enter its values, or pick it from the list. Only fields that are on the map can be entered; a field that is missing has to be added to the fields layer in ArcGIS Pro first. Every field needs its number, total and treated acres, soil pH, lime recommendation and a lab date, because the ranking is calculated from them. The other lab details are optional and can also be entered or corrected later on the Field rows tab.</div>' +
+      '<datalist id="naFarms"></datalist>' + [["id", "Applicant and farm"], ["app", "Applicant and farm"]].map(([k, t]) => naGroup(NA_GROUPS.find((g) => g.key === k)).replace('class="ecard', 'data-st="' + t + '" class="ecard')).join("") +
+      '<div class="ecard" data-st="Fields"><h3>Fields</h3><div class="ebody"><div class="small">Click a field on the map to add it and enter its values, or pick it from the list. Only fields that are on the map can be entered; a field that is missing has to be added to the fields layer in ArcGIS Pro first. Every field needs its number, total and treated acres, soil pH, lime recommendation and a lab date, because the ranking is calculated from them. The other lab details are optional and can also be entered or corrected later on the Field rows tab.</div>' +
       '<div id="naMapNote" class="small">Enter a Farm # to see its fields on a map.</div><div id="naMap" hidden></div><div id="naRows">' + naRowsHtml() + '</div><div><button type="button" class="btn" id="naAddRow">Add a field from the list</button></div></div></div>' +
-      '<div class="nagrid" style="margin-top:12px;align-items:stretch">' + naGroup(NA_GROUPS.find((g) => g.key === "notes")) +
-      '<div class="ecard"><h3>Application packet (PDF, optional)</h3><div class="ebody"><input type="file" id="naFile" accept="application/pdf,.pdf"><small id="naFileNote">' + (NA.file ? "Chosen: " + esc(NA.file.name) : "") + "</small></div></div></div>" +
+      ["con", "req"].map((k) => naGroup(NA_GROUPS.find((g) => g.key === k))).join("") + naGroup(NA_GROUPS.find((g) => g.key === "notes")).replace('class="ecard', 'data-st="Notes and packet" class="ecard') +
+      '<div class="ecard" data-st="Notes and packet"><h3>Application packet (PDF, optional)</h3><div class="ebody"><input type="file" id="naFile" accept="application/pdf,.pdf"><small id="naFileNote">' + (NA.file ? "Chosen: " + esc(NA.file.name) : "") + "</small></div></div>" +
       '<div id="naErr"></div><div class="nabar"><span class="sp">Creating writes a new application to the live layer, after the review.</span><button type="button" class="linkbtn" id="naSurvey" style="margin:0">Use the intake survey instead</button>' +
       '<button type="button" class="btn" id="naClear">Clear</button><button type="button" class="btn go" id="naReviewBtn">Review</button></div>';
-    naSync(); naFarmList(); if (NA.farm) naMap(); naSum();
+    sideTabs(pane, "new"); naSync(); naFarmList(); if (NA.farm) naMap(); naSum();
   }
   async function naFarmList() { try { await loadPolygons(); const dl = $("naFarms"); if (dl) dl.innerHTML = MAPS.farms.filter((f) => f.no != null).slice().sort((a, b) => (parseInt(a.no, 10) || 0) - (parseInt(b.no, 10) || 0) || String(a.no).localeCompare(String(b.no))).map((f) => '<option value="' + esc(f.no) + '">' + esc(f.name || "") + "</option>").join(""); naFarmChanged(); } catch { /* no polygons: Farm # is typed */ } }
   const naNextSeq = (fy) => { const yy = String(fy).slice(2, 4), county = castBorn(BORN.P.AEPCounty, BORN.P.AEPCounty.value), used = new Set();
@@ -2276,7 +2335,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   }
   function naValidate() {
     naReadAll(); const e = [], v = NA.v;
-    for (const k of NA_FIELDS) { const m = naMeta(k); if (m.required && nb(v[k])) e.push((NA_LABEL[k] || m.label) + " is required."); if (/Integer|Double/.test(m.type || "") && v[k] != null && isNaN(v[k])) e.push((m.label || k) + " must be a number."); }
+    for (const k of NA_FIELDS) { const m = naMeta(k); if ((m.required || NA_REQ.has(k)) && nb(v[k])) e.push((NA_LABEL[k] || m.label) + " is required."); if (/Integer|Double/.test(m.type || "") && v[k] != null && isNaN(v[k])) e.push((m.label || k) + " must be a number."); }
     if (v.FiscalYear != null && !(Number.isInteger(v.FiscalYear) && v.FiscalYear >= 2000 && v.FiscalYear <= 2100)) e.push("Funding fiscal year must be a year between 2000 and 2100.");
     if (v.AEPSequence != null && !(Number.isInteger(v.AEPSequence) && v.AEPSequence > 0)) e.push("The sequence number must be a whole number above zero.");
     if (v.FieldsCount != null && !(Number.isInteger(v.FieldsCount) && v.FieldsCount >= 1 && v.FieldsCount <= 40)) e.push("Number of fields must be a whole number from 1 to 40.");
