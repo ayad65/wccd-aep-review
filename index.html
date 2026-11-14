@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13b, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13c, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -343,6 +343,16 @@
     .stbody .ecard > .ebody { padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; align-items: start; } .stbody .ecard > .ebody > :not(.fld) { grid-column: 1 / -1; } .stbody .ecard > .ebody > .fld:has(textarea) { grid-column: 1 / -1; }
     .stbody dl.vals { padding-left: 0; padding-right: 0; }
     @media (max-width: 860px) { .stabs { flex-direction: column; align-items: stretch; } .stnav { flex: none; flex-direction: row; flex-wrap: wrap; } .sttab { border-right: 1px solid var(--line); border-radius: 10px; } .sttab[aria-selected="true"] { margin-right: 0; outline: 2px solid var(--ink); } .stbody { border-radius: 12px; margin-top: 8px; } .stbody .ecard > .ebody { grid-template-columns: 1fr; } }
+    /* ---------- B13c ---------- */
+    .brand { display: flex; align-items: center; gap: 14px; } .brand a { display: block; flex: none; } .brand img { display: block; border-radius: 12px; background: #fff; } .brand small { font-size: 13px; line-height: 1.35; } .brand span { display: block; line-height: 1.1; }
+    .stabs { align-items: stretch; } .stbody { border-radius: 0 12px 12px 0; } .sttab[aria-selected="true"] { margin-right: -1px; border-right: 1px solid #fff; }
+    .sttab:disabled { opacity: .45; cursor: not-allowed; } .sttab:disabled:hover { background: #E4ECEA; color: var(--muted); }
+    .stbody details > summary { display: none; } #naDlg .stbody details { border: 0; margin: 0; background: transparent; } #naDlg .stabs { margin-top: 12px; } #naDlg .stnav { flex-basis: 190px; } #naDlg .stbody { min-height: 180px; padding: 12px 14px; } #naDlg .stbody .nagridx { padding: 0; }
+    #naGate { margin: 12px 0 0; font-weight: 600; } #naMapNote.error { font-weight: 600; margin: 8px 0; }
+    details.closedList { background: var(--closed-bg); border: 0; padding: 0 0 2px; border-radius: 8px; } details.closedList[open] { padding-bottom: 10px; }
+    details.closedList > summary { background: var(--s6); color: #fff; border-radius: 8px; padding: 6px 10px; min-height: 0; font-size: inherit; } details.closedList .item { margin: 8px 8px 0; background: #fff; border-color: var(--closed-line); } details.closedList .none { display: block; padding: 8px 10px 0; }
+    details.closedList .item[aria-current="true"] { background: var(--closed-bg); border-color: var(--s6); box-shadow: none; }
+    @media (max-width: 860px) { .stbody { border-radius: 12px; } .sttab[aria-selected="true"] { border-right: 1px solid var(--line); } }
   </style>
 </head>
 <body>
@@ -358,7 +368,7 @@
   <div class="wrap">
     <div class="util"><span id="user">Not signed in</span><button type="button" id="signOut" hidden>Sign out</button></div>
     <div class="bar">
-      <div class="brand"><small>Washington County Conservation District · AEP</small><span>Lime applications</span></div>
+      <div class="brand"><a href="#/" aria-label="Home"><img id="brandLogo" alt="" width="64" height="64"></a><div><small>Washington County Conservation District</small><small>Agricultural Enhancement Program</small><span>Lime applications</span></div></div>
       <div class="right">
         <div><label for="q" class="vh">Find an application</label><input id="q" type="search" placeholder="Find AEP ID or applicant"></div>
       </div>
@@ -880,9 +890,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function stMarks(wrap) {
     for (const p of wrap.querySelectorAll(":scope > .stbody > .stpanel")) {
       let miss = !!p.querySelector(".miss, .st.bad");
+      const ld = p.querySelector('[data-nd="x:LabReportDate"]'), ds = p.querySelector('[data-nd="x:DateSampled"]'); if (ld && ds && !ld.value && !ds.value) miss = true;
       if (!miss) for (const f of p.querySelectorAll(".fld")) { if (!f.querySelector(".req") || f.hidden) continue; const ins = [...f.querySelectorAll("input:not([type=file]), select, textarea")].filter((x) => !x.disabled); if (!ins.length) continue;
         if (ins[0].type === "radio" ? !ins.some((x) => x.checked && x.value !== "") : ins.every((x) => !String(x.value || "").trim())) { miss = true; break; } }
-      const b = wrap.querySelector(':scope > .stnav > [data-stp="' + p.dataset.stp + '"]'); if (b) { let m = b.querySelector(".stmark"); if (miss && !m) { m = document.createElement("span"); m.className = "stmark"; m.setAttribute("role", "img"); m.setAttribute("aria-label", "has an empty required box"); b.appendChild(m); } else if (!miss && m) m.remove(); }
+      const b = wrap.querySelector(':scope > .stnav > [data-stp="' + p.dataset.stp + '"]'); if (b) { b.dataset.miss = miss ? "1" : ""; let m = b.querySelector(".stmark"); if (miss && !m) { m = document.createElement("span"); m.className = "stmark"; m.setAttribute("role", "img"); m.setAttribute("aria-label", "has an empty required box"); b.appendChild(m); } else if (!miss && m) m.remove(); }
     }
   }
   function sideTabs(root, key, sel) {
@@ -905,11 +916,24 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     for (let el of parents) while (el && el !== root && el !== wrap && !el.children.length && !el.textContent.trim()) { const up = el.parentNode; el.remove(); el = up; }
     stMarks(wrap);
   }
+  // New application: the other side tabs open only when Applicant and farm is complete and its Farm # has fields on the map.
+  function naGate() {
+    const wrap = document.querySelector('#naPane .stabs[data-stkey="new"]'); if (!wrap) return; const tabs = [...wrap.querySelectorAll(":scope > .stnav > .sttab")]; if (!tabs.length) return;
+    const farmOk = !!(NA.farm && NA.farm.fields && NA.farm.fields.length), ready = tabs[0].dataset.miss !== "1" && farmOk;
+    tabs.slice(1).forEach((b) => { b.disabled = !ready; b.title = ready ? "" : "Complete Applicant and farm first"; });
+    const add = $("naAddRow"); if (add) add.disabled = !farmOk || !NA.farm.fields.some((f) => !NA.rows.some((o) => normKey(o.num) === f.key));
+    const g = $("naGate"); if (g) { g.hidden = ready; g.textContent = ready ? "" : tabs[0].dataset.miss === "1" ? "Fill the required boxes on Applicant and farm first. The other tabs open once they are complete." :
+      nb(NA.v.FarmID) ? "Enter the Farm # first. The other tabs open once it is filled in." : "Farm # " + NA.v.FarmID + " has no fields on the map, so no field can be entered. Check the number, or add the farm's fields to the map in ArcGIS Pro first."; }
+    if (!ready && tabs[0].getAttribute("aria-selected") !== "true") tabs[0].click();
+  }
   document.addEventListener("click", (e) => { const b = e.target.closest(".sttab"); if (!b) return; const wrap = b.closest(".stabs"); if (!wrap) return;
     for (const x of wrap.querySelectorAll(":scope > .stnav > .sttab")) x.setAttribute("aria-selected", x === b ? "true" : "false");
     for (const p of wrap.querySelectorAll(":scope > .stbody > .stpanel")) { p.hidden = p.dataset.stp !== b.dataset.stp; if (!p.hidden) stSel[wrap.dataset.stkey] = p.dataset.stl; }
+    if (wrap.dataset.stkey === "new" && $("naErr")) $("naErr").innerHTML = "";
     window.dispatchEvent(new Event("resize")); });
-  for (const ev of ["input", "change"]) document.addEventListener(ev, () => { for (const w of document.querySelectorAll(".stabs")) stMarks(w); });
+  for (const ev of ["input", "change"]) document.addEventListener(ev, () => { for (const w of document.querySelectorAll(".stabs")) stMarks(w); try { naGate(); } catch { /* not on the new application page */ } });
+  { const src = document.querySelector("nav.rail .mark img"), dst = $("brandLogo"); if (src && dst) dst.src = src.src; }
+  $("todo").addEventListener("click", (e) => { const a = e.target.closest('.item[aria-current="true"]'); if (!a) return; e.preventDefault(); if (!leaveEdit()) return; location.hash = "#/work"; });
   function renderWork(id) {
     const r = rows.find((x) => x.id === id) || null;
     if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; saveNote = null; }
@@ -1977,7 +2001,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13b", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13c", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2243,10 +2267,11 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         '<label>Lime recommendation <span class="req">*</span><span class="ndlime"><input type="text" inputmode="decimal" data-nd="lime" aria-label="Lime recommendation" value="' + esc(r.lime ?? "") + '"><select data-nd="limeUnit" aria-label="Unit of the lime recommendation"><option value="lb"' + (r.limeUnit === "t" ? "" : " selected") + '>lb/acre</option><option value="t"' + (r.limeUnit === "t" ? " selected" : "") + ">tons/acre</option></select></span></label></div>" +
       '<div class="ndwarn" id="ndWarn" role="alert"></div><div class="small" id="ndLimeHint" style="margin-top:6px"></div>' +
       NR_GROUPS.map((g) => { const n = nrFilled(r, g.fields);
-        return '<details data-ndg="' + g.key + '"' + (r.og[g.key] ? " open" : "") + "><summary>" + esc(g.label) + (n ? ' <span class="small">(' + n + " entered)</span>" : "") + "</summary>" + (g.key === "lab" ? '<div class="small ndnote">At least one of the two dates is required: it decides whether the soil test is current.</div>' : "") + '<div class="nagridx">' +
+        return '<details data-st="' + esc(g.label) + '" data-ndg="' + g.key + '"' + (r.og[g.key] ? " open" : "") + "><summary>" + esc(g.label) + (n ? ' <span class="small">(' + n + " entered)</span>" : "") + "</summary>" + (g.key === "lab" ? '<div class="small ndnote">At least one of the two dates is required: it decides whether the soil test is current.</div>' : "") + '<div class="nagridx">' +
           g.fields.filter((f) => BORN.R[f] && (!NR_SHOW[f] || NR_SHOW[f](r.x))).map((f) => '<label class="nax' + (NR_WIDE.has(f) ? " wide" : "") + '"><span>' + esc(BORN.R[f].label || f) + (f === "LabReportDate" || f === "DateSampled" ? ' <span class="req">*</span>' : "") + "</span>" + nrBox(0, f, r) + "</label>").join("") + "</div></details>"; }).join("") +
       (ND.err ? '<div class="error" style="margin-top:10px">' + esc(ND.err) + "</div>" : "") + "</div>" +
       '<div class="ndfoot">' + (ND.i >= 0 ? '<button type="button" class="btn danger" id="ndRemove">Remove field</button>' : "") + '<span class="sp small">Saved to this page only. Nothing is created until you review and confirm.</span><button type="button" class="btn" id="ndCancel">Cancel</button><button type="button" class="btn go" id="ndSave">Save field</button></div>';
+    try { sideTabs(dlg.querySelector(".ndbody"), "nd", "details[data-ndg]"); } catch (e) { console.warn("side tabs", e); }
     ndHint(); ndWarn();
   }
   function naSum() {               // the ranking effect of what is typed so far, by the survey's own rules
@@ -2257,7 +2282,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         " · soil test within a year of the application date: " + (nb(p.ApplicationDate) ? "enter the application date" : cur + " of " + R.length + " field" + (R.length === 1 ? "" : "s")) + ".";
     } catch { el.textContent = ""; }
   }
-  function naRowsDraw() { const h = $("naRows"); if (h) h.innerHTML = naRowsHtml(); naSum(); if ($("naErr")) $("naErr").innerHTML = ""; }
+  function naRowsDraw() { const h = $("naRows"); if (h) h.innerHTML = naRowsHtml(); naSum(); if ($("naErr")) $("naErr").innerHTML = ""; for (const w of document.querySelectorAll("#naPane .stabs")) stMarks(w); try { naGate(); } catch { /* */ } }
   function naOpen() {
     const pane = $("naPane");
     if (!BORN.ok) { pane.innerHTML = "<h2>New application</h2>" + '<div class="error">Creating applications in the app is switched off. ' + esc(BORN.why) + "</div>" +
@@ -2268,14 +2293,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const col = (c) => NA_GROUPS.filter((g) => g.col === c);
     pane.innerHTML = "<h2>New application</h2>" + '<div class="notice">The boxes marked required, and the starred values of each field, are needed now. Everything else can be completed later on the Intake and Field rows tabs. Nothing is created until you review and confirm.</div>' +
       BORN.notes.map((n) => '<div class="notice" style="margin-top:8px">' + esc(n) + "</div>").join("") +
-      '<datalist id="naFarms"></datalist>' + [["id", "Applicant and farm"], ["app", "Applicant and farm"]].map(([k, t]) => naGroup(NA_GROUPS.find((g) => g.key === k)).replace('class="ecard', 'data-st="' + t + '" class="ecard')).join("") +
+      '<datalist id="naFarms"></datalist><div id="naGate" class="error" role="status" hidden></div>' + [["id", "Applicant and farm"], ["app", "Applicant and farm"]].map(([k, t]) => naGroup(NA_GROUPS.find((g) => g.key === k)).replace('class="ecard', 'data-st="' + t + '" class="ecard')).join("") +
       '<div class="ecard" data-st="Fields"><h3>Fields</h3><div class="ebody"><div class="small">Click a field on the map to add it and enter its values, or pick it from the list. Only fields that are on the map can be entered; a field that is missing has to be added to the fields layer in ArcGIS Pro first. Every field needs its number, total and treated acres, soil pH, lime recommendation and a lab date, because the ranking is calculated from them. The other lab details are optional and can also be entered or corrected later on the Field rows tab.</div>' +
       '<div id="naMapNote" class="small">Enter a Farm # to see its fields on a map.</div><div id="naMap" hidden></div><div id="naRows">' + naRowsHtml() + '</div><div><button type="button" class="btn" id="naAddRow">Add a field from the list</button></div></div></div>' +
       ["con", "req"].map((k) => naGroup(NA_GROUPS.find((g) => g.key === k))).join("") + naGroup(NA_GROUPS.find((g) => g.key === "notes")).replace('class="ecard', 'data-st="Notes and packet" class="ecard') +
       '<div class="ecard" data-st="Notes and packet"><h3>Application packet (PDF, optional)</h3><div class="ebody"><input type="file" id="naFile" accept="application/pdf,.pdf"><small id="naFileNote">' + (NA.file ? "Chosen: " + esc(NA.file.name) : "") + "</small></div></div>" +
       '<div id="naErr"></div><div class="nabar"><span class="sp">Creating writes a new application to the live layer, after the review.</span><button type="button" class="linkbtn" id="naSurvey" style="margin:0">Use the intake survey instead</button>' +
       '<button type="button" class="btn" id="naClear">Clear</button><button type="button" class="btn go" id="naReviewBtn">Review</button></div>';
-    sideTabs(pane, "new"); naSync(); naFarmList(); if (NA.farm) naMap(); naSum();
+    sideTabs(pane, "new"); naSync(); naFarmList(); if (NA.farm) naMap(); naSum(); for (const w of pane.querySelectorAll(".stabs")) stMarks(w); naGate();
   }
   async function naFarmList() { try { await loadPolygons(); const dl = $("naFarms"); if (dl) dl.innerHTML = MAPS.farms.filter((f) => f.no != null).slice().sort((a, b) => (parseInt(a.no, 10) || 0) - (parseInt(b.no, 10) || 0) || String(a.no).localeCompare(String(b.no))).map((f) => '<option value="' + esc(f.no) + '">' + esc(f.name || "") + "</option>").join(""); naFarmChanged(); } catch { /* no polygons: Farm # is typed */ } }
   const naNextSeq = (fy) => { const yy = String(fy).slice(2, 4), county = castBorn(BORN.P.AEPCounty, BORN.P.AEPCounty.value), used = new Set();
@@ -2310,6 +2335,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (!same) NA.farm = hit.length || flds.length ? { farm, polys: hit, fields: flds } : null;
     NA.farmTag = NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") : "";
     const note = $("naMapNote"); if (note) note.textContent = !farm ? "Enter a Farm # to see its fields on a map." : NA.farm ? "Farm # " + NA.v.FarmID + (hit[0] && hit[0].name ? " · " + hit[0].name : "") + ": click a field to add it, or to open it again." : "No polygon for Farm # " + NA.v.FarmID + " in the farms layer. Type the fields below.";
+    if (note) note.className = NA.farm && NA.farm.fields.length ? "small" : "error";
+    if ($("naErr")) $("naErr").innerHTML = ""; try { naGate(); } catch { /* tabs not drawn yet */ }
     if ($("naMap")) $("naMap").hidden = !NA.farm; if (same) { naTag(); return; } if (NA.farm) naMap();
   }
   function naTag() { const host = $("naMap"); if (!host) return; let t = host.querySelector(".nafarmtag"); if (!t) { t = document.createElement("div"); t.className = "nafarmtag"; host.appendChild(t); } t.textContent = NA.farmTag || ""; t.hidden = !NA.farmTag; }
