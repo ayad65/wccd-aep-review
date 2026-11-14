@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13d, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13f, 14 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -365,6 +365,11 @@
     @media print { body.onhelp { padding: 0; background: #fff; } body.onhelp nav.rail, body.onhelp header.top, body.onhelp #buildLine, body.onhelp .noprint, body.onhelp #gate { display: none !important; }
       body.onhelp main { padding: 0; margin: 0; max-width: none; } body.onhelp .guide { border: 0; padding: 0; max-width: none; font-size: 11.5pt; } body.onhelp .guide h2 { break-after: avoid; } body.onhelp .guide p, body.onhelp .guide ol, body.onhelp .guide ul { max-width: none; } body.onhelp .guide li, body.onhelp .guide tr { break-inside: avoid; }
       body.onhelp .gstages span, body.onhelp .guide .gnote { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    /* B13e: the event title starts a new row under the event question, with the event date beside it */
+    .ebody > .fld[data-ef="AttendedEventDetail"] { grid-column: 1; }
+    /* B13f: the numbered steps open their tab */
+    .steps li .stepbtn { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 1; border-radius: 8px; padding: 0 6px; }
+    .steps li .stepbtn:hover i { box-shadow: 0 0 0 4px rgba(20,50,58,.14); } .steps li .stepbtn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
   </style>
 </head>
 <body>
@@ -440,7 +445,7 @@
           <tr><th>Help</th><td>This guide.</td></tr>
         </tbody></table>
         <p>Each stage keeps one colour everywhere in the app:</p>
-        <div class="gstages"><span class="s1">1 Intake</span><span class="s2">2 Ranking</span><span class="s3">3 Approval</span><span class="s4">4 Agreement</span><span class="s5">5 Reimbursement</span><span class="s6">6 Closed</span></div>
+        <div class="gstages"><span class="s1">1 Intake</span><span class="s2">2 Ranking</span><span class="s3">3 Approval</span><span class="s4">4 Agreement</span><span class="s5">5 Costs</span><span class="s6">6 Closed</span></div>
 
         <h2>3. Entering a new application</h2>
         <ol>
@@ -454,7 +459,7 @@
         <p class="gnote">Only fields that are on the map can be entered. A field that is missing has to be added to the fields layer in ArcGIS Pro first.</p>
 
         <h2>4. Working on an application</h2>
-        <p>Open it from <b>Tasks</b> or from the Home list. The numbered steps across the top show where it stands. The tabs under them hold its sections; inside a tab, the list on the left switches between its parts.</p>
+        <p>Open it from <b>Tasks</b> or from the Home list. The numbered steps across the top show where it stands; click a step to open its tab. The tabs under them hold its sections; inside a tab, the list on the left switches between its parts.</p>
         <ol>
           <li>Open the tab for the stage you are working on and click <b>Edit</b>.</li>
           <li>Fill the boxes. A red mark on a left-hand tab means a required box in it is still empty.</li>
@@ -540,7 +545,8 @@
     editLayer: "App-Approval",
     editEngine: "own"                                 // "own" = our layout running the form's rules (test D1); "esri" = Esri's form component (fallback, build B2a)
   };
-  const STAGES = ["Intake", "Ranking", "Approval", "Agreement", "Reimbursement", "Closed"];
+  const STAGES = ["Intake", "Ranking", "Approval", "Agreement", "Costs", "Closed"];
+  const STAGE_TAB = ["intake", "rank", "appr", "agr", "cvf", "cvf"];       // the tab each numbered step opens (Yasser, 14 Nov)
   const NEXT   = ["next: rank it", "next: finish the ranking", "next: record the decision", "next: record the signatures", "next: check the CVF", "paid"];
   const ENDED  = ["NotFunded", "Ineligible", "Withdrawn"];
   // Field names are looked up from these candidates, so a renamed field shows up in "Data check" instead of breaking the page.
@@ -557,9 +563,9 @@
   // Worklist tabs. Each stage tab lists the stored values in the order and with the labels of that layer's Map Viewer form.
   const TABS = [
     { key: "intake", label: "Intake", layer: CFG.layerTitle, synth: true },      // no Map Viewer form exists for intake: the app supplies the layout (INTAKE below)
-    { key: "rank", label: "Ranking", layer: "App-Ranking" }, { key: "rows", label: "Field rows", short: "Fields" },
+    { key: "rows", label: "Field rows", short: "Fields" }, { key: "rank", label: "Ranking", layer: "App-Ranking" },
     { key: "appr", label: "Approval", layer: "App-Approval" }, { key: "agr", label: "Agreement", layer: "App-Agreement" },
-    { key: "cvf", label: "Cost verification", layer: "App-CVF", short: "Costs" }, { key: "map", label: "Map" }, { key: "docs", label: "Documents", short: "Files" }
+    { key: "cvf", label: "Cost verification", layer: "App-CVF", short: "Costs" }, { key: "docs", label: "Documents", short: "Files" }, { key: "map", label: "Map" }
   ];
   const tabIcon = (d) => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
   const TAB_ICON = { intake: tabIcon('<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>'), rank: tabIcon('<path d="M6 20V10M12 20V4M18 20v-7"/>'), rows: tabIcon('<path d="M3 9l9-5 9 5-9 5z"/><path d="M3 14l9 5 9-5"/>'),
@@ -824,7 +830,7 @@
   const tileOf = (r) => r.closed ? 6 : (r.signed || r.stageN === 5) ? 5 : r.stageN === 4 ? 4 : r.stageN === 3 ? 3 : (r.ranked || r.stageN === 2) ? 2 : 1;
   const TILES = [["Intake", "waiting to be ranked", '<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>'], ["Ranking", "ranked, decision due", '<path d="M6 20V10M12 20V4M18 20v-7"/>'],
                  ["Approval", "approved, to be signed", '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>'], ["Agreement", "signatures to record", '<path d="M4 20h16"/><path d="M6 16l9-9 3 3-9 9H6z"/>'],
-                 ["Reimbursement", "cost verification to check", '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'], ["Closed", "closed or ended", '<path d="M5 8h14v11H5z"/><path d="M3 4h18v4H3z"/><path d="M10 12h4"/>']];
+                 ["Costs", "cost verification to check", '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'], ["Closed", "closed or ended", '<path d="M5 8h14v11H5z"/><path d="M3 4h18v4H3z"/><path d="M10 12h4"/>']];
   let dashPick = 0;
   function dashDraw(list) {
     const el = $("dash"); if (!el) return; const n = [0, 0, 0, 0, 0, 0]; let paid = 0;
@@ -923,7 +929,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" accept="application/pdf,.pdf" hidden><div id="docBody"></div>' +
       '<p>' + (canFiles(r) ? "PDF files can be attached, and files deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
-      '<label><input type="checkbox" id="mapIds"> Show IDs of other fields (appear when you zoom in)</label>' +
+      '<label><input type="checkbox" id="mapIds" checked> Show IDs of other fields</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
       '<p class="legend"><span><i style="background:rgba(23,69,122,.35);border:2px solid #17457A"></i>In this application</span><span><i style="background:rgba(224,138,30,.4);border:2px solid #5E3A00"></i>Limed and paid inside the three-year window</span>' +
       '<span><i style="background:rgba(23,69,122,.35);border:3px solid #E08A1E"></i>Both</span><span><i style="background:#fff;border:1px solid #6B747E"></i>Other fields on the farm</span></p><p>Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
@@ -1035,7 +1041,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const g = (k) => (F[k] ? r.a[F[k]] : undefined);
     const farm = String(g("farmNo") ?? "").trim();
     const line = r.statusText + " · " + (r.ended ? "ended at " + STAGES[r.stageN - 1] : r.stageN === 6 ? "closed" : (r.ranked ? "ranked" : "at " + STAGES[r.stageN - 1]) + " · " + nextStepOf(r));
-    const steps = STAGES.map((n, i) => { const c = segClass(r, i + 1); return '<li class="s' + (i + 1) + " " + c + '"' + (c === "now" ? ' aria-current="step"' : "") + "><i>" + (c === "done" ? "&#10003;" : i + 1) + "</i>" + n + "</li>"; }).join("");
+    const steps = STAGES.map((n, i) => { const c = segClass(r, i + 1); return '<li class="s' + (i + 1) + " " + c + '"' + (c === "now" ? ' aria-current="step"' : "") + '><button type="button" class="stepbtn" data-steptab="' + STAGE_TAB[i] + '" title="Open the ' + (TABS.find((t) => t.key === STAGE_TAB[i]).short || TABS.find((t) => t.key === STAGE_TAB[i]).label) + ' tab"><i>' + (c === "done" ? "&#10003;" : i + 1) + "</i>" + n + "</button></li>"; }).join("");
     const nRows = fr.rows ? fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "").length : null;
     const reqAc = num(g("reqAcres")), aw = num(g("awarded")), calc = num(g("calc")), apT = num(g("apprTons")), apAc = num(g("apprAcres")), amt = num(g("apprAmt")), paid = num(g("paid"));
     const fig = (lab, val, sub) => '<div class="fig"><small>' + lab + "</small><b>" + esc(val) + "</b><span>" + esc(sub) + "</span></div>";
@@ -1062,6 +1068,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("detail").addEventListener("click", (e) => {
     const b = e.target.closest("[data-tab]");
     if (b) { if (!leaveEdit()) return; curTab = b.dataset.tab; renderWork(curId); return; }
+    const sb = e.target.closest("[data-steptab]");
+    if (sb) { if (!leaveEdit()) return; curTab = sb.dataset.steptab; renderWork(curId); return; }
     const id = e.target.id, r = rows.find((x) => x.id === curId);
     const re = e.target.closest("[data-rowedit]");
     if (re && r && !ed) { OWN.open(r, "rows", re.dataset.rowedit); return; }
@@ -1486,9 +1494,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       const back = S.values[name] == null && S.stash[name] != null
         ? '<button type="button" class="linkbtn" data-restore="' + esc(name) + '">Restore the earlier value: ' + esc(dispV(name, S.stash[name])) + "</button>" : "";
       const f = fieldOf(name), locked = S.calc[name] || S.edit[name] === false || (f && f.editable === false);
-      if (locked) return '<div class="fld calcfld"><span class="lab">' + esc(labelOf(name)) + '</span><div class="cval">' + esc(show(f, normV(S.values[name])) ?? "—") + "</div>" +
+      if (locked) return '<div class="fld calcfld" data-ef="' + esc(name) + '"><span class="lab">' + esc(labelOf(name)) + '</span><div class="cval">' + esc(show(f, normV(S.values[name])) ?? "—") + "</div>" +
         (el.description ? "<small>" + esc(el.description) + "</small>" : "") + whereToChange(name) + "</div>";
-      return '<div class="fld"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
+      return '<div class="fld" data-ef="' + esc(name) + '"><label id="l_' + id + '" for="' + id + '">' + esc(labelOf(name)) + (S.req[name] ? ' <span class="req">* required</span>' : "") + "</label>" +
         inputHtml(el) + back + (el.description ? "<small>" + esc(el.description) + "</small>" : "") + "</div>";
     }
     function skip(k) {            // never written: system fields and fields the layer does not let anyone edit
@@ -1881,7 +1889,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         return { num: numTxt, key, acres: attr(x, "TreatedAcresInField"), included: code === "Included", status: show(fr.fields.fieldstatus, code), hits, ty, bad, p }; });
       const used = new Set(rowsInfo.flatMap((x) => x.hits));
       const layer = new GraphicsLayer(), idLayer = new GraphicsLayer(), gs = [], idGs = [], byNum = new Map(), info = [];
-      idLayer.visible = !!($("mapIds") && $("mapIds").checked); idLayer.minScale = 10000;       // other fields' IDs only when zoomed in past about 1:10,000
+      idLayer.visible = !($("mapIds") && !$("mapIds").checked);       // other fields' IDs only when zoomed in past about 1:10,000
       const fill = (c, o) => ({ type: "simple-fill", color: c, outline: o });
       const text = (t, c) => ({ type: "text", text: t, color: c, haloColor: [255, 255, 255, 1], haloSize: 2, font: { size: 11, weight: "bold" } });
       const center = (g) => g && (g.centroid || (g.extent && g.extent.center));
@@ -1890,7 +1898,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       for (const f of onFarm.filter((f) => !used.has(f))) { const p = f.key && f.suf !== "9999" ? prior.get(f.key) : null;
         info.push({ id: f.id, acres: f.acres, inApp: "Not in this application", ty: p ? tyLine(p) : "", num: null });
         gs.push(new G({ geometry: f.g, symbol: p ? fill([224, 138, 30, 0.4], { color: [94, 58, 0, 1], width: 2 }) : fill([255, 255, 255, 0.15], { color: [107, 116, 126, 1], width: 1 }), attributes: { pi: info.length - 1 } }));
-        const c = center(f.g); if (c && f.suf) idGs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: [107, 116, 126, 1], haloColor: [255, 255, 255, 0.9], haloSize: 1, font: { size: 9 } } })); }
+        const c = center(f.g); if (c && f.suf) idGs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: [90, 98, 107, 1], haloColor: [255, 255, 255, 1], haloSize: 1.5, font: { size: 9 } } })); }
       for (const x of rowsInfo) for (const f of x.hits) {
         info.push({ id: f.id, acres: f.acres, inApp: (x.status || "In this application") + (x.acres != null ? ", " + fmt(Number(x.acres)) + " ac treated" : ""), ty: x.ty, bad: x.bad, num: x.num });
         const g = new G({ geometry: f.g, symbol: fill([23, 69, 122, 0.35], x.p ? { color: [224, 138, 30, 1], width: 3.5 } : { color: [23, 69, 122, 1], width: 2.5 }), attributes: { pi: info.length - 1 } });
@@ -1916,6 +1924,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         el = document.createElement("arcgis-map"); MAPS.el = el;
         el.map = new MapCls({ basemap: baseCopy(), layers: [layer, idLayer] });
         host.appendChild(el);
+        if (farmNo) { const fp = farmPolys.find((f) => f.name); const tg = document.createElement("div"); tg.className = "nafarmtag"; tg.textContent = "Farm # " + farmNo + (fp ? " · " + fp.name : ""); host.appendChild(tg); }
         el.addEventListener("arcgisViewReadyChange", zoomAll); setTimeout(zoomAll, 1500);
         el.addEventListener("arcgisViewClick", async (evt) => { try { const d = evt.detail, hit = await el.hitTest(d);
           const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.pi != null);
@@ -1977,7 +1986,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       "<p>To keep a record that the field was listed, cancel and set its Status to Excluded or Withdrawn with Edit this field instead; the totals leave it out either way.</p>" + err +
       '<button type="button" class="btn del" data-tool="go"' + busy + ">" + (t.busy ? "Working…" : "Confirm and delete the field") + '</button><button type="button" class="btn" data-tool="cancel"' + busy + ">Cancel</button></div>";
     if (t.kind === "delapp") return '<div class="tool del"><h3>Delete application ' + esc(r.id) + "?</h3><p>This removes, for every app and for Survey123, and cannot be undone:</p><ul><li>the application record of <b>" + esc(r.applicant || "(no applicant name)") + "</b></li>" +
-      "<li>" + t.nRows + " field row(s)" + (t.rowNames ? ": " + esc(t.rowNames) : "") + "</li><li>" + (t.nFiles == null ? "its attached files" : t.nFiles + " attached file(s)") + "</li></ul>" +
+      "<li>" + t.nRows + (t.nRows === 1 ? " field row" : " field rows") + (t.rowNames ? " (field " + esc(t.rowNames) + ")" : "") + "</li><li>" + (t.nFiles == null ? "its attached files" : t.nFiles + " attached file(s)") + "</li></ul>" +
       '<div class="frow"><div><label for="tdType">Type the ID ' + esc(r.id) + ' to confirm</label><input type="text" id="tdType" autocomplete="off" value="' + esc(t.typed ?? "") + '"></div></div>' + err +
       '<button type="button" class="btn del" data-tool="go"' + (t.busy || String(t.typed ?? "").trim() !== r.id ? " disabled" : "") + ">" + (t.busy ? "Working…" : "Delete the application") + '</button><button type="button" class="btn" data-tool="cancel"' + busy + ">Cancel</button></div>";
     return "";
@@ -2089,7 +2098,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           (orphans ? " " + orphans + " field row(s) are still in the table." : "") + (notes.length ? " " + notes.join(" ") : "");
         tool = null; curId = null; window.location.hash = "#/"; return;
       }
-    } catch (err) { console.error(err); if (tool) { tool.busy = false; tool.err = "Stopped – " + mask((err && err.message) || err) + "."; toolDraw(); } }
+    } catch (err) { console.error(err); if (tool) { tool.busy = false; tool.err = "Stopped – " + mask((err && err.message) || err) + "." + (/does not support delet/i.test(String((err && err.message) || err)) ? " Nothing was removed. The layer's settings in ArcGIS Online do not let this account delete; ask the administrator." : ""); toolDraw(); } }
   });
 
   // =====================================================================================================================
@@ -2099,7 +2108,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13d", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13f", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2185,8 +2194,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   };
   // What the entry page asks. Labels, hints, choices and "required" come from the file; only the grouping is the app's.
   const NA_GROUPS = [
-    { key: "id", label: "Identity", col: "L", fields: ["FiscalYear", "AEPSequence"] },
-    { key: "app", label: "Applicant and farm", col: "L", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber", "ApplicationDate", "HasConsPlan", "HasManurePlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate"] },
+    { key: "id", label: "Identity", col: "L", fields: ["FiscalYear", "ApplicationDate", "AEPSequence"] },
+    { key: "app", label: "Applicant and farm", col: "L", fields: ["ApplicantLegalName", "ApplicantRole", "LandownerName", "OperatorName", "FarmName", "FarmID", "TractNumber", "HasConsPlan", "AttendedEvent", "AttendedEventDetail", "AttendedEventDate", "HasManurePlan"] },
     { key: "req", label: "Request and certification", col: "R", fields: ["AmountRequestedTons", "FieldsCount", "FamilyMemberWCCD", "ApplicantSignatureDate", "FSAEmployeeName", "FSAEmployeeSignDate"] },
     { key: "con", label: "Contact details", col: "L", fields: ["FirstName", "LastName", "Salutation", "SignerName", "Email", "Phone", "Address1", "Address2", "City", "StateAbr", "Zip"] },
     { key: "notes", label: "Notes", col: "L", fields: ["Notes", "DiscrepancyNotes"] }
