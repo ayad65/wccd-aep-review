@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13g, 14 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13h, 14 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -374,6 +374,11 @@
     .basesw { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; background: #fff; border: 1px solid rgba(26,29,33,.45); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
     .basesw button { all: unset; cursor: pointer; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--ink); } .basesw button[aria-pressed="true"] { background: #14323A; color: #fff; } .basesw button:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
     #naPane .ebody > [data-nafld="HasConsPlan"], #naPane .ebody > [data-nafld="AttendedEvent"], #naPane .ebody > [data-nafld="HasManurePlan"], #naPane .ebody > .napair { grid-column: 1; }
+    /* B13h: backup card and reminder on Home */
+    .bkcard { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
+    .bkcard h2 { margin: 0 0 4px; font-size: 20px; } .bkcard p { margin: 0 0 4px; max-width: 78ch; } .bkcard .bkact { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 360px; text-align: right; }
+    #bkStatus.ok { color: #1E4D2B; font-weight: 600; } #bkStatus.bad { color: #A01818; font-weight: 600; }
+    .bkdue { background: #FFF4D6; border: 1px solid #B77900; color: #4A3200; border-radius: 8px; padding: 12px 16px; font-size: 14px; } .bkdue a { color: inherit; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -409,6 +414,7 @@
           <div><h1>All applications</h1><p id="summary"></p></div>
           <button type="button" class="primary" id="newApp">New application</button>
         </div>
+        <div id="bkDue" class="bkdue" role="status" hidden></div>
         <div id="dash" class="dash" role="group" aria-label="Applications by stage"></div>
         <div id="newAppNote" class="okmsg" hidden></div>
         <div class="filters">
@@ -427,6 +433,10 @@
             <tbody id="closedRows"></tbody>
           </table></div>
         </details>
+        <div class="bkcard" id="bkCard">
+          <div><h2>Backup</h2><p id="bkLast"></p><p class="small" id="bkAuto"></p></div>
+          <div class="bkact"><button type="button" class="btn" id="bkGo">Download backup (geodatabase)</button><div id="bkStatus" class="small" role="status"></div></div>
+        </div>
         <p class="legend">Red marks something that needs a closer look. Blue is a note. Grey tags show the status or outcome. Closed applications are tinted green. Open applications can be edited; every save happens only after you review and confirm. Closed applications and view-only records cannot be changed here.</p>
         <details class="diag"><summary>Data check</summary><div id="diag"></div></details>
         <details class="diag"><summary>About this app</summary><div id="about"></div></details>
@@ -501,6 +511,13 @@
           <li>If a red box says <b>Editing is blocked</b>, nothing was saved. Click Cancel and try again; if it returns, open the diagnostics under it and send the text to the administrator.</li>
           <li>Do not edit the same application in this app and in another ArcGIS tool at the same time.</li>
         </ul>
+
+        <h2>9. Backups</h2>
+        <ul>
+          <li>At the bottom of <b>Home</b>, <b>Download backup (geodatabase)</b> saves every application, field row and attached file as one zip file. It can take a few minutes. Keep the file somewhere safe, outside ArcGIS Online.</li>
+          <li>Home shows a yellow reminder when no backup has been downloaded on that computer for six months.</li>
+          <li>ArcGIS Online also makes its own copy on the 1st of every month and keeps the newest six; the oldest is deleted when a seventh is made.</li>
+        </ul>
         <p class="gfoot" id="helpBuild"></p>
       </div>
     </section>
@@ -540,6 +557,7 @@
   const CFG = {
     clientId: "GgRGSkyzcLuMKcSS",                     // public OAuth Client ID
     portalUrl: "https://clarion.maps.arcgis.com",
+    backup: { remindDays: 183, auto: "ArcGIS Online also makes its own copy on the 1st of every month and keeps the newest six. When a seventh is made, the oldest is deleted. Those copies stay inside ArcGIS Online; the download here is the copy kept outside it." },
     mapTitle: "WCCD AEP Review (EB)",
     layerTitle: "Applications",
     farmsItem: "94ab476757584a6a8505004bc59e594a",         // "Washington County Farms" (farm and field polygons), used by the Map tab when the web map does not hold it
@@ -843,7 +861,49 @@
       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icon + "</svg><b>" + n[i] + "</b><span>" + name + "</span><small>" +
       esc(i === 5 && paid > 0 ? "paid " + money(paid) + " in total" : sub) + "</small></button>").join("");
   }
+  // ---------------- B13h: backup. The whole service (applications, field rows, alias rows, attached files) as a file geodatabase, built by the service's own
+  // createReplica and fetched by the app, so no address carrying a sign-in token is ever shown. Nothing is stored on the service and no item is created.
+  // The date of the last download is remembered in this browser only; after CFG.backup.remindDays the Home page asks for a new one (Yasser, 14 Nov).
+  const bkWhen = () => { try { const t = Number(localStorage.getItem("wccdBackupAt")); return t > 0 ? t : null; } catch { return null; } };
+  function bkDraw() {
+    if (!$("bkCard")) return;
+    const t = bkWhen(), days = t ? Math.floor((Date.now() - t) / 86400000) : null, due = t == null || days >= CFG.backup.remindDays;
+    $("bkLast").textContent = t ? "Last backup downloaded on this computer: " + new Date(t).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + (days ? " (" + days + " days ago)." : " (today).")
+      : "No backup has been downloaded on this computer yet.";
+    $("bkAuto").textContent = "The download holds every application, field row and attached file, as a file geodatabase that opens in ArcGIS Pro. " + CFG.backup.auto;
+    const d = $("bkDue"); d.hidden = !due;
+    if (due) d.innerHTML = "<b>Time to download a backup copy.</b> " + (t ? "The last one on this computer was " + days + " days ago." : "None has been downloaded on this computer.") + ' A new copy is asked for every six months. <a href="#" id="bkJump">Go to Backup</a>';
+  }
+  document.addEventListener("click", (e) => { if (e.target && e.target.id === "bkJump") { e.preventDefault(); $("bkCard").scrollIntoView({ behavior: "smooth", block: "center" }); $("bkGo").focus({ preventScroll: true }); } });
+  $("bkGo").addEventListener("click", async () => {
+    const b = $("bkGo"), st = $("bkStatus"), say = (cls, t) => { st.className = "small " + cls; st.textContent = t; };
+    if (b.disabled) return; b.disabled = true; say("", "Preparing the backup… this can take a few minutes. Keep this page open.");
+    try {
+      if (!appLayer || !appLayer.url) throw new Error("the applications layer is not loaded yet");
+      const esriRequest = await $arcgis.import("@arcgis/core/request.js"), base = String(appLayer.url).split("?")[0].replace(/\/\d+$/, "");
+      const info = (await esriRequest(base, { query: { f: "json" } })).data, ids = [...(info.layers || []), ...(info.tables || [])].map((x) => x.id);
+      if (!ids.length) throw new Error("the service lists no layers");
+      const d = new Date(), stamp = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      const job = (await esriRequest(base + "/createReplica", { method: "post", query: { f: "json", replicaName: "wccd_backup_" + stamp.replace(/-/g, ""), layers: ids.join(","), returnAttachments: true,
+        attachmentsSyncDirection: "bidirectional", syncModel: "none", dataFormat: "filegdb", transportType: "esriTransportTypeUrl", async: true } })).data;
+      let url = job.responseUrl || job.resultUrl || job.URL || null;
+      if (!url) { if (!job.statusUrl) throw new Error("the service did not start the export");
+        for (let i = 0; i < 240 && !url; i++) { await new Promise((r) => setTimeout(r, i < 10 ? 3000 : 6000));
+          const s2 = (await esriRequest(job.statusUrl, { query: { f: "json" } })).data, stt = String(s2.status || "");
+          if (/fail/i.test(stt)) throw new Error("the export failed" + (s2.error && s2.error.message ? ": " + s2.error.message : ""));
+          if (/complete/i.test(stt)) url = s2.resultUrl || s2.responseUrl || null; else say("", "Preparing the backup… " + (stt || "working") + ". Keep this page open."); }
+        if (!url) throw new Error("the export did not finish in time; try again later"); }
+      say("", "Downloading the backup…");
+      const blob = (await esriRequest(url, { responseType: "blob" })).data, href = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = href; a.download = "WCCD-lime-backup-" + stamp + ".zip"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(href), 600000);
+      try { localStorage.setItem("wccdBackupAt", String(Date.now())); } catch { /* the reminder simply stays */ }
+      say("ok", "Downloaded WCCD-lime-backup-" + stamp + ".zip (" + (blob.size / 1048576).toFixed(1) + " MB). Keep it somewhere safe; unzip it to open the geodatabase in ArcGIS Pro."); bkDraw();
+    } catch (err) { console.error(err); const m = mask((err && err.message) || err);
+      say("bad", "The backup was not made – " + m + "." + (/not supported|capabilit|permission|not allowed|403|extract|sync/i.test(m) ? " The layer's settings in ArcGIS Online may not let this account export; ask the administrator to allow others to export the layer." : "")); }
+    b.disabled = false;
+  });
   function renderHome() {
+    try { bkDraw(); } catch (e) { console.warn("backup card", e); }
     const fy = $("fy").value, st = Number($("st").value), only = $("onlyAtt").checked, text = $("q").value.trim().toLowerCase();
     const pass0 = (r) => (fy === "all" || r.fy === fy) && (!text || r.id.toLowerCase().includes(text) || r.applicant.toLowerCase().includes(text));
     try { dashDraw(rows.filter(pass0)); } catch (e) { console.warn("dashboard", e); }
@@ -2122,7 +2182,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13g", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13h", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
