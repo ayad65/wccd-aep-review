@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13c, 13 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13d, 13 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -353,6 +353,18 @@
     details.closedList > summary { background: var(--s6); color: #fff; border-radius: 8px; padding: 6px 10px; min-height: 0; font-size: inherit; } details.closedList .item { margin: 8px 8px 0; background: #fff; border-color: var(--closed-line); } details.closedList .none { display: block; padding: 8px 10px 0; }
     details.closedList .item[aria-current="true"] { background: var(--closed-bg); border-color: var(--s6); box-shadow: none; }
     @media (max-width: 860px) { .stbody { border-radius: 12px; } .sttab[aria-selected="true"] { border-right: 1px solid var(--line); } }
+    /* ---------- B13d: the user guide ---------- */
+    .guide { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 26px 34px 30px; max-width: 900px; line-height: 1.5; }
+    .guide .ghead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } .guide h1 { margin: 0; font-size: 34px; } .guide .lead { margin: 2px 0 0; color: var(--muted); font-weight: 600; }
+    .guide h2 { font-size: 22px; margin: 26px 0 8px; padding-top: 14px; border-top: 2px solid var(--soft); } .guide p { margin: 0 0 10px; max-width: 72ch; } .guide ol, .guide ul { margin: 0 0 10px; padding-left: 22px; max-width: 74ch; } .guide li { margin-bottom: 6px; }
+    .guide table.gt { min-width: 0; width: 100%; border-collapse: collapse; margin: 0 0 12px; } .guide table.gt th { text-align: left; vertical-align: top; width: 120px; padding: 8px 12px 8px 0; font-weight: 700; border-top: 1px solid var(--soft); } .guide table.gt td { padding: 8px 0; border-top: 1px solid var(--soft); } .guide table.gt th { font-size: inherit; color: var(--ink); border-bottom: 0; background: none; text-transform: none; letter-spacing: 0; }
+    .gstages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; } .gstages span { padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; color: #fff; }
+    .gstages .s1 { background: var(--s1); } .gstages .s2 { background: var(--s2); color: var(--ink); } .gstages .s3 { background: var(--s3); color: var(--ink); } .gstages .s4 { background: var(--s4); } .gstages .s5 { background: var(--s5); } .gstages .s6 { background: var(--s6); }
+    .guide .gnote { background: var(--blue-bg); border-radius: 8px; padding: 10px 14px; font-weight: 600; } .guide .gfoot { margin-top: 22px; color: var(--muted); font-size: 13px; }
+    @page { size: letter; margin: 0.7in; }
+    @media print { body.onhelp { padding: 0; background: #fff; } body.onhelp nav.rail, body.onhelp header.top, body.onhelp #buildLine, body.onhelp .noprint, body.onhelp #gate { display: none !important; }
+      body.onhelp main { padding: 0; margin: 0; max-width: none; } body.onhelp .guide { border: 0; padding: 0; max-width: none; font-size: 11.5pt; } body.onhelp .guide h2 { break-after: avoid; } body.onhelp .guide p, body.onhelp .guide ol, body.onhelp .guide ul { max-width: none; } body.onhelp .guide li, body.onhelp .guide tr { break-inside: avoid; }
+      body.onhelp .gstages span, body.onhelp .guide .gnote { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style>
 </head>
 <body>
@@ -362,6 +374,7 @@
   <a href="#/work" id="navWork"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tasks</a>
   <a href="#/new" id="navNew"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>New</a>
   <span class="grow"></span>
+  <a href="#/help" id="navHelp"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.200-1.500 2.300M12 17v.5"/></svg>Help</a>
   <a href="#/" id="navAbout"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>About</a>
 </nav>
 <header class="top">
@@ -412,6 +425,76 @@
     </section>
 
     <!-- NEW APPLICATION (created by the app) -->
+    <section id="help" hidden>
+      <div class="guide">
+        <div class="ghead"><div><h1>User guide</h1><p class="lead">WCCD Agricultural Enhancement Program · Lime applications</p></div><button type="button" class="btn noprint" id="helpPrint">Print or save as PDF</button></div>
+
+        <h2>1. What the app does</h2>
+        <p>The app follows a lime application from the paper packet to the reimbursement check. You enter the application, rank it, record the decision, the agreement and the cost verification, and print the four program documents. Everything is stored in the district's ArcGIS Online account; you sign in with your ArcGIS Online name and password.</p>
+
+        <h2>2. Finding your way</h2>
+        <table class="gt"><tbody>
+          <tr><th>Home</th><td>Six coloured tiles count the applications at each stage. Click a tile to list only that stage; click it again to show all. Under the tiles are the open applications and anything that needs attention.</td></tr>
+          <tr><th>Tasks</th><td>Open applications grouped by the next thing to do. Click one to open it; click it again to close it.</td></tr>
+          <tr><th>New</th><td>Enter a new application.</td></tr>
+          <tr><th>Help</th><td>This guide.</td></tr>
+        </tbody></table>
+        <p>Each stage keeps one colour everywhere in the app:</p>
+        <div class="gstages"><span class="s1">1 Intake</span><span class="s2">2 Ranking</span><span class="s3">3 Approval</span><span class="s4">4 Agreement</span><span class="s5">5 Reimbursement</span><span class="s6">6 Closed</span></div>
+
+        <h2>3. Entering a new application</h2>
+        <ol>
+          <li>Click <b>New</b>. Start on <b>Applicant and farm</b>: fiscal year, sequence number (the next free number is suggested), name, application date, the three plan and event answers, and the Farm #. The other tabs stay dimmed until these are filled and the Farm # has fields on the map.</li>
+          <li>Open <b>Fields</b>. Click a field on the map, or use <b>Add a field from the list</b>. A panel opens for that field.</li>
+          <li>In the panel, enter treated acres, soil pH and the lime recommendation, in lb/acre or tons/acre. Under <b>Lab report</b> enter the report date or the date sampled. The other lab details are optional. Click <b>Save field</b>.</li>
+          <li>A field with something missing shows a red <b>! Missing</b> note in the list. Click <b>Edit</b> on it to finish.</li>
+          <li>Fill <b>Contact details</b> and <b>Request and certification</b> if you have them, and attach the scanned packet (PDF) under <b>Notes and packet</b>.</li>
+          <li>Click <b>Review</b>, read the summary, then <b>Confirm and create</b>. Nothing is stored before that click.</li>
+        </ol>
+        <p class="gnote">Only fields that are on the map can be entered. A field that is missing has to be added to the fields layer in ArcGIS Pro first.</p>
+
+        <h2>4. Working on an application</h2>
+        <p>Open it from <b>Tasks</b> or from the Home list. The numbered steps across the top show where it stands. The tabs under them hold its sections; inside a tab, the list on the left switches between its parts.</p>
+        <ol>
+          <li>Open the tab for the stage you are working on and click <b>Edit</b>.</li>
+          <li>Fill the boxes. A red mark on a left-hand tab means a required box in it is still empty.</li>
+          <li>Click <b>Review and save</b>. The panel lists what you changed and what the form calculated from it.</li>
+          <li>Click <b>Confirm and save</b>. A green line confirms the values were stored and read back. <b>Back to the form</b> or <b>Cancel</b> stores nothing.</li>
+        </ol>
+
+        <h2>5. Stage by stage</h2>
+        <table class="gt"><tbody>
+          <tr><th>Ranking</th><td>Questions 1, 3 and 8 come from the Intake answers, and 9 and 11 from the fields' lab dates and soil pH. To change one, change its source on the Intake or Fields tab. Answer the remaining questions and the eligibility question, then save.</td></tr>
+          <tr><th>Approval</th><td>The form suggests the tons, acres and maximum assistance from the ranking. Choose the decision. For an approved application also fill Approved by, Title and the signing window, which the approval letter prints. Saving moves the application to Approval.</td></tr>
+          <tr><th>Agreement</th><td>Record the signature dates and the WCCD representative. Once the landowner and WCCD dates are stored, the next step becomes the cost verification.</td></tr>
+          <tr><th>Costs</th><td>Enter the tons purchased and the cost per ton; the form works out the eligible tons, the rate and the request. Then record the verification answers and the invoice. Entering the amount paid, the payment date and the check number closes the application.</td></tr>
+        </tbody></table>
+
+        <h2>6. Documents and files</h2>
+        <ul>
+          <li>Each document opens from its own tab, at the top right: <b>Application Summary</b> on Intake, <b>Approval Letter</b> on Approval, <b>Agreement</b> on Agreement, <b>Cost Verification Form</b> on Costs.</li>
+          <li>The preview shows Letter pages. A red line at its top names any value that is still empty on the record. <b>Print</b> sends it to the printer; <b>Download Word file</b> gives an editable copy.</li>
+          <li>Opening, printing or downloading a document stores nothing on the application.</li>
+          <li>The <b>Files</b> tab holds attached files. Use <b>Attach</b> on the right group, and <b>Open</b> or <b>Delete</b> beside a file. Only PDF files can be attached. Files can be attached and deleted on a closed application too.</li>
+        </ul>
+
+        <h2>7. Fields and the map</h2>
+        <ul>
+          <li>The <b>Fields</b> tab lists the application's fields. Open one to see its values, <b>Edit</b> it, <b>Add a field</b> or <b>Delete</b> one.</li>
+          <li>The <b>Map</b> tab shows the farm. The application's fields are coloured; a field funded within the last three years is marked, and the same check appears as a red line on the application.</li>
+        </ul>
+
+        <h2>8. Good to know</h2>
+        <ul>
+          <li>A <b>closed</b> application cannot be changed, apart from its attached files.</li>
+          <li><b>Delete application</b> is offered only before approval. It asks you to type the AEP ID and removes the application with its fields.</li>
+          <li>A red line under an application's figures is a flag, for example a missing Farm #. It tells you what to fix and where.</li>
+          <li>If a red box says <b>Editing is blocked</b>, nothing was saved. Click Cancel and try again; if it returns, open the diagnostics under it and send the text to the administrator.</li>
+          <li>Do not edit the same application in this app and in another ArcGIS tool at the same time.</li>
+        </ul>
+        <p class="gfoot" id="helpBuild"></p>
+      </div>
+    </section>
     <section id="newapp" hidden>
       <div><a class="back" href="#/">← All applications</a></div>
       <div class="detail" style="margin-top:12px"><div class="pane" id="naPane"></div></div>
@@ -934,6 +1017,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   for (const ev of ["input", "change"]) document.addEventListener(ev, () => { for (const w of document.querySelectorAll(".stabs")) stMarks(w); try { naGate(); } catch { /* not on the new application page */ } });
   { const src = document.querySelector("nav.rail .mark img"), dst = $("brandLogo"); if (src && dst) dst.src = src.src; }
   $("todo").addEventListener("click", (e) => { const a = e.target.closest('.item[aria-current="true"]'); if (!a) return; e.preventDefault(); if (!leaveEdit()) return; location.hash = "#/work"; });
+  $("helpPrint").addEventListener("click", () => window.print());
   function renderWork(id) {
     const r = rows.find((x) => x.id === id) || null;
     if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; saveNote = null; }
@@ -1328,6 +1412,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         S.groupVis = groupVis;
         if (!changed) break;
       }
+      // A field row's resolved label and key were calculated once by the survey (or by the app at creation). Nothing else maintains them, so an edit keeps them in step, by the survey's own rules.
+      if (S.tabKey === "rows") { try {
+        const kOf = (n) => Object.keys(S.original).find((x) => x.toLowerCase() === n.toLowerCase()), v = (n) => { const k = kOf(n); return k ? S.values[k] : undefined; }, o = (n) => { const k = kOf(n); return k ? S.original[k] : undefined; };
+        const put = (n, val) => { const k = kOf(n); if (!k || !fieldOf(k) || fieldOf(k).editable === false) return; S.values[k] = val; S.calc[k] = true; };
+        if (kOf("FieldLabelResolved")) put("FieldLabelResolved", R_RULES.FieldLabelResolved.f({ FieldLabelOnAgreement: v("FieldLabelOnAgreement"), FieldNum: v("FieldNum") }));
+        const key0 = o("FieldKey"), num0 = o("FieldNum"), num1 = v("FieldNum");
+        if (key0 != null && num0 != null && num1 != null && String(num0) !== String(num1) && String(key0).endsWith("-" + num0)) put("FieldKey", String(key0).slice(0, String(key0).length - String(num0).length) + num1);
+      } catch (e) { console.warn("row label upkeep", e); } }
       // 3. required, editable (fields without a calculation) and the message lines
       const fin = { ...S.values };
       await Promise.all(S.els.filter((x) => !x.isGroup).map(async ({ el }) => {
@@ -1625,6 +1717,10 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         "<div><b>You changed</b>" + ul(p.you, line) + "</div>" +
         "<div><b>Calculated by the form</b>" + ul(p.calc, line) + "</div>" +
         '<div><b>Emptied because your change hid them</b> <span class="small">(go back to the form to restore any of these)</span>' + ul(p.emptied, (x) => labelOf(x.k) + ": " + dispV(x.k, x.a) + " → (empty)") + "</div>" +
+        (() => { if (S.tabKey !== "appr") return ""; const gv = (n) => { const k = Object.keys(S.values).find((x) => x.toLowerCase() === n.toLowerCase()); return k ? S.values[k] : null; };
+          if (String(gv("AppStatus") ?? "") !== "Approved") return "";
+          const blanks = [["Approved by", "ApprovedBy"], ["Title", "ApprovedByTitle"], ["Signing window opens", "SigningWindowStart"], ["Signing window closes", "SigningWindowEnd"], ["Address (Intake, Contact details)", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Greeting (Intake, Contact details)", "LetterSalutation"]].filter(([, f]) => nb(gv(f))).map(([l]) => l);
+          return blanks.length ? '<div class="notice" style="margin:8px 0"><b>The approval letter will have blanks.</b> Still empty: ' + esc(blanks.join(", ")) + ". You can save now and fill them later, or go back to the form.</div>" : ""; })() +
         (dupId ? '<div class="error" style="margin:8px 0">AEP ID ' + esc(dupId) + " is already used by another application. Go back and change the fiscal year or the sequence number.</div>" : "") +
         (S.tabKey === "intake" && p.you.some((x) => x.k.toLowerCase() === "farmid") ? '<div class="error" style="margin:8px 0">Farm # is changing. The field rows keep the field key built from the old farm number at entry; the three-year check and the map compare the farm and field numbers directly, so they follow the new number. Check the Map tab after saving.</div>' : "") +
         (missingLocked().length ? '<div><b>Still missing after this save</b> <span class="small">(required by the form, but not filled on this tab)</span>' + ul(missingLocked(), (x) => x) + "</div>" : "") +
@@ -1683,15 +1779,15 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   $("detail").addEventListener("change", (e) => { if (e.target.id === "showEmpty") { showEmpty = e.target.checked; renderWork(curId); } });
   function route() {
     const h = decodeURIComponent(window.location.hash || "#/");
-    const isWork = h.startsWith("#/work"), isNew = h.startsWith("#/new");
+    const isWork = h.startsWith("#/work"), isNew = h.startsWith("#/new"), isHelp = h.startsWith("#/help");
     if (ed && (!isWork || h.replace(/^#\/work\/?/, "") !== ed.r.id)) {       // leaving a record that is being edited
       if (!leaveEdit()) { window.location.hash = "#/work/" + encodeURIComponent(ed.r.id); return; }
     }
-    $("home").hidden = isWork || isNew; $("work").hidden = !isWork; $("newapp").hidden = !isNew;
-    for (const [el, on] of [[$("navHome"), !isWork && !isNew], [$("navWork"), isWork], [$("navNew"), isNew]]) {
+    $("home").hidden = isWork || isNew || isHelp; $("work").hidden = !isWork; $("newapp").hidden = !isNew; $("help").hidden = !isHelp; document.body.classList.toggle("onhelp", isHelp);
+    for (const [el, on] of [[$("navHome"), !isWork && !isNew && !isHelp], [$("navWork"), isWork], [$("navNew"), isNew], [$("navHelp"), isHelp]]) {
       if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
     }
-    if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else if (isNew) naOpen(); else renderHome();
+    if (isWork) renderWork(h.replace(/^#\/work\/?/, "")); else if (isNew) naOpen(); else if (isHelp) window.scrollTo(0, 0); else renderHome();
   }
 
   // ---------------- Wire up ----------------
@@ -1854,7 +1950,9 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // A field row is born with what the survey chat confirmed something reads (handoff S3a, 13 Nov): its link to the application, field number, total acres,
   // status Included, the label to print, total tons, and the application's ID and fiscal year; plus the survey's five "No" defaults so it looks native.
   // An application may be deleted only while no decision is recorded on it and it has not passed Approval.
-  function deletable(r) { return canEdit(r) && !r.ended && r.status !== "Approved" && r.stageN <= 3; }
+  // A real application can be deleted only before approval. A test record, one whose applicant name contains "DELETE LATER", can be deleted at any stage, closed included.
+  const isThrowaway = (r) => !!r && !r.viewOnly && /delete\s+later/i.test(r.applicant || "");
+  function deletable(r) { return isThrowaway(r) || (canEdit(r) && !r.ended && r.status !== "Approved" && r.stageN <= 3); }
   var tool = null;                 // { kind: "add" | "delrow" | "delapp", id, step, busy, ... }
   $("detail").addEventListener("click", (e) => { if (e.target.closest("[data-tab]") && tool && !tool.busy) tool = null; }, true);      // a panel never outlives its tab
   const rowsOf = (r) => (fr.rows || []).filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
@@ -1928,7 +2026,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         if (!t.err) { t.total = total; t.treated = treated; t.step = "review"; }
         toolDraw(); return; }
       if (what !== "go") return;
-      if (!canEdit(r) || (t.kind === "delapp" && (!deletable(r) || String(t.typed ?? "").trim() !== r.id))) { tool = null; toolDraw(); return; }
+      if ((t.kind === "delapp" ? !deletable(r) : !canEdit(r)) || (t.kind === "delapp" && String(t.typed ?? "").trim() !== r.id)) { tool = null; toolDraw(); return; }
       t.busy = true; t.err = ""; toolDraw();
       if (!Graphic) [Graphic, arcade] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/arcade.js"]);
       if (t.kind === "add") {
@@ -2001,7 +2099,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13c", BUILD_DATE = "13 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13d", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2487,6 +2585,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // ---------- About this app ----------
   function aboutDraw() {
     $("buildLine").textContent = "WCCD lime applications review app · build " + BUILD + " · " + BUILD_DATE;
+    if ($("helpBuild")) $("helpBuild").textContent = "Guide for build " + BUILD + ", " + BUILD_DATE + ".";
     const f = BORN.file, row = (a, b) => "<dt>" + esc(a) + "</dt><dd>" + b + "</dd>";
     $("about").innerHTML = "<p>A review workspace for the Washington County Conservation District's Agricultural Enhancement Program lime applications. It follows each application from intake through ranking, the funding decision, the agreement and cost verification, with the farm's fields on a map and the application's documents. " +
       "Applications can be created, completed and corrected here; every change is shown for review first and read back from the service afterwards.</p><dl>" +
