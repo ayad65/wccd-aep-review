@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13f, 14 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13g, 14 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -370,6 +370,10 @@
     /* B13f: the numbered steps open their tab */
     .steps li .stepbtn { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 1; border-radius: 8px; padding: 0 6px; }
     .steps li .stepbtn:hover i { box-shadow: 0 0 0 4px rgba(20,50,58,.14); } .steps li .stepbtn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    /* B13g: basemap switch on the maps; New application questions kept in the left column */
+    .basesw { position: absolute; top: 8px; right: 8px; z-index: 2; display: flex; background: #fff; border: 1px solid rgba(26,29,33,.45); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .basesw button { all: unset; cursor: pointer; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--ink); } .basesw button[aria-pressed="true"] { background: #14323A; color: #fff; } .basesw button:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; }
+    #naPane .ebody > [data-nafld="HasConsPlan"], #naPane .ebody > [data-nafld="AttendedEvent"], #naPane .ebody > [data-nafld="HasManurePlan"], #naPane .ebody > .napair { grid-column: 1; }
   </style>
 </head>
 <body>
@@ -486,7 +490,7 @@
         <h2>7. Fields and the map</h2>
         <ul>
           <li>The <b>Fields</b> tab lists the application's fields. Open one to see its values, <b>Edit</b> it, <b>Add a field</b> or <b>Delete</b> one.</li>
-          <li>The <b>Map</b> tab shows the farm. The application's fields are coloured; a field funded within the last three years is marked, and the same check appears as a red line on the application.</li>
+          <li>The <b>Map</b> tab shows the farm. <b>Topo / Aerial</b> at its top right switches the background. The application's fields are coloured; a field funded within the last three years is marked, and the same check appears as a red line on the application.</li>
         </ul>
 
         <h2>8. Good to know</h2>
@@ -1843,6 +1847,16 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   // status Approved and stage Closed; Yasser, 9 and 12 Nov). Returns field key -> { used acres, last year, AEP ID, field name as written there }.
   // Each map gets its own copy of the web map's basemap. A map that is taken off the page destroys what it holds, and sharing the web map's own basemap
   // let that destroy it for the forms and for every later map ("Instance of 'esri.Basemap' is already destroyed").
+  // B13g: both maps load Esri's standard basemaps directly, with a Topo / Aerial switch (Yasser, 14 Nov). The choice is remembered in this browser.
+  const BASES = { topo: "topo-vector", aerial: "hybrid" };
+  let baseKind = "topo"; try { const k = localStorage.getItem("wccdBase"); if (k && BASES[k]) baseKind = k; } catch { /* storage not available */ }
+  function baseSwitch(host, el) {
+    const box = document.createElement("div"); box.className = "basesw"; box.setAttribute("role", "group"); box.setAttribute("aria-label", "Basemap");
+    const draw = () => { box.innerHTML = [["topo", "Topo"], ["aerial", "Aerial"]].map(([k, t]) => '<button type="button" data-base="' + k + '" aria-pressed="' + (k === baseKind) + '">' + t + "</button>").join(""); };
+    box.addEventListener("click", (e) => { const b = e.target.closest("[data-base]"); if (!b || b.dataset.base === baseKind) return; baseKind = b.dataset.base;
+      try { localStorage.setItem("wccdBase", baseKind); } catch { /* ignore */ } try { el.map.basemap = BASES[baseKind]; } catch (err) { console.warn("basemap switch", err); } draw(); });
+    draw(); host.appendChild(box);
+  }
   function baseCopy() { try { const b = webmap && webmap.basemap; if (b && !b.destroyed && typeof b.clone === "function") return b.clone(); } catch (e) { console.warn("basemap copy", e); } return "topo-vector"; }
   function earlierFunding(r) {
     const out = new Map(), farm = normFarm(F.farmNo ? r.a[F.farmNo] : "");
@@ -1922,8 +1936,8 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         b.querySelector("button").onclick = hideInfo; };
       if (targets.length) {
         el = document.createElement("arcgis-map"); MAPS.el = el;
-        el.map = new MapCls({ basemap: baseCopy(), layers: [layer, idLayer] });
-        host.appendChild(el);
+        el.map = new MapCls({ basemap: BASES[baseKind], layers: [layer, idLayer] });
+        host.appendChild(el); baseSwitch(host, el);
         if (farmNo) { const fp = farmPolys.find((f) => f.name); const tg = document.createElement("div"); tg.className = "nafarmtag"; tg.textContent = "Farm # " + farmNo + (fp ? " · " + fp.name : ""); host.appendChild(tg); }
         el.addEventListener("arcgisViewReadyChange", zoomAll); setTimeout(zoomAll, 1500);
         el.addEventListener("arcgisViewClick", async (evt) => { try { const d = evt.detail, hit = await el.hitTest(d);
@@ -2108,7 +2122,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13f", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13g", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2458,7 +2472,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const c = f.g && (f.g.centroid || (f.g.extent && f.g.extent.center)); if (c) gs.push(new G({ geometry: c, symbol: { type: "text", text: f.suf, color: on ? [14, 44, 80, 1] : [90, 98, 107, 1], haloColor: [255, 255, 255, 1], haloSize: 1.5, font: { size: on ? 11 : 9, weight: on ? "bold" : "normal" } } })); });
       if (NA.mapEl && NA.mapEl.isConnected && NA.mapFarm === NA.farm.farm) { NA.mapLayer.removeAll(); NA.mapLayer.addMany(gs); naTag(); return; }
       host.innerHTML = ""; const layer = new GraphicsLayer(); layer.addMany(gs);
-      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: baseCopy(), layers: [layer] }); host.appendChild(el); naTag();
+      const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: BASES[baseKind], layers: [layer] }); host.appendChild(el); baseSwitch(host, el); naTag();
       NA.mapEl = el; NA.mapLayer = layer; NA.mapFarm = NA.farm.farm;
       const zoom = () => { try { el.goTo(gs.filter((g) => g.geometry && g.geometry.type === "polygon")).catch(() => {}); } catch { /* not ready */ } };
       el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
