@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13i, 15 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13j, 15 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -509,6 +509,7 @@
           <li><b>Delete application</b> is offered only before approval. It asks you to type the AEP ID and removes the application with its fields.</li>
           <li>A red line under an application's figures is a flag, for example a missing Farm #. It tells you what to fix and where.</li>
           <li>If a red box says <b>Editing is blocked</b>, nothing was saved. Click Cancel and try again; if it returns, open the diagnostics under it and send the text to the administrator.</li>
+          <li>To report a problem or ask a question, email the administrator at <a href="mailto:yayad@pennwest.edu">yayad@pennwest.edu</a>. Include the AEP ID, what you clicked, and the message on the screen.</li>
           <li>Do not edit the same application in this app and in another ArcGIS tool at the same time.</li>
         </ul>
 
@@ -899,7 +900,7 @@
       try { localStorage.setItem("wccdBackupAt", String(Date.now())); } catch { /* the reminder simply stays */ }
       say("ok", "Downloaded WCCD-lime-backup-" + stamp + ".zip (" + (blob.size / 1048576).toFixed(1) + " MB). Keep it somewhere safe; unzip it to open the geodatabase in ArcGIS Pro."); bkDraw();
     } catch (err) { console.error(err); const m = mask((err && err.message) || err);
-      say("bad", "The backup was not made – " + m + "." + (/not supported|capabilit|permission|not allowed|403|extract|sync|create replica|check your parameters/i.test(m) ? " Nothing was changed. The layer's settings in ArcGIS Online may not let this account export; ask the administrator to allow others to export the layer." : "")); }
+      say("bad", "The backup was not made – " + m + "." + (/not supported|capabilit|permission|not allowed|403|extract|sync|create replica|check your parameters/i.test(m) ? " Nothing was changed. The layer's settings in ArcGIS Online may not let this account export; ask the administrator (yayad@pennwest.edu) to allow others to export the layer." : "")); }
     b.disabled = false;
   });
   function renderHome() {
@@ -991,12 +992,12 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   function paneHtml(r) {
     const t = TABS.find((x) => x.key === curTab);
     if (t.key === "docs") return '<h2>Documents</h2><div id="docStatus" class="notice">Reading the attached files…</div><div id="docNote"></div><div id="docReview"></div><input type="file" id="docPick" accept="application/pdf,.pdf" hidden><div id="docBody"></div>' +
-      '<p>' + (canFiles(r) ? "PDF files can be attached, and files deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for Claude)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+      '<p>' + (canFiles(r) ? "PDF files can be attached, and files deleted, each after a confirmation" + (r.closed ? "; this also works on a closed application, whose values stay locked. " : ". ") : lockWhy(r) + " ") + 'Files are fetched by the app when you click Open.</p><details class="diag"><summary>Document diagnostics (for support)</summary><pre id="docDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "map") return '<h2>Map</h2><div id="mapStatus" class="notice">Loading the farm and field polygons…</div>' +
       '<label><input type="checkbox" id="mapIds" checked> Show IDs of other fields</label>' +
       '<div class="mapWrap"><div id="mapHost"></div><div id="mapList"></div></div>' +
       '<p class="legend"><span><i style="background:rgba(23,69,122,.35);border:2px solid #17457A"></i>In this application</span><span><i style="background:rgba(224,138,30,.4);border:2px solid #5E3A00"></i>Limed and paid inside the three-year window</span>' +
-      '<span><i style="background:rgba(23,69,122,.35);border:3px solid #E08A1E"></i>Both</span><span><i style="background:#fff;border:1px solid #6B747E"></i>Other fields on the farm</span></p><p>Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for Claude)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
+      '<span><i style="background:rgba(23,69,122,.35);border:3px solid #E08A1E"></i>Both</span><span><i style="background:#fff;border:1px solid #6B747E"></i>Other fields on the farm</span></p><p>Read-only; nothing here is saved.</p><details class="diag"><summary>Map diagnostics (for support)</summary><pre id="mapDiag" style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0"></pre></details>';
     if (t.key === "rows") {
       if (!fr.rows) return "<h2>Field rows</h2><div class=\"error\">The field rows could not be read: " + esc(fr.error || "unknown reason") + "</div>";
       const mine = fr.rows.filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
@@ -1028,7 +1029,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     const cmp = t.key === "intake" ? cmpText(r) : "";       // an application created by the app: how it differs from one created by the survey
     return '<div class="prhd"><h2>' + esc(t.label) + "</h2>" + prTabBtn(r, t.key) + "</div><p>Stored values" + (fm.noForm ? ", listed field by field because this layer has no form" : "") + ": " + v.filled + " of " + v.total +
       " fields have a value. " + (t.synth ? "What the application says. There is no Map Viewer form for intake, so this layout comes from the app." : "Messages the form works out on screen are not shown.") + " </p>" + top +
-      emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>') + (cmp ? '<details class="diag"><summary>Compare with a survey-created application (for Claude)</summary><pre style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0">' + esc(cmp) + "</pre></details>" : "");
+      emptyToggle() + (v.html || '<p class="none">No values are stored for this stage yet.</p>') + (cmp ? '<details class="diag"><summary>Compare with a survey-created application (for support)</summary><pre style="white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;margin:0">' + esc(cmp) + "</pre></details>" : "");
   }
   function itemHtml(r) {
     const sub = r.closed ? '<span class="out">' + esc(r.statusText + (r.plain[0] ? " · " + r.plain[0] : "")) + "</span>"
@@ -1660,7 +1661,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       if ($("edDiag")) $("edDiag").textContent = ["Rules settled in " + S.passes + " pass(es), " + S.ms + " ms, " + S.lastRuns + " rule runs (" + S.runs + " since opening). $datastore: " + (S.dsMode || "not used") + (S.retries ? ". Rules tried again after a failure: " + S.retries : ""),
         "Lookup memory: " + look.misses + " fetched, " + look.hits + " from memory", "Rule errors: " + (errs.length ? "" : "none"), ...errs.map(([k, v]) => "  ✗ " + k + " → " + v),
         "Changed: " + (diffs().join(", ") || "nothing")].join("\n");
-      if (errs.length) st("error", errs.length + " of the form's rules could not be run, so saving is switched off. Click Cancel and send Claude the editing diagnostics.");
+      if (errs.length) st("error", errs.length + " of the form's rules could not be run, so saving is switched off. Click Cancel and send the editing diagnostics to the administrator (yayad@pennwest.edu).");
     }
 
     // ---- input handling: every keystroke is recorded at once; rules run when typing pauses or the box is left ----
@@ -1722,7 +1723,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         "<h2>" + (isRow ? "Field " + esc(rowName) : esc(tab.label)) + " – editing " + esc(r.id) + '</h2><div id="edStatus" class="notice">Opening…</div><div id="edStale" class="notice" hidden></div><div id="own"></div><div id="edReview" class="review" hidden></div>' +
         '<div class="edBtns" id="edBtns"><span id="edChanged"></span><button type="button" class="btn" id="edRestore" data-restore="*" hidden></button>' +
         '<button type="button" class="btn" id="edCancel">Cancel</button><button type="button" class="btn go" id="edSave" disabled>Review and save</button></div>' +
-        '<details class="diag"><summary>Editing diagnostics (for Claude)</summary><pre id="edDiag"></pre></details>';
+        '<details class="diag"><summary>Editing diagnostics (for support)</summary><pre id="edDiag"></pre></details>';
       $("own").addEventListener("input", (evt) => { const k = evt.target.dataset && evt.target.dataset.kind; if (k === "text" || k === "number") onEdit(evt); });
       $("own").addEventListener("change", onEdit);
       $("own").addEventListener("toggle", (evt) => { const c = evt.target.dataset && evt.target.dataset.card; if (c && S) { if (evt.target.open) S.openCards.add(c); else S.openCards.delete(c); } }, true);
@@ -2133,7 +2134,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const ok = got && normId(got.attributes[fr.parent]) === normId(r.gid) && String(attr(got.attributes, "FieldNum")) === t.num && attr(got.attributes, "FieldStatus") === "Included";
         await reloadFieldRows(); await reloadRows();
         saveNote = { id: r.id, tab: "rows", cls: ok ? "okmsg" : "error", text: ok ? "Added and verified: field " + t.num + " (" + Object.keys(a).length + " values written). Open its details and click Edit this field to enter the lab data.\nThe application's stored totals may now be out of date. Open Ranking, click Edit, and save to refresh them."
-          : "A row was added, but the check afterwards could not confirm it is linked to this application. Tell Claude before going on." };
+          : "A row was added, but the check afterwards could not confirm it is linked to this application. Tell the administrator (yayad@pennwest.edu) before going on." };
         tool = null; curTab = "rows"; renderWork(r.id); return;
       }
       if (t.kind === "delrow") {
@@ -2172,7 +2173,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
           (orphans ? " " + orphans + " field row(s) are still in the table." : "") + (notes.length ? " " + notes.join(" ") : "");
         tool = null; curId = null; window.location.hash = "#/"; return;
       }
-    } catch (err) { console.error(err); if (tool) { tool.busy = false; tool.err = "Stopped – " + mask((err && err.message) || err) + "." + (/does not support delet/i.test(String((err && err.message) || err)) ? " Nothing was removed. The layer's settings in ArcGIS Online do not let this account delete; ask the administrator." : ""); toolDraw(); } }
+    } catch (err) { console.error(err); if (tool) { tool.busy = false; tool.err = "Stopped – " + mask((err && err.message) || err) + "." + (/does not support delet/i.test(String((err && err.message) || err)) ? " Nothing was removed. The layer's settings in ArcGIS Online do not let this account delete; ask the administrator (yayad@pennwest.edu)." : ""); toolDraw(); } }
   });
 
   // =====================================================================================================================
@@ -2182,7 +2183,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13i", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13j", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2296,7 +2297,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     for (const f of file.parent) if (f.born === "typed" && f.required && !NA_FIELDS.has(f.field)) bad.push("Application field " + f.field + ": the survey now requires it, and the entry page does not ask for it");
     for (const f of file.FieldRows) if (f.born === "typed" && f.required && !["FieldNum", "TotalAcresInField"].includes(f.field)) bad.push("Field-row field " + f.field + ": the survey now requires it, and the entry page does not ask for it");
     for (const k of NA_FIELDS) if (!file.parent.some((f) => f.field === k)) bad.push("Application field " + k + ": the entry page asks for it, but it is no longer in the survey");
-    if (file.hash !== BORN_HASH) notes.push("The file has changed since this build was written (hash " + file.hash + ", build written against " + BORN_HASH + "). Every rule still matches, so creating is allowed; tell Claude so the build can be brought up to date.");
+    if (file.hash !== BORN_HASH) notes.push("The file has changed since this build was written (hash " + file.hash + ", build written against " + BORN_HASH + "). Every rule still matches, so creating is allowed; tell the administrator (yayad@pennwest.edu) so the app can be brought up to date.");
     return bad.length ? { ok: false, why: bad.length + " rule(s) disagree with the survey: " + bad.join("; ") + ".", notes } : { ok: true, why: "", notes };
   }
   async function bornLoad() {
@@ -2644,7 +2645,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     if (e.target.id === "naBack" && !NA.busy) { NA.step = "form"; naOpen(); return; }
     if (e.target.id === "naCreate") naCreate();
   });
-  // ---------- Comparison of an app-created application with a survey-created one (text for Claude) ----------
+  // ---------- Comparison of an app-created application with a survey-created one (text for support) ----------
   function cmpText(r) {
     try {
       const ver = (x) => String(attr(x.a, "FormVersionUsed") ?? "");
@@ -2670,7 +2671,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
     $("buildLine").textContent = "WCCD lime applications review app · build " + BUILD + " · " + BUILD_DATE;
     if ($("helpBuild")) $("helpBuild").textContent = "Guide for build " + BUILD + ", " + BUILD_DATE + ".";
     const f = BORN.file, row = (a, b) => "<dt>" + esc(a) + "</dt><dd>" + b + "</dd>";
-    $("about").innerHTML = "<p>A review workspace for the Washington County Conservation District's Agricultural Enhancement Program lime applications. It follows each application from intake through ranking, the funding decision, the agreement and cost verification, with the farm's fields on a map and the application's documents. " +
+    $("about").innerHTML = "<p><b>Report a problem:</b> email the administrator at <a href=\"mailto:yayad@pennwest.edu\">yayad@pennwest.edu</a>.</p><p>A review workspace for the Washington County Conservation District's Agricultural Enhancement Program lime applications. It follows each application from intake through ranking, the funding decision, the agreement and cost verification, with the farm's fields on a map and the application's documents. " +
       "Applications can be created, completed and corrected here; every change is shown for review first and read back from the service afterwards.</p><dl>" +
       row("App build", esc(BUILD + ", " + BUILD_DATE)) + row("ArcGIS Maps SDK for JavaScript", esc(sdkVer)) + row("Web map", esc(CFG.mapTitle)) +
       row("Intake survey", f ? esc("version " + f.intakeVersion + " (full survey " + f.fullVersion + ")") : "not read") +
@@ -2933,7 +2934,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
         const added = now.filter((f) => !before.includes(f.id)), mineNew = added.find((f) => f.name === p.file.name) || added[0];
         const k = mineNew ? String(Array.isArray(mineNew.keywords) ? mineNew.keywords.join(", ") : mineNew.keywords ?? "").trim() : "";
         note = !mineNew ? { cls: "error", text: "The upload reported success, but the file is not in the list read back afterwards." }
-          : k !== DOC_KEYWORD[p.group] ? { cls: "error", text: "Uploaded " + mineNew.name + ", but its keyword reads " + (k ? '"' + k + '"' : "empty") + " instead of " + DOC_KEYWORD[p.group] + ". Tell Claude; the file itself is attached." }
+          : k !== DOC_KEYWORD[p.group] ? { cls: "error", text: "Uploaded " + mineNew.name + ", but its keyword reads " + (k ? '"' + k + '"' : "empty") + " instead of " + DOC_KEYWORD[p.group] + ". Tell the administrator (yayad@pennwest.edu); the file itself is attached." }
           : { cls: "okmsg", text: "Uploaded and verified: " + mineNew.name + " (" + sizeText(mineNew.size) + "), keyword " + k + "." };
       } else {
         const res = await appLayer.deleteAttachments(feature, [p.f.id]); const bad = (res || []).find((x) => x && x.error); if (bad) throw bad.error;
