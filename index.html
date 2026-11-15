@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13h, 14 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13i, 15 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -899,7 +899,7 @@
       try { localStorage.setItem("wccdBackupAt", String(Date.now())); } catch { /* the reminder simply stays */ }
       say("ok", "Downloaded WCCD-lime-backup-" + stamp + ".zip (" + (blob.size / 1048576).toFixed(1) + " MB). Keep it somewhere safe; unzip it to open the geodatabase in ArcGIS Pro."); bkDraw();
     } catch (err) { console.error(err); const m = mask((err && err.message) || err);
-      say("bad", "The backup was not made – " + m + "." + (/not supported|capabilit|permission|not allowed|403|extract|sync/i.test(m) ? " The layer's settings in ArcGIS Online may not let this account export; ask the administrator to allow others to export the layer." : "")); }
+      say("bad", "The backup was not made – " + m + "." + (/not supported|capabilit|permission|not allowed|403|extract|sync|create replica|check your parameters/i.test(m) ? " Nothing was changed. The layer's settings in ArcGIS Online may not let this account export; ask the administrator to allow others to export the layer." : "")); }
     b.disabled = false;
   });
   function renderHome() {
@@ -2182,7 +2182,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13h", BUILD_DATE = "14 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13i", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
