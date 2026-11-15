@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13j, 15 Nov 2026).
+    WCCD AEP custom app – Home + Worklist (build B13k, 15 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -379,6 +379,9 @@
     .bkcard h2 { margin: 0 0 4px; font-size: 20px; } .bkcard p { margin: 0 0 4px; max-width: 78ch; } .bkcard .bkact { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 360px; text-align: right; }
     #bkStatus.ok { color: #1E4D2B; font-weight: 600; } #bkStatus.bad { color: #A01818; font-weight: 600; }
     .bkdue { background: #FFF4D6; border: 1px solid #B77900; color: #4A3200; border-radius: 8px; padding: 12px 16px; font-size: 14px; } .bkdue a { color: inherit; font-weight: 700; }
+    /* B13k: icon-only tabs when the names do not fit */
+    .tabs.compact .tl { display: none; } .tabs.compact .tab { flex: 1 0 44px; justify-content: center; padding: 0 6px; } .tabs.compact .tab svg { width: 22px; height: 22px; }
+    .tabs.compact4 .tab { flex: 1 0 22%; }
   </style>
 </head>
 <body>
@@ -1089,6 +1092,14 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   { const src = document.querySelector("nav.rail .mark img"), dst = $("brandLogo"); if (src && dst) dst.src = src.src; }
   $("todo").addEventListener("click", (e) => { const a = e.target.closest('.item[aria-current="true"]'); if (!a) return; e.preventDefault(); if (!leaveEdit()) return; location.hash = "#/work"; });
   $("helpPrint").addEventListener("click", () => window.print());
+  // B13k: when the tab names no longer fit on one row the tabs show icons only (the name stays as the hover text); if the icons do not fit either, rows of four.
+  function tabsFit() {
+    const bar = document.querySelector("#detail .tabs"); if (!bar || !bar.offsetWidth) return;
+    const wraps = () => { const t = bar.querySelectorAll(".tab"); return t.length > 1 && t[t.length - 1].offsetTop > t[0].offsetTop + 4; };
+    bar.classList.remove("compact", "compact4"); if (!wraps()) return;
+    bar.classList.add("compact"); if (wraps()) bar.classList.add("compact4");
+  }
+  try { new ResizeObserver(() => tabsFit()).observe($("detail")); new MutationObserver(() => tabsFit()).observe($("detail"), { childList: true }); } catch (e) { console.warn("tabsFit", e); }
   function renderWork(id) {
     const r = rows.find((x) => x.id === id) || null;
     if ((r ? r.id : null) !== curId) { curId = r ? r.id : null; curTab = r ? defaultTab(r) : null; saveNote = null; }
@@ -1124,7 +1135,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       '<ol class="steps" aria-label="Stage ' + r.stageN + " of 6, " + STAGES[r.stageN - 1] + '">' + steps + "</ol>" +
       '<div class="figs">' + figs + "</div>" +
       '<div class="flags">' + (msgsHtml(r) || '<span class="none">Nothing to flag</span>') + "</div>" +
-      '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '">' + (TAB_ICON[t.key] || "") + (t.short || t.label) + "</button>").join("") + "</div>" +
+      '<div class="tabs" role="group" aria-label="Stage records">' + TABS.map((t) => '<button type="button" class="tab" data-tab="' + t.key + '" aria-pressed="' + (t.key === curTab) + '" title="' + esc(t.short || t.label) + '" aria-label="' + esc(t.short || t.label) + '">' + (TAB_ICON[t.key] || "") + '<span class="tl">' + (t.short || t.label) + "</span></button>").join("") + "</div>" +
       '<div class="pane">' + paneHtml(r) + "</div>";
     try { if (curTab === "rows") { for (const c of d.querySelectorAll("details.rowAll .cards")) sideTabs(c, "v:rows", "details.gcard"); } else sideTabs(d.querySelector(".pane"), "v:" + curTab, "details.gcard"); } catch (e) { console.warn("side tabs", e); }
     if (curTab === "map") initMap(r);
@@ -2183,7 +2194,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13j", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13k", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
