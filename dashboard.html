@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WCCD lime applications · Dashboard view</title>
-  <!-- Dashboard view, piece 1 (D1a). Data code copied unchanged from the classic app, build B13k. -->
+  <!-- Dashboard view, pieces 1 and 2 (D2a). Data code copied unchanged from the classic app, build B13k. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
   <script type="module" src="https://js.arcgis.com/5.2/"></script>
@@ -57,6 +57,36 @@ main{padding:14px 18px 40px;min-width:0}
 .soonp{max-width:560px}.soonp p{color:var(--dim)}
 @media (max-width:900px){.homeg{grid-template-columns:1fr}.app{grid-template-columns:1fr}.rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:6px}.rail img{margin:0 6px 0 0;width:34px}.rail .sp{display:none}.figs{margin-left:0}}
 @media (prefers-reduced-motion:reduce){.mk b,.hint{transition:none}}
+/* hover card on the home map */
+.mcard{position:absolute;z-index:4;pointer-events:none;background:rgba(11,15,18,.96);border:1px solid var(--acc);border-radius:10px;padding:9px 11px;min-width:210px;max-width:300px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.mcard strong{display:block;font-size:14px;color:#fff}.mcard small{display:block;color:var(--dim);margin-bottom:5px}.mcard span{display:flex;gap:6px;align-items:center;color:#DDE3E8;padding:1px 0}.mcard .n{width:17px;height:17px;font-size:10px}.mcard em{display:block;font-style:normal;color:var(--warn);margin-top:4px}.mcard u{display:block;text-decoration:none;color:var(--acc);font-size:11px;margin-top:4px}
+.bc .tag{margin-right:4px}.bc .tags{display:block}
+/* application sheet */
+.top .bk{color:var(--acc);font-weight:600}.cbtn{border:1px solid var(--line2);border-radius:14px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--ink)}.cbtn:hover{border-color:var(--acc)}
+.sheet{display:grid;grid-template-columns:190px minmax(0,1fr) 320px;gap:12px;align-items:start}
+.srail{display:flex;flex-direction:column;gap:6px;position:sticky;top:10px}.rs{display:grid;grid-template-columns:34px 1fr;gap:0 8px;align-items:center;padding:8px 9px;border-radius:10px;border:1px solid var(--line);color:var(--dim)}.rs b{color:var(--ink)}.rs span{grid-column:2;font-size:11.5px}.rs .n{grid-row:1/3;width:30px;height:30px;font-size:16px}
+.rs.todo .n{background:none;border:2px solid var(--c);color:var(--c)}.rs.now{border-color:var(--c)}.rs.now span{color:#FFD9A8;font-weight:700}.rs.view{background:color-mix(in srgb,var(--c) 24%,transparent);border-color:var(--c);box-shadow:0 0 16px color-mix(in srgb,var(--c) 40%,transparent)}.rs:hover{border-color:var(--c)}
+.smid{background:#F7F3EE;color:#1E1712;border-radius:12px;padding:12px 14px;min-width:0}.sh{display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--c);margin-bottom:6px}.sh .n{width:34px;height:34px;font-size:18px}.sh>div{flex:1}.sh b{display:block;font-size:17px}.sh span{font-size:12px;color:#6B5D52}
+.nav2{font-size:12px;font-weight:600;border:1.5px solid #C9BFB5;border-radius:14px;padding:3px 10px;color:#1E1712}.nav2.fw{border-color:#2A1A10}
+.smid h3{margin:12px 0 2px;font-size:12px;color:#6B5D52}.count{font-size:11.5px;color:#6B5D52;margin:4px 2px}
+.row{display:grid;grid-template-columns:minmax(150px,240px) minmax(120px,1fr) minmax(0,1.1fr);gap:10px;align-items:baseline;padding:6px 8px;border-bottom:1px solid #E0D5CA}.row label{font-weight:600}.row b{font-weight:600;overflow-wrap:anywhere}.row.empty b{color:#A99C91;font-weight:400}.row em{font-style:normal;font-size:11.5px;color:#6B5D52}.row em a{color:#B4500F;font-weight:700;text-decoration:underline}
+.docbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}.docb{flex:1;min-width:260px;display:flex;gap:10px;align-items:center;background:#fff;border:1.5px solid #2A1A10;border-radius:10px;padding:7px 10px}.docb>div{flex:1}.docb b{display:block;font-size:14px}.docb span{font-size:11.5px;color:#6B5D52}
+.pbtn{border:0;border-radius:14px;padding:6px 12px;font-weight:700;font-size:12px;background:#2A1A10;color:#FFB45A}.pbtn:disabled{opacity:.45;cursor:not-allowed}
+.showall{display:flex;gap:7px;align-items:center;font-size:12.5px;font-weight:600;margin:8px 2px 0}.showall input{width:16px;height:16px;accent-color:#E8742E}
+.flags p{display:flex;gap:7px;align-items:flex-start;margin:6px 0;padding:6px 9px;border-radius:8px;font-size:12.5px}.flags svg{flex:none}.flags .fr{background:#FFE4DC;color:#7A1F0C}.flags .fn{background:#E6EEF4;color:#1F3A4E}
+.needbox{background:#FFF1EC;border-left:4px solid #C2410C;border-radius:0 8px 8px 0;padding:8px 12px;margin:8px 0;font-size:12.5px}.needbox ul{margin:3px 0 0;padding-left:18px}.perr{color:#8A1515}.none2{color:#6B5D52;font-size:12.5px}
+.sctx{display:flex;flex-direction:column;gap:10px;min-width:0}.sctx table{border-collapse:collapse;width:100%}.sctx td,.sctx th{padding:3px 6px;font-size:12px;text-align:right;border-top:1px solid var(--line)}.sctx th{color:var(--dim);font-weight:600;border:0}.sctx td:first-child,.sctx th:first-child{text-align:left;font-weight:700}
+.mis{color:var(--warn);font-weight:700}.ty{font-style:normal;font-size:10px;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:0 4px;font-weight:600}
+.smap{height:200px;border-radius:8px;overflow:hidden;background:#0E1611}.smap.big{height:460px}.smap arcgis-map{display:block;width:100%;height:100%}.smap .none{padding:10px}
+.lnk{background:none;border:0;color:var(--acc);font-weight:600;font-size:11.5px;text-decoration:underline;padding:0}
+.pp{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 8px;border-radius:7px;background:var(--panel2);margin-bottom:5px;font-size:12px}.pp small{display:block;color:var(--dim);font-size:11px}
+@media (max-width:1100px){.sheet{grid-template-columns:1fr}.srail{position:static;flex-direction:row;flex-wrap:wrap}.rs{flex:1;min-width:140px}}
+/* document preview (same dialog as the classic view) */
+#prDlg{width:min(980px,96vw);height:94vh;max-height:94vh;border:1px solid #6B747E;border-radius:8px;padding:0;color:#1A1D21;background:#fff;font:inherit}#prDlg::backdrop{background:rgba(0,0,0,.6)}
+#prDlg .prwrap{display:flex;flex-direction:column;height:100%}#prDlg .prhead{padding:10px 16px;border-bottom:1px solid #C9CED4}#prDlg .prhead b{font-size:16px}
+#prDlg .prmiss{margin-top:6px;background:#FBE4E4;color:#8A1515;border-radius:4px;padding:6px 10px;font-size:13.5px}#prDlg iframe{flex:1;border:0;background:#8A9199;width:100%}
+#prDlg .prfoot{display:flex;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid #C9CED4}#prDlg .prfoot .sp{flex:1;font-size:13px;color:#4A525B}
+#prDlg .btn{height:38px;padding:0 14px;border:1.5px solid #2A1A10;border-radius:19px;background:#fff;color:#1A1D21;font-weight:600}#prDlg .btn.go{background:#2A1A10;color:#FFB45A}
   </style>
 </head>
 <body>
@@ -353,6 +383,14 @@ main{padding:14px 18px 40px;min-width:0}
       r.notes.push("Another application from this applicant in " + r.fy + ": " + grp.filter((o) => o !== r).map((o) => o.id).join(", ") + ".");
   }
 
+  function show(f, v) {            // a stored value as text, or null when it is empty
+    if (v == null || v === "") return null;
+    const cv = f && f.domain && f.domain.codedValues && f.domain.codedValues.find((c) => String(c.code) === String(v));
+    if (cv) return cv.name;
+    if (f && f.type === "date" && typeof v === "number") return new Date(v).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    if (typeof v === "number") return v.toLocaleString("en-US", { maximumFractionDigits: 4, useGrouping: false });
+    return String(v);
+  }
   function attr(a, name) { if (name in a) return a[name]; const k = Object.keys(a).find((x) => x.toLowerCase() === name.toLowerCase()); return k ? a[k] : undefined; }
   // ================= Map tab: the farm and its fields for the selected application (read-only) =================
   const MAPS = { ready: null, farms: [], fields: [], source: "", mods: null, el: null, byKey: new Map(), error: "" };
@@ -387,6 +425,204 @@ main{padding:14px 18px 40px;min-width:0}
     return MAPS.ready;
   }
   const BASES = { topo: "topo-vector", aerial: "hybrid" };
+  function earlierFunding(r) {
+    const out = new Map(), farm = normFarm(F.farmNo ? r.a[F.farmNo] : "");
+    const yearOf = (v) => { const m = /(\d{4})/.exec(String(v ?? "")); return m ? Number(m[1]) : null; };
+    const fy = yearOf(attr(r.a, "FiscalYear")), win = Number(attr(r.a, "ThreeYearWindow")) || 3;
+    if (!farm || fy == null || !fr.rows) return { out, fy, win };
+    for (const a of rows) {
+      if (a.id === r.id || a.status !== "Approved" || a.stageN !== 6) continue;
+      if (normFarm(F.farmNo ? a.a[F.farmNo] : "") !== farm) continue;
+      const lime = attr(a.a, "LimeAppliedDate"), yr = lime != null && lime !== "" ? new Date(lime).getFullYear() : yearOf(attr(a.a, "FiscalYear"));
+      if (yr == null || isNaN(yr) || fy - yr >= win) continue;
+      const theirs = fr.rows.filter((x) => normId(x[fr.parent]) === normId(a.gid) && normId(a.gid) !== "" && attr(x, "FieldStatus") === "Included");
+      const sumReq = theirs.reduce((t, x) => t + (Number(attr(x, "TreatedAcresInField")) || 0), 0), appr = num(attr(a.a, "ApprovedAcres"));
+      const ratio = appr != null && sumReq > 0 && appr < sumReq ? appr / sumReq : 1;
+      for (const x of theirs) { const key = normKey(attr(x, "FieldNum")); if (!key) continue;
+        const man = num(attr(x, "ApprovedAcresInField")), acres = man != null ? man : (Number(attr(x, "TreatedAcresInField")) || 0) * ratio;
+        const e = out.get(key) || { used: 0, yr: null, id: "", name: "" };
+        e.used += acres; if (e.yr == null || yr > e.yr) { e.yr = yr; e.id = a.id; e.name = String(attr(x, "FieldNum") ?? ""); }
+        out.set(key, e); }
+    }
+    for (const e of out.values()) e.used = Math.round(e.used * 100) / 100;
+    return { out, fy, win };
+  }
+  const nb = (v) => v == null || v === "";
+  const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
+  const rowsOf = (r) => (fr.rows || []).filter((x) => normId(x[fr.parent]) === normId(r.gid) && normId(r.gid) !== "");
+  const sizeText = (n) => n == null ? "" : n >= 1048576 ? fmt(n / 1048576) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+  const DOC_GROUPS = [["cvf", "Cost verification packet", /cvf|cost|invoice|receipt/i], ["agr", "Agreement", /agree/i], ["lab", "Lab reports", /lab|soil/i],
+                      ["app", "Application packet", /app|packet|intake/i], ["other", "Other files", /./]];
+  const DOC_KEYWORD = { app: "FileApplicationPacket", agr: "FileAgreement", cvf: "FileCVFPacket", other: "FileReserve1" };   // the survey's own question names, as EB and Survey123 tag files
+  // ---------------- Printing: the four documents drawn from the record, shown for review, printed by the browser ----------------
+  // The wording follows the four Word templates in the project (approval letter, agreement, cost verification form, application summary). Printing changes nothing on the record.
+  const PR = (() => {
+    const fld = (n) => appLayer.fields.find((f) => f.name.toLowerCase() === n.toLowerCase());
+    const raw = (r, n) => attr(r.a, n), has = (r, n) => !nb(raw(r, n));
+    const longDate = (v) => nb(v) ? "" : new Date(v).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    const txt = (r, n) => { const f = fld(n), v = raw(r, n); if (nb(v)) return ""; return f && f.type === "date" ? longDate(v) : (show(f, v) ?? ""); };
+    const n = (v, min, max) => nb(v) || isNaN(Number(v)) ? "" : Number(v).toLocaleString("en-US", { minimumFractionDigits: min, maximumFractionDigits: max });
+    const csz = (r) => esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "));
+    const T = (r, k) => esc(txt(r, k)), N = (r, k, min, max) => esc(n(raw(r, k), min, max));
+    const blank = (t, w) => t === "" ? '<span class="blank" style="min-width:' + (w || 120) + 'px">&nbsp;</span>' : "<b>" + t + "</b>";
+    const head = '<div class="lh"><b>Washington County Conservation District</b><br>50 Old Hickory Ridge Road, Suite 1<br>Washington, PA 15301<br>Phone: 724-705-7098<br>Fax: 724-249-2519</div>';
+    const included = (r) => rowsOf(r).filter((x) => { const st = attr(x, "FieldStatus"); return nb(st) || st === "Included"; });
+    const docs = {
+      summary: { label: "Application Summary", group: "other", when: () => "", need: [],
+        html(r) { const rs = included(r), ef = earlierFunding(r).out, hit = rs.filter((x) => ef.has(normKey(attr(x, "FieldNum")))).length;
+          const kv = (pairs) => '<table class="kvt">' + pairs.map(([l, v]) => "<tr><td>" + l + '</td><td class="r"><b>' + (v || "–") + "</b></td></tr>").join("") + "</table>";
+          const q = (k) => { const v = raw(r, k), t = txt(r, k); return nb(v) ? "–" : esc(t) + (String(t) === String(v) ? " pts" : " (" + esc(String(v)) + ")"); };
+          return '<div class="sum"><h1>Washington County Conservation District</h1><div class="sub">Agricultural Enhancement Program · Lime · Application Summary</div>' +
+            '<table class="idbar"><tr><td><b>' + T(r, "AEPID") + '</b></td><td class="r">Fiscal year ' + N(r, "FiscalYear", 0, 0).replace(/,/g, "") + " · " + T(r, "Stage") + " · " + T(r, "AppStatus") + "</td></tr></table>" +
+            '<div class="band ' + (hit ? "warn" : "ok") + '">' + (hit ? "THREE-YEAR RESTRICTION: " + hit + " field(s) on this farm were funded within the last three years — see the 3-year check column below before approving." : "THREE-YEAR CHECK: No field on this farm has been funded in the last three years.") + "</div>" +
+            '<table class="lay"><tr><td>' + kv([["Applicant", T(r, "ApplicantLegalName")], ["Contact", esc([txt(r, "FirstName"), txt(r, "LastName")].filter(Boolean).join(" "))], ["Greeting", T(r, "LetterSalutation")], ["Role", T(r, "ApplicantRole")], ["Landowner", T(r, "LandownerName")], ["Email", T(r, "Email")], ["Phone", T(r, "Phone")], ["Address", T(r, "Address1")], ["", esc([txt(r, "City"), [txt(r, "StateAbr"), txt(r, "Zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "))]]) + '</td><td class="gap"></td><td>' +
+              kv([["Farm name", T(r, "FarmName")], ["Farm #", T(r, "FarmID")], ["Tract #", T(r, "TractNumber")], ["County", T(r, "CountyName")], ["Application date", T(r, "ApplicationDate")], ["Requested (tons)", N(r, "AmountRequestedTons", 0, 2)], ["Fields stated", T(r, "FieldsCount")], ["Conservation plan", T(r, "HasConsPlan")], ["Manure plan", T(r, "HasManurePlan")]]) + "</td></tr></table>" +
+            "<h2>Fields and soil tests</h2><table><thead><tr><th>Field #</th><th>Field name</th><th>Acres</th><th>Soil pH</th><th>Tons / acre</th><th>Total tons</th><th>3-year check</th></tr></thead><tbody>" +
+              (rs.map((x) => { const e = ef.get(normKey(attr(x, "FieldNum"))); return "<tr><td>" + esc(attr(x, "FieldNum") ?? "") + "</td><td>" + esc(attr(x, "FieldLabelResolved") ?? "") + '</td><td class="r">' + esc(n(attr(x, "TreatedAcresInField"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "SoilpH"), 0, 2)) + '</td><td class="r">' + esc(n(attr(x, "LimeRecTonsPerAcre"), 3, 3)) + '</td><td class="r">' + esc(n(attr(x, "TotalTonsForField"), 2, 2)) + "</td><td>" + (e ? "<b>FUNDED " + esc(String(e.yr)) + "</b>" : "clear") + "</td></tr>"; }).join("") || '<tr><td colspan="7">No field rows.</td></tr>') +
+              '<tr class="tot"><td></td><td>Total</td><td class="r">' + N(r, "TotalTreatedAcres", 0, 2) + '</td><td class="r">' + N(r, "pHAverage", 0, 2) + '</td><td class="r">' + N(r, "AverageTonnage", 2, 2) + '</td><td class="r">' + N(r, "TotalTonsRanked", 2, 2) + "</td><td></td></tr></tbody></table>" +
+            '<h2>Ranking and approval</h2><table class="lay"><tr><td>' + kv([["1. Current conservation plan or Ag E&amp;S plan", q("Q01ConsPlan")], ["2. Conservation plan verified by the district", q("Q02ConsPlanVerified")], ["3. Current ACT 38 NMP or manure management plan", q("Q03ActPlan")], ["4. Manure plan verified by the district", q("Q04ActPlanVerified")], ["5. First-time or previously non-funded applicant", q("Q05FirstTime")], ["6. Prior contracts completed on time", q("Q06PriorOnTime")], ["7. All selected fields pasture", q("Q07AllPasture")], ["8. District event in the past 12 months", q("Q08AttendedEvent")], ["9. Soil test dated within the last 12 months", q("Q09SoilTestCurrent")], ["10. District visit within the past year", q("Q10DistrictVisit")], ["11. Soil pH band (average of all fields)", q("Q11pHBand")], ["General ranking total", T(r, "TotalGeneralRanking")], ["Lime score", T(r, "LimeScore")], ["TOTAL APPLICATION SCORE", T(r, "TotalApplicationScore")]]) + '</td><td class="gap"></td><td>' +
+              kv([["Approved tons", N(r, "ApprovedTons", 0, 2)], ["Approved acres", N(r, "ApprovedAcres", 0, 2)], ["Max assistance", N(r, "ApprovedAmountUSD", 2, 2)], ["Rate ($/ton)", N(r, "PricePerTonCap", 2, 2)], ["Cost share", has(r, "CostSharePercent") ? T(r, "CostSharePercent") + "%" : ""], ["Approval letter", T(r, "ApprovalLetterDate")], ["Approved by", T(r, "ApprovedBy")], ["Practice lifespan", has(r, "PracticeLifespanYears") ? T(r, "PracticeLifespanYears") + " years" : ""], ["Practice deadline", T(r, "PracticeDeadline")], ["CVF deadline", T(r, "CVFDeadline")]]) + "</td></tr></table>" +
+            '<h2>Agreement and reimbursement</h2><table class="lay"><tr><td>' + kv([["Landowner signed", T(r, "AgreementLandownerSignDate")], ["WCCD signed", T(r, "AgreementWCCDSignDate")], ["WCCD representative", T(r, "AgreementWCCDRepName")], ["A · Lime purchased (t)", N(r, "TonsPurchased", 2, 2)], ["B · Eligible (t)", N(r, "TonsEligible", 2, 2)]]) + '</td><td class="gap"></td><td>' +
+              kv([["C · Cost per ton", N(r, "ActualCostPerTon", 2, 2)], ["D · Rate ($/ton)", N(r, "RatePerTon", 2, 2)], ["Total request (B x D)", N(r, "TotalReimbursementRequest", 2, 2)], ["Total paid", N(r, "TotalReimbursementPaid", 2, 2)], ["Check / date", esc([txt(r, "CheckNumber"), txt(r, "PaymentDate")].filter(Boolean).join("   "))]]) + "</td></tr></table>" +
+            "<h2>Notes</h2><p>" + (T(r, "Notes") || "–") + '</p><p class="foot">Generated from the WCCD Agricultural Lime application record on ' + esc(longDate(Date.now())) + ".</p></div>"; } },
+      letter: { label: "Approval Letter", group: "other", when: (r) => r.status === "Approved" ? "" : "Offered once the application is Approved.",
+        need: [["Approval letter date", "ApprovalLetterDate"], ["Signed by (name on the letter)", "SignerName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Greeting", "LetterSalutation"], ["Signing window start", "SigningWindowStart"], ["Signing window end", "SigningWindowEnd"], ["Approved by", "ApprovedBy"], ["Title", "ApprovedByTitle"]],
+        html(r) { return '<div class="letter">' + head + '<p class="c"><b>WCCD AGRICULTURE ENHANCEMENT PROGRAM</b><br><b>APPLICATION APPROVAL</b></p><p>' + T(r, "ApprovalLetterDate") + "</p><p>" + T(r, "SignerName") + "<br>" + T(r, "Address1") + "<br>" + csz(r) + "</p><p>Dear " + T(r, "LetterSalutation") + ",</p>" +
+          "<p>We appreciate your interest in the WCCD Agriculture Enhancement Program. Upon review and careful consideration, the Washington County Conservation District (WCCD or District) is pleased to inform you that your application has been approved for the following funding:</p><p class=\"ind\">- Application of " + T(r, "BMPType") + "</p>" +
+          "<p>Your application will be formally awarded upon the execution of a signed agreement with Washington County Conservation District. Please contact the conservation district to schedule a time to sign the agreement on one of the following days: " + T(r, "SigningWindowStart") + " through " + T(r, "SigningWindowEnd") + " from 8:30 am to 4:00 pm. Please bring the complete W9 form which is enclosed with you to the meeting. We urge you to not begin work on your project until the appropriate contract conditions have been satisfied.</p>" +
+          "<p><b>You are required to immediately notify the Washington County Conservation District in writing of any changes to this approved application, particularly if you do not plan to continue with the program.</b></p><p>The District looks forward to working in partnership with you.</p><p>Sincerely,</p><p><br><br>" + T(r, "ApprovedBy") + "<br>" + T(r, "ApprovedByTitle") + '</p><p>Enclosure: W9 Form</p><p class="foot">9.19.22</p></div>'; } },
+      agreement: { label: "Agreement", group: "agr", when: (r) => r.status === "Approved" && r.stageN >= 4 ? "" : "Offered at the Agreement stage or later.",
+        need: [["Applicant name", "ApplicantLegalName"], ["Address", "Address1"], ["City", "City"], ["Zip", "Zip"], ["Approved tons", "ApprovedTons"], ["Maximum assistance", "ApprovedAmountUSD"], ["Farm #", "FarmID"], ["Practice lifespan", "PracticeLifespanYears"], ["Rate per ton", "PricePerTonCap"], ["Practice deadline", "PracticeDeadline"], ["CVF deadline", "CVFDeadline"]],
+        html(r) { const li = (a) => "<ol>" + a.map((t) => "<li>" + t + "</li>").join("") + "</ol>", sig = (t) => '<table class="sig"><tr><td style="width:72%">' + t + '</td><td style="width:28%">Date</td></tr></table><p class="gapp">&nbsp;</p>';
+          return '<div class="letter agr"><p class="c"><b><i>Washington County Conservation District<br>Agricultural Enhancement Program<br>Landowner/Operator Agreement</i></b></p>' +
+          '<p>This Agreement is made by &nbsp; <u>&nbsp;' + T(r, "ApplicantLegalName") + '&nbsp;</u><br><span class="small">(Landowner / Operator Name)</span></p><p>Address: &nbsp; <u>&nbsp;' + [T(r, "Address1"), csz(r)].filter(Boolean).join(", ") + "&nbsp;</u></p>" +
+          "<p><b>And Washington County Conservation District (WCCD), located at 50 Old Hickory Ridge Road, Suite 1, Washington, PA 15301 for the following practices:</b></p>" +
+          "<table><thead><tr><th>Practice</th><th>Amount approved for</th><th>Farm Name/#</th><th>Field Numbers</th><th>Practice Lifespan</th></tr></thead><tbody><tr><td>" + (T(r, "BMPType") || "Lime") + "</td><td>" + N(r, "ApprovedTons", 0, 2) + " Tons<br>$ " + N(r, "ApprovedAmountUSD", 2, 2) + " Max Financial Assistance</td><td>" + T(r, "FarmID") + "</td><td>" + esc(included(r).map((x) => attr(x, "FieldNum")).filter((v) => !nb(v)).join(" ")) + "</td><td>" + T(r, "PracticeLifespanYears") + "</td></tr></tbody></table>" +
+          "<p>Each undersigned landowner/operator agrees to participate in the WCCD Agricultural Enhancement Program and comply with terms set forth herein for the period covered by this Agreement. The undersigned landowner(s)/operator(s) represent and agree that:</p>" +
+          "<p><b>Section 1 - Financial Assistance</b></p>" + li(["Payment received shall be a (flat rate or %) of $ " + N(r, "PricePerTonCap", 2, 2) + " /(unit) not to exceed a total reimbursement of $ " + N(r, "ApprovedAmountUSD", 2, 2) + ".", "Payment will be presented for board approval upon WCCD's receipt of the cost verification form and verification by a WCCD employee."]) +
+          "<p><b>Section 2 - Agreement Provisions</b></p>" + li(["Landowner(s)/Operator(s) agree that the WCCD, supervisors, employees, agents and contractors shall have the right to enter upon the Premises to provide technical assistance, perform project inspections, and monitor the practice for the lifespan of the practice (as listed above).",
+            "The practice (s) shall be performed according to the USDA - Natural Resources Conservation Service Field Office Technical Guide (PA) standards and specifications or other approved standards in effect at the time the practices are implemented.",
+            "The practice(s) shall be maintained properly for their lifespan as specified in the Natural Resources Conservation Service Field Office Technical Guide, other approved standards, the designated lifespan, or the permitted lifespan.",
+            "The terms of this Agreement shall cover the lifespan of the longest-lived practice paid for under this Agreement.",
+            "By signing this Agreement, the Landowner(s)/Operator(s) warrant that he/she is the sole owner or operator of the real property on which the project is to be performed, or has secured a sufficient property interest, including any necessary easements or rights-of-way, that may be necessary to grant access, for the completion and maintenance of the work.",
+            "Landowner(s)/Operator(s) agrees to refund all or part of the cost-share assistance paid to it, as determined by the District, if before expiration of the practice lifespan specified above, Landowner(s) (a) destroys the BMP installed, or (b) voluntarily relinquishes control or title to the land on which the installed BMP has/have been established, and the new Landowner(s) and/or operator of the land does not agree in writing to properly maintain the BMP for the remainder of its/their specified lifespan.",
+            "Landowner(s)/Operators(s) shall comply with all Federal, State, local laws, rules and regulations and is responsible for obtaining all permits.",
+            "This Agreement shall be binding on the parties, their heirs, legal representatives, successors, and assigns.",
+            "The Washington County Conservation District board has final decision on payment approvals.",
+            "The Washington County Conservation District shall not be liable for any claims, injuries or damages arising from or any way related to this Project Agreement."]) +
+          "<p><b>Section 3 – Additional Agreement Provisions, if necessary, as deemed by the District.</b></p><p>The Landowner/Operator agrees to comply with the following conditions.</p>" + li(["Once the project is complete, the landowner pays all bills and submits for reimbursement to the District using the Cost Verification Form and attaching all bills related to the project."]) +
+          "<p><b>If I do not complete my practice by " + T(r, "PracticeDeadline") + ", or submit the cost verification form by " + T(r, "CVFDeadline") + ", I will forfeit my right to any cost share payment. No extensions will be granted.</b></p>" +
+          "<p><b>Section 4 – Agreement Signatures</b></p><p>In Witness Whereof, the parties hereto have executed this Agreement.</p><p><b>Landowner(s)/Operator(s):</b></p>" + sig("Landowner Signature") + sig("Operator Signature (if different than Landowner)") +
+          "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "<p><b>Authorized Washington County Conservation District Representative</b></p>" + sig("Signature and Title") + "</div>"; } },
+      cvf: { label: "Cost Verification Form", group: "cvf", when: (r) => r.status === "Approved" && (r.stageN >= 5 || r.signed) ? "" : "Offered once the agreement is signed.",
+        need: [["Applicant name", "ApplicantLegalName"], ["Tons purchased", "TonsPurchased"], ["Tons eligible", "TonsEligible"], ["Cost per ton", "ActualCostPerTon"], ["Reimbursement rate", "RatePerTon"], ["Total reimbursement request", "TotalReimbursementRequest"]],
+        html(r) {
+          const u = (t, w) => { const pad = "&nbsp;".repeat(Math.max(2, Math.round(((w || 16) - String(t).replace(/&[a-z]+;/g, "x").length) / 2))); return "<u>" + pad + (t === "" ? "" : "<b>" + t + "</b>") + pad + "</u>"; };
+          const tick = (k) => { const v = txt(r, k); return v === "" ? u("", 12) : u(/^yes$/i.test(v) ? "&#10003;" : esc(v), 12); };
+          const item = (l, v, w) => '<p class="it">' + l + " &nbsp;" + u(v, w) + "</p>";
+          return '<div class="letter cvf">' + head + '<p class="c ttl">WCCD Agricultural Enhancement Program – Cost Verification Form</p>' +
+          "<p>This form is for requesting reimbursement payment for the WCCD Agricultural Enhancement Program project listed below. The form along with invoice or receipts should be submitted within 30 days of implementation of the project and 7 days before the next district meeting. A reimbursement check will be mailed after the district meeting following this submission (district meetings are the second Tuesday of every month).</p>" +
+          '<p class="sp">Applicant Name: &nbsp;' + u(T(r, "ApplicantLegalName"), 56) + "</p>" +
+          item("A. &nbsp; Amount of Lime Purchased (Tons):", N(r, "TonsPurchased", 2, 2), 26) + item("B. &nbsp; Amount of Lime Eligible for Reimbursement (Tons):", N(r, "TonsEligible", 0, 2), 20) + item("C. &nbsp; Cost per Ton (Lime Only):", has(r, "ActualCostPerTon") ? "$ " + N(r, "ActualCostPerTon", 2, 2) : "", 22) +
+          '<p class="note"><b>**</b> If Cost per Ton is less than $' + (N(r, "PricePerTonCap", 0, 2) || "22") + ", Cost of lime per ton (C) x " + (has(r, "CostShareMultiplier") ? N(r, "CostShareMultiplier", 0, 2) : "0.75") + " to get reimbursement rate.</p>" +
+          item("D. &nbsp; Cost per Ton Reimbursement Rate:", has(r, "RatePerTon") ? "$ " + N(r, "RatePerTon", 2, 2) : "", 22) +
+          '<p class="sp">Total Reimbursement Request (B x D): &nbsp;' + u(has(r, "TotalReimbursementRequest") ? "$ " + N(r, "TotalReimbursementRequest", 2, 2) : "", 26) + '</p><p class="it small">(Amount of Lime Eligible for Reimbursement x Cost per Ton Reimbursement Rate)</p>' +
+          '<p class="rule"><b>WCCD Internal Use:</b><br>Account funds to be paid from: &nbsp;' + u(T(r, "AccountFundsFrom"), 30) + "</p>" +
+          "<p><b>Verification:</b><br>Amount of Lime matches agreement: &nbsp;" + tick("AmountMatchesAgreement") + "<br>Reimbursement amount matches agreement: &nbsp;" + tick("ReimbursementMatchesAgreement") + "<br>Was the lime certified: &nbsp;" + tick("LimeCertified") + "<br>Spot check of application: &nbsp;" + tick("SpotCheckDone") + "</p>" +
+          '<p class="sp">Checked by: &nbsp;' + u(T(r, "CheckedBy"), 40) + " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;" + u(T(r, "CVFReceivedDate"), 30) + "</p>" +
+          '<p class="sp">Reimbursement approved: &nbsp;' + u(T(r, "CVFApprovedBy"), 44) + " &nbsp;&nbsp;&nbsp;&nbsp; Date: &nbsp;" + u(T(r, "CVFApprovedDate"), 26) + '</p><p class="dm">District Manager</p></div>'; } }
+    };
+    // docCss is the document's own typography, used by the preview and by the Word file; sheetCss is the Letter sheet, for the preview and the browser print only.
+    const docCss = "body{font:12pt/1.38 'Times New Roman',Times,serif;color:#000}" +
+      ".lh{text-align:center;margin-bottom:14pt}.c{text-align:center}.ind{margin-left:.5in}.small{font-size:10pt}.foot{font-size:9pt;color:#444;margin-top:18pt}p{margin:0 0 9pt}ol{margin:0 0 9pt;padding-left:.45in}li{margin-bottom:5pt}" +
+      "table{border-collapse:collapse;width:100%;margin:0 0 10pt}th,td{border:1px solid #000;padding:4pt 6pt;vertical-align:top;text-align:left;font-size:11pt}td.r{text-align:right}.sig td{height:34pt;vertical-align:bottom;font-size:9.5pt}.sig td:last-child{width:28%}table.sig{margin:0}.gapp{font-size:5pt;line-height:6pt;margin:0}" +
+      "table.lay,table.lay>tbody>tr>td,table.lay>tr>td{border:0;padding:0}table.lay>tbody>tr>td,table.lay>tr>td{width:48%}table.lay td.gap{width:4%}" +
+      "table.kvt{margin:0}table.kvt td{border:0;border-bottom:1px dotted #999;padding:2pt 0;font-size:10pt}table.kvt td.r{text-align:right}" +
+      "table.idbar{border:1.5px solid #000;margin-bottom:6pt}table.idbar td{border:0;padding:5pt 8pt;font-size:10pt}table.idbar b{font-size:13pt}" +
+      ".agr{font-size:10.5pt}.agr p{margin-bottom:7pt}.agr li{text-align:justify;margin-bottom:4pt}.agr th,.agr td{font-size:10.5pt}" +
+      ".cvf{font-size:11pt}.cvf p{margin-bottom:6pt}.cvf .lh{margin-bottom:12pt}.cvf .ttl{font-size:13.5pt;margin:4pt 0 12pt}.cvf .it{margin-left:.4in}.cvf .sp{margin-top:9pt}.cvf .note{margin:2pt 0 9pt .15in;font-size:10.5pt}" +
+      ".cvf .rule{border-top:1.5pt solid #000;padding-top:7pt;margin-top:12pt}.cvf p{line-height:1.4}.cvf .dm{margin-left:2.2in;font-size:10pt}table.signrow{margin-top:18pt}table.signrow td{font-size:11.5pt;width:auto}table.signrow td.line{border-bottom:1px solid #000;text-align:center}table.signrow td.c{text-align:center;font-size:10pt;padding-top:2pt}" +
+      ".sum{font:10pt/1.3 Arial,Helvetica,sans-serif}.sum h1{font-size:15pt;margin:0}.sum .sub{margin-bottom:8pt}.sum h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.04em;margin:12pt 0 5pt;border-bottom:1.5px solid #000;padding-bottom:2pt}" +
+      ".sum th,.sum td{font-size:9.5pt;padding:3pt 5pt}.sum .tot td{font-weight:bold}.band{padding:5pt 8pt;font-weight:bold;margin-bottom:8pt;border:1px solid #000}.band.warn{background:#F6D5D5}.band.ok{background:#E3F0E3}";
+    const sheetCss = "@page{size:letter;margin:0}html{background:#8A9199}body{margin:0}#src{position:absolute;left:-9999px;top:0;width:6.7in}" +
+      ".page{position:relative;box-sizing:border-box;background:#fff;width:8.5in;height:11in;padding:0.9in;margin:18px auto;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}.pgno{position:absolute;left:0;right:0;bottom:0.42in;text-align:center;font:9pt Arial,Helvetica,sans-serif;color:#444}" +
+      "@media print{html{background:#fff}.page{margin:0;box-shadow:none;height:10.97in;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}}";
+    const css = docCss + sheetCss;
+    // The same document as a file Word opens on Letter paper (Word reads HTML; it is saved with a .doc name). Tables carry the layout because Word ignores grid and flex.
+    // Word honours a style written on each element far better than a style sheet, so the document is drawn off-screen once and every element is given the styles the browser worked out for it.
+    function word(d, r) {
+      const fr = document.createElement("iframe"); fr.setAttribute("aria-hidden", "true"); fr.style.cssText = "position:absolute;left:-9999px;top:0;width:6.7in;height:20px;border:0;visibility:hidden"; document.body.appendChild(fr);
+      let body = "";
+      try {
+        const doc = fr.contentDocument, win = fr.contentWindow; doc.open(); doc.write("<!doctype html><html><head><meta charset=\"utf-8\"><style>" + docCss + "body{margin:0;width:6.7in}</style></head><body>" + d.html(r) + "</body></html>"); doc.close();
+        const pt = (v) => String(v).replace(/(-?[\d.]+)px/g, (m, n) => (Math.round(Number(n) * 75) / 100) + "pt");
+        const hex = (c) => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(c); return !m || m[4] === "0" ? null : "#" + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, "0")).join(""); };
+        const BLOCK = new Set(["P", "DIV", "H1", "H2", "OL", "LI", "TABLE", "TD", "TH"]);
+        for (const el of doc.body.querySelectorAll("*")) {
+          const cs = win.getComputedStyle(el), st = [], T = el.tagName;
+          st.push("font-family:" + cs.fontFamily.replace(/"/g, "'"), "font-size:" + pt(cs.fontSize), "font-weight:" + (Number(cs.fontWeight) >= 600 ? "bold" : "normal"), "font-style:" + cs.fontStyle, "color:" + (hex(cs.color) || "#000000"));
+          if (cs.textTransform !== "none") st.push("text-transform:" + cs.textTransform);
+          if (BLOCK.has(T)) {
+            st.push("text-align:" + (cs.textAlign === "start" ? "left" : cs.textAlign), "line-height:" + pt(cs.lineHeight));
+            if (T !== "TD" && T !== "TH") st.push("margin:" + pt(cs.marginTop) + " " + (T === "TABLE" ? "0" : pt(cs.marginRight)) + " " + pt(cs.marginBottom) + " " + (T === "TABLE" ? "0" : pt(cs.marginLeft)));
+            if (T !== "TABLE" && T !== "LI") st.push("padding:" + pt(cs.paddingTop) + " " + pt(cs.paddingRight) + " " + pt(cs.paddingBottom) + " " + pt(cs.paddingLeft));
+            for (const side of ["Top", "Right", "Bottom", "Left"]) { const w = parseFloat(cs["border" + side + "Width"]) || 0, sty = cs["border" + side + "Style"];
+              st.push("border-" + side.toLowerCase() + ":" + (w > 0 && sty !== "none" ? Math.max(0.75, Math.round(w * 75) / 100) + "pt " + (sty === "dotted" ? "dotted" : "solid") + " " + (hex(cs["border" + side + "Color"]) || "#000000") : "none")); }
+            const bg = hex(cs.backgroundColor); if (bg && bg !== "#ffffff") st.push("background:" + bg);
+            if (T === "TD" || T === "TH") { st.push("vertical-align:" + cs.verticalAlign, "width:" + pt(cs.width)); if (parseFloat(cs.height) > 40) st.push("height:" + pt(cs.height)); }
+            if (T === "TABLE") { st.push("width:100%", "border-collapse:collapse"); el.setAttribute("cellspacing", "0"); el.setAttribute("cellpadding", "0"); el.setAttribute("width", "100%"); }
+          }
+          el.setAttribute("style", st.join(";"));
+        }
+        body = doc.body.innerHTML;
+      } finally { fr.remove(); }
+      return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title>" +
+        "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
+        "<style>@page WordSection1{size:8.5in 11.0in;margin:0.9in 0.9in 0.9in 0.9in;mso-footer-margin:0.45in;mso-footer:f1}div.WordSection1{page:WordSection1}p.MsoFooter{margin:0;text-align:center;font-size:9pt;font-family:Arial,sans-serif;color:#444444}table#hrdftrtbl{margin:0in 0in 0in 900in;width:1px;height:1px;overflow:hidden}</style></head><body><div class=\"WordSection1\">" + body +
+        // Word's own footer, with its page-number fields; the table only keeps the footer definition out of the page body
+        "<table id=\"hrdftrtbl\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td><div style=\"mso-element:footer\" id=\"f1\"><p class=\"MsoFooter\">Page <span style='mso-field-code:\" PAGE \"'></span> of <span style='mso-field-code:\" NUMPAGES \"'></span></p></div></td></tr></table></div></body></html>";
+    }
+    // Runs inside the preview: deals the document's blocks onto Letter sheets, so the preview and the printout break at the same places.
+    // A list is dealt item by item (numbering carried on); a short bold heading is never left alone at the foot of a sheet.
+    const paginate = "(" + function () {
+      var src = document.getElementById("src"), root = src.firstElementChild, cls = root.className, blocks = [];
+      Array.prototype.slice.call(root.children).forEach(function (el) {
+        if (el.tagName === "OL") { Array.prototype.slice.call(el.children).forEach(function (li, i) { var o = document.createElement("ol"); o.start = i + 1; o.appendChild(li); blocks.push(o); }); }
+        else blocks.push(el);
+      });
+      var limit = 9.2 * 96 - 4, pages = [], cur = null;
+      function sheet() { var p = document.createElement("div"); p.className = "page"; var c = document.createElement("div"); c.className = cls; p.appendChild(c); document.body.appendChild(p); pages.push(p); cur = c; }
+      function heading(el) { if (!el) return false; if (el.tagName === "H2") return true; var b = el.firstElementChild; return el.tagName === "P" && el.children.length === 1 && b.tagName === "B" && el.textContent.trim() === b.textContent.trim() && el.textContent.length < 110; }
+      sheet();
+      blocks.forEach(function (el) {
+        cur.appendChild(el);
+        if (cur.offsetHeight > limit && cur.children.length > 1) {
+          var prev = el.previousElementSibling, carry = heading(prev) && cur.children.length > 2 ? prev : null, old = cur;
+          sheet(); if (carry) cur.appendChild(carry); cur.appendChild(el);
+          if (old.lastElementChild) old.lastElementChild.style.marginBottom = "0";
+        }
+      });
+      src.parentNode.removeChild(src);
+      if (pages.length > 1) pages.forEach(function (p, i) { var n = document.createElement("div"); n.className = "pgno"; n.textContent = "Page " + (i + 1) + " of " + pages.length; p.appendChild(n); });
+    }.toString() + ")();";
+    return { docs, has, css, paginate, word };
+  })();
+  function prOpen(r, k) {
+    const d = PR.docs[k]; if (!d) return; const miss = d.need.filter(([, f]) => !PR.has(r, f)).map(([l]) => l);
+    let dlg = $("prDlg"); if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "prDlg"; dlg.setAttribute("aria-labelledby", "prTitle"); document.body.appendChild(dlg);
+      dlg.addEventListener("click", (e) => { if (e.target.id === "prClose") dlg.close(); if (e.target.id === "prWord") { const pr = dlg._pr, r0 = pr && rows.find((x) => x.id === pr.rid); if (!r0) return;
+          const d0 = PR.docs[pr.k], name = (r0.id + " " + d0.label).replace(/[^\w\- ]+/g, "").trim() + ".doc", blob = new Blob(["\ufeff", PR.word(d0, r0)], { type: "application/msword" });
+          { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+          return; }
+        if (e.target.id === "prPrint") { try { const w = dlg.querySelector("iframe").contentWindow; w.focus(); w.print(); } catch (err) { console.warn("print", err); } } }); }
+    const grp = d.group !== "other" ? DOC_GROUPS.find((g) => g[0] === d.group)[1] : "Other files";
+    dlg.innerHTML = '<div class="prwrap"><div class="prhead"><b id="prTitle">' + esc(d.label) + " · " + esc(r.id) + "</b>" + (miss.length ? '<div class="prmiss" role="alert"><b>! Empty on this record, so blank in the document:</b> ' + esc(miss.join(", ")) + ".</div>" : "") + "</div>" +
+      '<iframe title="' + esc(d.label) + ' preview"></iframe><div class="prfoot"><span class="sp">Opening, printing or downloading saves nothing on the application. Only PDF files are attached: to keep a copy, save it as PDF from Word or the print window, then use Attach on the Documents tab (' + esc(grp) + ').</span><button type="button" class="btn" id="prClose">Close</button>' +
+      '<button type="button" class="btn" id="prWord">Download Word file</button><button type="button" class="btn go" id="prPrint">Print</button></div></div>';
+    dlg._pr = { rid: r.id, k };
+    dlg.querySelector("iframe").srcdoc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(d.label + " " + r.id) + "</title><style>" + PR.css + '</style></head><body><div id="src">' + d.html(r) + "</div><script>" + PR.paginate + "<\/script></body></html>";
+    if (!dlg.open) dlg.showModal();
+  }
   const BUILD = "B13k";
   // ##### END OF THE COPIED CODE #####
 
@@ -395,9 +631,9 @@ main{padding:14px 18px 40px;min-width:0}
   // classic app (index.html) by build_dash.py: settings, sign-in, reading the applications, the forms and the field rows,
   // the flags, and the farm and field polygons. Nothing here writes to ArcGIS Online.
   // =====================================================================================================================
-  const D_BUILD = "D1a", D_DATE = "18 Nov 2026", CLASSIC = "index.html";
+  const D_BUILD = "D2a", D_DATE = "18 Nov 2026", CLASSIC = "index.html";
   const SCOL = ["#E4572E", "#F0A202", "#9BC53D", "#1B8A5A", "#0B7C8A", "#2A4FA8"];
-  const nb = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
+  const sn = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
   const filled = (v) => v != null && String(v).trim() !== "";
   const rd1 = (n) => Math.round(n * 10) / 10;
 
@@ -433,20 +669,21 @@ main{padding:14px 18px 40px;min-width:0}
   try { fyPick = sessionStorage.getItem("wccdDashFy") ?? ""; } catch { /* ignore */ }
   if (fyPick !== "all" && !years.includes(fyPick)) fyPick = years[years.length - 1] || "all";
   const shown = () => MODELS.filter((m) => fyPick === "all" || m.r.fy === fyPick);
-  const openHref = (r) => CLASSIC + "#/work/" + encodeURIComponent(r.id);
+  const openHref = (r) => "#/app/" + encodeURIComponent(r.id);
+  const classicHref = (r) => CLASSIC + "#/work/" + encodeURIComponent(r.id);
   const short = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
   // ---- page frame ----
   const topHtml = (title, sub, figs) => '<div class="top"><h1>' + esc(title) + '</h1><span class="sub">' + esc(sub) + '</span><label class="sub">Fiscal year <select id="fySel">' +
     years.map((y) => '<option value="' + esc(y) + '"' + (y === fyPick ? " selected" : "") + ">" + esc(y) + "</option>").join("") + '<option value="all"' + (fyPick === "all" ? " selected" : "") + ">All years</option></select></label>" +
     '<div class="figs">' + figs.map(([v, l]) => "<span><b>" + esc(v) + "</b>" + esc(l) + "</span>").join("") + "</div></div>";
-  const footHtml = () => '<p class="foot">Dashboard view, build ' + D_BUILD + " (" + D_DATE + "), read-only so far. Opening an application uses the classic view until its new page is built. Classic app build " + esc(typeof BUILD === "string" ? BUILD : "B13k") + " · ArcGIS SDK " + esc(sdkVer) + ". Problems: yayad@pennwest.edu</p>";
+  const footHtml = () => '<p class="foot">Dashboard view, build ' + D_BUILD + " (" + D_DATE + "), read-only so far: to change an application, use Edit in the classic view, on its page. Classic app build " + esc(typeof BUILD === "string" ? BUILD : "B13k") + " · ArcGIS SDK " + esc(sdkVer) + ". Problems: yayad@pennwest.edu</p>";
 
   // ---- Home ----
   function needHtml(list) {
     const items = list.filter((m) => m.need.length && m.d < 6).sort((a, b) => a.d - b.d);
     if (!items.length) return '<p class="none">Nothing is missing on the applications shown.</p>';
-    return items.map((m) => '<a class="need" href="' + openHref(m.r) + '">' + nb(m.d) + "<span><b>" + esc(m.r.id) + "</b> " + esc(m.r.applicant) + "</span><em>" + esc(m.need.join(" · ")) + "</em></a>").join("");
+    return items.map((m) => '<a class="need" href="' + openHref(m.r) + '">' + sn(m.d) + "<span><b>" + esc(m.r.id) + "</b> " + esc(m.r.applicant) + "</span><em>" + esc(m.need.join(" · ")) + "</em></a>").join("");
   }
   function stripHtml(list) {
     const pts = list.filter((m) => m.ph != null).sort((a, b) => a.ph - b.ph), lo = 4.5, hi = 7.5, pos = (v) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100));
@@ -462,9 +699,9 @@ main{padding:14px 18px 40px;min-width:0}
     const list = shown(), open = list.filter((m) => m.d < 6), needing = open.filter((m) => m.need.length), tons = list.reduce((a, m) => a + (m.tons || 0), 0);
     const counts = [1, 2, 3, 4, 5, 6].map((k) => list.filter((m) => m.d === k).length);
     $("page").innerHTML = topHtml("Lime applications", "Washington County Conservation District · Agricultural Enhancement Program", [[String(open.length), "open"], [String(needing.length), "need input"], [fmt(tons) + " t", "requested"]]) +
-      '<div class="homeg"><div class="mapc"><div id="homeMap"></div><div class="mnote" id="mapNote">Loading the map…</div>' +
+      '<div class="homeg"><div class="mapc"><div id="homeMap"></div><div class="mnote" id="mapNote">Loading the map…</div><div class="mcard" id="mapCard" hidden></div>' +
       '<div class="msw" role="group" aria-label="Background"><button type="button" data-bm="aerial" aria-pressed="true">Aerial</button><button type="button" data-bm="topo" aria-pressed="false">Topo</button></div>' +
-      '<div class="mleg">' + STAGES.map((s, i) => "<span>" + nb(i + 1) + esc(s) + " " + counts[i] + "</span>").join("") + "</div></div>" +
+      '<div class="mleg">' + STAGES.map((s, i) => "<span>" + sn(i + 1) + esc(s) + " " + counts[i] + "</span>").join("") + "</div></div>" +
       '<div class="hside"><div class="cx needc"><h2>Needs input <span>' + needing.length + " application" + (needing.length === 1 ? "" : "s") + "</span></h2>" + needHtml(list) + "</div>" +
       '<div class="cx"><h2>Start</h2><a class="bt pri" href="' + CLASSIC + '#/new">New application</a><a class="bt" href="#/stages">Open the Stages page</a></div></div></div>' + stripHtml(list) + footHtml();
     const h = $("stripHint"); if (h) setTimeout(() => h.classList.add("gone"), 6000);
@@ -482,6 +719,16 @@ main{padding:14px 18px 40px;min-width:0}
     const t = String(k), mt = x.measureText(t), asc = mt.actualBoundingBoxAscent ?? 17, desc = mt.actualBoundingBoxDescent ?? 0;
     x.fillText(t, 32, 32 + (asc - desc) / 2);
     return (pinCache[k] = c.toDataURL("image/png"));
+  }
+  const dateOf = (v) => (typeof v === "number" ? new Date(v).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "");
+  function hoverHtml(m) {          // name; ID, year and date; stage; fields and acres; tons and score; one line on what is missing
+    const r = m.r, ac = m.flds.reduce((a, x) => a + (num(attr(x, "TreatedAcresInField")) || 0), 0), dt = dateOf(attr(r.a, "ApplicationDate")), score = num(r.a[F.awarded]) ?? num(r.a[F.calc]);
+    const end = r.ended ? r.statusText : (m.d === 6 ? (r.plain[0] || "Closed") : "");
+    return "<strong>" + esc(r.applicant || "(no name)") + "</strong><small>" + esc(r.id) + " · " + esc(r.fy) + (dt ? " · applied " + esc(dt) : "") + "</small>" +
+      "<span>" + sn(m.d) + " " + esc(STAGES[m.d - 1]) + (end ? " · " + esc(end.replace(/\.$/, "")) : "") + "</span>" +
+      "<span>" + m.flds.length + " field" + (m.flds.length === 1 ? "" : "s") + (ac ? " · " + fmt(ac) + " treated acres" : "") + (m.ph != null ? " · pH " + rd1(m.ph) : "") + "</span>" +
+      ((m.tons != null || score != null) ? "<span>" + [m.tons != null ? fmt(m.tons) + " tons requested" : "", score != null && m.d >= 3 ? "score " + fmt(score) : ""].filter(Boolean).join(" · ") + "</span>" : "") +
+      (m.need.length && m.d < 6 ? "<em>Needs: " + esc(short(m.need.join(" · "), 90)) + "</em>" : "") + "<u>click to open</u>";
   }
   let HM = null, bmKind = "aerial";
   const DARK = "brightness(0.8) contrast(1.12)";
@@ -512,8 +759,18 @@ main{padding:14px 18px 40px;min-width:0}
     if (note) note.textContent = placed + " of " + list.length + " application" + (list.length === 1 ? "" : "s") + " on the map" + (off.length ? " · " + off.length + " without a farm on the map" : "") + " · zoom in to see names and farm outlines";
     const ready = () => { shade(el); };
     el.addEventListener("arcgisViewReadyChange", ready); setTimeout(ready, 1500); setTimeout(ready, 4000);
-    el.addEventListener("arcgisViewClick", async (evt) => { try { const hit = await el.hitTest(evt.detail), g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.mi != null);
-      if (g) location.href = openHref(list[g.attributes.mi].r); } catch (e) { console.warn("home map click", e); } });
+    const pick = async (d) => { const hit = await el.hitTest(d); const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.mi != null); return g ? list[g.attributes.mi] : null; };
+    el.addEventListener("arcgisViewClick", async (evt) => { try { const m = await pick(evt.detail); if (m) location.hash = openHref(m.r); } catch (e) { console.warn("home map click", e); } });
+    // pointing at a point: a small card with the application's key facts
+    let busy = false, last = null;
+    const card = $("mapCard"), hide = () => { last = null; if (card) card.hidden = true; el.style.cursor = ""; };
+    el.addEventListener("arcgisViewPointerMove", async (evt) => { if (busy || !card) return; busy = true;
+      try { const d = evt.detail, m = await pick(d); if (!m) { hide(); return; }
+        if (m !== last) { last = m; card.innerHTML = hoverHtml(m); }
+        const box = host.getBoundingClientRect(), x = d.x ?? 0, y = d.y ?? 0; card.hidden = false; el.style.cursor = "pointer";
+        card.style.left = Math.max(8, Math.min(x + 16, box.width - card.offsetWidth - 8)) + "px"; card.style.top = Math.max(8, Math.min(y + 14, box.height - card.offsetHeight - 8)) + "px";
+      } catch (e) { hide(); } finally { setTimeout(() => { busy = false; }, 40); } });
+    el.addEventListener("arcgisViewPointerLeave", hide); el.addEventListener("arcgisViewDrag", hide); host.addEventListener("mouseleave", hide);
     // the county outline, and the opening view fitted to it (a failure here leaves the map as it is)
     try {
       const [FeatureLayer] = await $arcgis.import(["@arcgis/core/layers/FeatureLayer.js"]);
@@ -533,22 +790,134 @@ main{padding:14px 18px 40px;min-width:0}
     const list = shown();
     const card = (m) => '<a class="bc' + (m.need.length ? " need2" : "") + '" href="' + openHref(m.r) + '"><b>' + esc(m.r.id) + "</b>" + esc(m.r.applicant || "(no name)") +
       (m.need.length ? "<ul>" + m.need.map((t) => "<li>" + esc(t) + "</li>").join("") + "</ul>" : "") +
-      (m.d === 6 ? '<span class="tag">' + esc(m.r.ended ? m.r.statusText : (m.r.plain[0] || "Closed")) + "</span>" : "") +
-      (m.checks.length ? '<span class="tag" title="' + esc(m.checks.join(" ")) + '">' + m.checks.length + " check" + (m.checks.length === 1 ? "" : "s") + "</span>" : "") + "</a>";
+      ((m.d === 6 || m.checks.length) ? '<span class="tags">' + (m.d === 6 ? '<span class="tag">' + esc((m.r.ended ? m.r.statusText : (m.r.plain[0] || "Closed")).replace(/\.$/, "")) + "</span>" : "") +
+        (m.checks.length ? '<span class="tag" title="' + esc(m.checks.join(" ")) + '">' + m.checks.length + " check" + (m.checks.length === 1 ? "" : "s") + "</span>" : "") + "</span>" : "") + "</a>";
     $("page").innerHTML = topHtml("Stages", "every application in stage order", [[String(list.length), "applications"], [String(list.filter((m) => m.need.length && m.d < 6).length), "need input"]]) +
       '<div class="board">' + STAGES.map((s, i) => { const col = list.filter((m) => m.d === i + 1);
-        return '<div class="bcol" style="--c:' + SCOL[i] + '"><div class="bh">' + nb(i + 1) + "<b>" + esc(s) + "</b><span>" + col.length + "</span></div>" + (col.map(card).join("") || '<div class="bcnone">none</div>') + "</div>"; }).join("") + "</div>" +
+        return '<div class="bcol" style="--c:' + SCOL[i] + '"><div class="bh">' + sn(i + 1) + "<b>" + esc(s) + "</b><span>" + col.length + "</span></div>" + (col.map(card).join("") || '<div class="bcnone">none</div>') + "</div>"; }).join("") + "</div>" +
       '<p class="wnote">A card opens the application. A red card lists what is still missing. "checks" are the red flags of the classic view (point at the tag to read them).</p>' + footHtml();
   }
   function renderSoon(name) {
     $("page").innerHTML = '<div class="top"><h1>' + esc(name) + '</h1></div><div class="cx soonp"><h2>Not built yet</h2><p>This page of the Dashboard view comes in a later piece. Until then, use the classic view.</p><a class="bt pri" href="' + CLASSIC + '">Open the classic view</a></div>' + footHtml();
   }
 
+  // =====================================================================================================================
+  // The application sheet (piece 2, read-only): stage rail · the stage's values as a checklist · fields, map and paper.
+  // The values listed for a stage are the fields of that stage's Map Viewer form (Intake: the classic app's own list),
+  // in the same order and with the same labels as the classic view.
+  // =====================================================================================================================
+  const STAGE_FORM = ["intake", "rank", "appr", "agr", "cvf", null];
+  const STAGE_DOC = [["summary"], [], ["letter"], ["agreement"], ["cvf"], ["summary", "letter", "agreement", "cvf"]];
+  const STAGE_FILES = [["app", "other", "lab"], ["other"], ["other"], ["agr"], ["cvf"], ["app", "agr", "cvf", "lab", "other"]];
+  const AUTO_Q = [[/^Q0?1[A-Z_]/, 1, "Intake › Applicant and farm"], [/^Q0?3[A-Z_]/, 1, "Intake › Applicant and farm"], [/^Q0?8[A-Z_]/, 1, "Intake › Applicant and farm"], [/^Q0?9[A-Z_]/, 0, "Fields › lab report dates"], [/^Q11[A-Z_]/, 0, "Fields › soil pH"]];
+  let showAll = true; try { showAll = localStorage.getItem("wccdDashShowAll") !== "0"; } catch { /* ignore */ }
+  let SH = { files: null, forId: null, mapBig: false };
+  function stageRows(r, k) {            // the values of stage k (1-5), grouped as in the form
+    const form = forms[STAGE_FORM[k - 1]]; if (!form) return { error: "This stage's form could not be read." }; if (form.error) return { error: form.error };
+    const groups = []; let cur = null, filledN = 0, total = 0;
+    for (const it of form.list) { const f = appFields[it.field.toLowerCase()], v = attr(r.a, it.field), text = show(f, v);
+      if (!cur || cur.name !== (it.group || "")) { cur = { name: it.group || "", rows: [] }; groups.push(cur); }
+      total++; if (text != null) filledN++;
+      cur.rows.push({ label: niceLabel(it.label, f, it.field), text, field: it.field }); }
+    return { groups, filledN, total };
+  }
+  function sheetHtml(m, k) {
+    const r = m.r, e = esc, cls = (j) => (j < m.d ? "done" : j === m.d ? "now" : "todo");
+    const railNote = (j) => j < m.d ? "complete" : j > m.d ? "not yet" : (m.d === 6 ? (r.ended ? r.statusText : "closed") : m.need.length ? m.need.length + " needed" : "in progress");
+    const rail = STAGES.map((s, i) => '<a class="rs ' + cls(i + 1) + (i + 1 === k ? " view" : "") + '" style="--c:' + SCOL[i] + '" href="#/app/' + encodeURIComponent(r.id) + "/" + (i + 1) + '"' + (i + 1 === k ? ' aria-current="step"' : "") + ">" + sn(i + 1) + "<b>" + e(s) + "</b><span>" + e(railNote(i + 1)) + "</span></a>").join("");
+    // documents of this stage
+    const docs = STAGE_DOC[k - 1].map((dk) => { const d = PR.docs[dk]; if (!d) return ""; const why = d.when(r);
+      return '<div class="docb"><div><b>' + e(d.label) + "</b><span>" + e(why || "generated from this application · nothing is stored by opening it") + '</span></div><button type="button" class="pbtn" data-pr="' + dk + '"' + (why ? " disabled" : "") + ">Preview, print or Word file</button></div>"; }).join("");
+    let body = "";
+    if (k <= 5) { const sr = stageRows(r, k);
+      if (sr.error) body = '<p class="perr">' + e(sr.error) + "</p>";
+      else { body = sr.groups.map((g) => { const rowsH = g.rows.filter((x) => showAll || x.text != null).map((x) => { const auto = k === 2 && AUTO_Q.find(([re]) => re.test(x.field));
+            return '<div class="row' + (x.text == null ? " empty" : "") + '"><label>' + e(x.label) + "</label><b>" + (x.text == null ? "—" : e(x.text)) + "</b>" +
+              (auto ? '<em>worked out. To change it: <a href="#/app/' + encodeURIComponent(r.id) + "/" + auto[1] + '">' + e(auto[2]) + " ›</a></em>" : "<em></em>") + "</div>"; }).join("");
+          return rowsH ? (g.name ? "<h3>" + e(g.name) + "</h3>" : "") + rowsH : ""; }).join("") || '<p class="none2">No value is stored for this stage yet. Tick "Show all fields" to see the empty ones.</p>';
+        body = '<p class="count">' + sr.filledN + " of " + sr.total + " values filled</p>" + body; } }
+    else { const paid = num(r.a[F.paid]), apT = num(r.a[F.apprTons]), apA = num(r.a[F.apprAcres]), amt = num(r.a[F.apprAmt]), sc = num(r.a[F.awarded]) ?? num(r.a[F.calc]);
+      const line = (l, v) => '<div class="row' + (v ? "" : " empty") + '"><label>' + e(l) + "</label><b>" + (v ? e(v) : "—") + "</b><em></em></div>";
+      body = "<h3>Summary</h3>" + line("Outcome", r.ended ? r.statusText + (r.plain[0] ? " · " + r.plain[0] : "") : m.d === 6 ? "Closed" : "Not closed yet") + line("Official score", sc != null ? fmt(sc) : "") +
+        line("Approved", apT != null ? fmt(apT) + " tons" + (apA != null ? " on " + fmt(apA) + " acres" : "") + (amt != null ? " · up to " + money(amt) : "") : "") + line("Reimbursed", paid != null ? money(paid) : "") +
+        (m.d === 6 ? '<p class="count">A closed application cannot be changed. Files can still be attached or removed in the classic view.</p>' : ""); }
+    const flags = (r.red.length || r.notes.length) ? '<div class="flags">' + r.red.map((t) => '<p class="fr">' + ICON.red + e(t) + "</p>").join("") + r.notes.map((t) => '<p class="fn">' + ICON.note + e(t) + "</p>").join("") + "</div>" : "";
+    const needs = (k === m.d && m.need.length && m.d < 6) ? '<div class="needbox"><b>Needs input at this stage</b><ul>' + m.need.map((t) => "<li>" + e(t) + "</li>").join("") + "</ul></div>" : "";
+    // fields
+    const ef = (() => { try { return earlierFunding(r).out; } catch { return new Map(); } })();
+    const ftab = m.flds.length ? "<table><tr><th>Field</th><th>ac</th><th>pH</th><th>t/ac</th><th>tons</th></tr>" + m.flds.map((x) => { const g = (n) => { const v = num(attr(x, n)); return v == null ? '<span class="mis">?</span>' : fmt(v); }, hit = ef.get(normKey(attr(x, "FieldNum")));
+        return "<tr><td>" + e(attr(x, "FieldNum") ?? "?") + (hit ? ' <i class="ty" title="Limed and paid ' + e(hit.year ?? "") + " in " + e(hit.id ?? "") + '">3-yr</i>' : "") + "</td><td>" + g("TreatedAcresInField") + "</td><td>" + g("SoilpH") + "</td><td>" + g("LimeRecTonsPerAcre") + "</td><td>" + g("TotalTonsForField") + "</td></tr>"; }).join("") + "</table>" : '<p class="none">No fields are entered.</p>';
+    const sc = num(r.a[F.awarded]) ?? num(r.a[F.calc]);
+    const figs = [[sc != null ? fmt(sc) : "—", "score"], [m.tons != null ? fmt(m.tons) + " t" : "—", "requested"], [String(m.flds.length), "fields"]];
+    return '<div class="top"><a class="bk" href="#/stages">‹ Stages</a><h1>' + e(r.id) + " · " + e(r.applicant || "(no name)") + '</h1><span class="sub">' + e(r.fy) + (F.farmNo && filled(r.a[F.farmNo]) ? " · Farm # " + e(r.a[F.farmNo]) : " · no Farm #") + '</span><a class="cbtn" href="' + classicHref(r) + '">Edit in the classic view</a>' +
+      '<div class="figs">' + figs.map(([v, l]) => "<span><b>" + e(v) + "</b>" + e(l) + "</span>").join("") + "</div></div>" +
+      '<div class="sheet"><nav class="srail" aria-label="Stages of this application">' + rail + "</nav>" +
+      '<section class="smid" style="--c:' + SCOL[k - 1] + '"><div class="sh">' + sn(k) + "<div><b>" + e(STAGES[k - 1]) + "</b><span>" + e(k === m.d ? "this is the application's current stage" : k < m.d ? "completed stage" : "not reached yet") + "</span></div>" +
+      (k > 1 ? '<a class="nav2" href="#/app/' + encodeURIComponent(r.id) + "/" + (k - 1) + '">‹ ' + e(STAGES[k - 2]) + "</a>" : "") + (k < 6 ? '<a class="nav2 fw" href="#/app/' + encodeURIComponent(r.id) + "/" + (k + 1) + '">' + e(STAGES[k]) + " ›</a>" : "") + "</div>" +
+      (docs ? '<div class="docbar">' + docs + "</div>" : "") + flags + needs +
+      (k <= 5 ? '<label class="showall"><input type="checkbox" id="showAll"' + (showAll ? " checked" : "") + "> Show all fields, including the empty ones</label>" : "") + body + "</section>" +
+      '<aside class="sctx"><div class="cx"><h2>Fields <span>' + m.flds.length + " included</span></h2>" + ftab + '</div><div class="cx"><h2>Map <button type="button" class="lnk" id="mapBig">' + (SH.mapBig ? "smaller" : "larger") + '</button></h2><div id="sheetMap" class="smap' + (SH.mapBig ? " big" : "") + '"><p class="none">Loading the map…</p></div></div>' +
+      '<div class="cx"><h2>Paper for this stage <span id="fileCount"></span></h2><div id="sheetFiles"><p class="none">Reading the attached files…</p></div></div></aside></div>' + footHtml();
+  }
+  function renderSheet() {
+    const parts = location.hash.replace(/^#\/?/, "").split("/"), id = decodeURIComponent(parts[1] || ""), m = MODELS.find((x) => x.r.id === id);
+    if (!m) { $("page").innerHTML = '<div class="top"><h1>Application not found</h1></div><div class="cx soonp"><p>No application has the ID "' + esc(id) + '".</p><a class="bt" href="#/stages">Back to Stages</a></div>'; return; }
+    const k = Math.min(6, Math.max(1, parseInt(parts[2], 10) || m.d));
+    $("page").innerHTML = sheetHtml(m, k);
+    sheetMap(m).catch((e) => { const h = $("sheetMap"); if (h) h.innerHTML = '<p class="none">The map could not be drawn: ' + esc(mask(e.message || e)) + "</p>"; });
+    sheetFiles(m, k).catch((e) => { const h = $("sheetFiles"); if (h) h.innerHTML = '<p class="none">The files could not be read: ' + esc(mask(e.message || e)) + "</p>"; });
+  }
+  async function sheetMap(m) {          // the farm outline, this application's fields, and the farm's other fields in grey
+    const r = m.r, host = $("sheetMap"); await loadPolygons(); if (!$("sheetMap") || $("sheetMap") !== host) return;
+    const farmNo = F.farmNo ? normFarm(r.a[F.farmNo]) : "", farm = MAPS.farms.find((f) => f.farm === farmNo), flds = MAPS.fields.filter((f) => farmNo && (f.farm === farmNo || f.pre === farmNo));
+    if (!farmNo) { host.innerHTML = '<p class="none">This application has no Farm #, so its farm cannot be looked up.</p>'; return; }
+    if (!farm && !flds.length) { host.innerHTML = '<p class="none">No farm or field polygon was found for Farm # ' + esc(r.a[F.farmNo]) + ".</p>"; return; }
+    const { MapCls, GraphicsLayer, G } = MAPS.mods, lay = new GraphicsLayer(), mine = new Set(m.flds.map((x) => normKey(attr(x, "FieldNum"))));
+    if (farm && farm.g) lay.add(new G({ geometry: farm.g, symbol: { type: "simple-fill", color: [0, 0, 0, 0], outline: { color: [255, 255, 255, 0.9], width: 1.6 } } }));
+    for (const f of flds) { const on = mine.has(f.key);
+      lay.add(new G({ geometry: f.g, symbol: { type: "simple-fill", color: on ? [255, 180, 90, 0.45] : [0, 0, 0, 0], outline: { color: on ? [255, 180, 90, 1] : [220, 220, 220, 0.7], width: on ? 2 : 1 } } }));
+      if (on && f.g && f.g.extent) lay.add(new G({ geometry: f.g.extent.center, symbol: { type: "text", text: f.suf, color: "#fff", haloColor: [6, 9, 12, 0.9], haloSize: 2, font: { size: 10, weight: "bold" } } })); }
+    host.innerHTML = ""; const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: BASES.aerial, layers: [lay] }); host.appendChild(el);
+    const target = farm && farm.g ? farm.g : flds.map((f) => f.g).filter(Boolean);
+    const zoom = () => { try { const p = el.goTo && el.goTo(target); if (p && p.catch) p.catch(() => {}); } catch (e) { console.warn("sheet map zoom", e); } };
+    el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
+  }
+  async function sheetFiles(m, k) {      // the attached files that belong to this stage (read and open only, for now)
+    const r = m.r, host = $("sheetFiles"), oid = r.a[appLayer.objectIdField];
+    if (SH.forId !== r.id) { SH.files = null; SH.forId = r.id;
+      SH.files = (typeof appLayer.queryAttachments === "function" && oid != null) ? (((await appLayer.queryAttachments({ objectIds: [oid] })) || {})[oid] || []) : []; }
+    if (!$("sheetFiles") || $("sheetFiles") !== host || SH.forId !== r.id) return;
+    const kw = (f) => String(Array.isArray(f.keywords) ? f.keywords.join(", ") : f.keywords ?? "").trim();
+    const groupOf = (f) => { const t = kw(f); return t ? DOC_GROUPS.find(([, , re]) => re.test(t))[0] : "other"; };
+    const all = SH.files || [], want = STAGE_FILES[k - 1], list = all.filter((f) => want.includes(groupOf(f)));
+    const title = (g) => (DOC_GROUPS.find((x) => x[0] === g) || [0, g])[1];
+    $("fileCount").textContent = list.length + " of " + all.length + " attached file" + (all.length === 1 ? "" : "s");
+    host.innerHTML = (list.map((f) => '<div class="pp"><span>' + esc(f.name || "(no name)") + "<small>" + esc(title(groupOf(f)) + (f.size != null ? " · " + sizeText(f.size) : "")) + '</small></span><button type="button" class="lnk" data-file="' + all.indexOf(f) + '">open</button></div>').join("") || '<p class="none">No file is attached for this stage.</p>') +
+      '<p class="wnote">Attaching and removing files: in the classic view for now.</p>';
+  }
+  document.addEventListener("change", (e) => { if (e.target.id !== "showAll") return; showAll = e.target.checked; try { localStorage.setItem("wccdDashShowAll", showAll ? "1" : "0"); } catch { /* ignore */ } renderSheet(); });
+  document.addEventListener("click", async (e) => {
+    const pr = e.target.closest(".pbtn[data-pr]"); if (pr && !pr.disabled) { const id = decodeURIComponent(location.hash.split("/")[2] || ""), r = rows.find((x) => x.id === id); if (r) prOpen(r, pr.dataset.pr); return; }
+    if (e.target.id === "mapBig") { SH.mapBig = !SH.mapBig; renderSheet(); return; }
+    const fb = e.target.closest("[data-file]"); if (!fb || !SH.files) return;
+    const f = SH.files[Number(fb.dataset.file)]; if (!f) return;
+    // Same way as the classic view: the app fetches the file while signed in and shows the copy, so no link on the page carries a sign-in token.
+    const inTab = /pdf|^image\//i.test(f.contentType || ""), w = inTab ? window.open("", "_blank") : null, old = fb.textContent;
+    try { fb.disabled = true; fb.textContent = "opening…";
+      const esriRequest = await $arcgis.import("@arcgis/core/request.js");
+      const res = await esriRequest(f.url, { responseType: "blob" });
+      const blob = f.contentType && res.data.type !== f.contentType ? new Blob([res.data], { type: f.contentType }) : res.data, url = URL.createObjectURL(blob);
+      if (w) w.location = url; else { const a = document.createElement("a"); a.href = url; a.download = f.name || "file"; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 600000);
+    } catch (err) { if (w) w.close(); fb.insertAdjacentHTML("afterend", '<small class="mis"> could not be opened – ' + esc(mask(err.message || err)) + "</small>"); }
+    finally { fb.disabled = false; fb.textContent = old; }
+  });
+
   // ---- routes ----
   function dRoute() {
     const h = location.hash.replace(/^#\/?/, "").split("/")[0] || "home"; HM = null;
-    document.querySelectorAll(".rail a[data-r]").forEach((a) => a.classList.toggle("on", a.dataset.r === h));
-    if (h === "home") renderHome(); else if (h === "stages") renderStages(); else renderSoon({ explore: "Explore", reports: "Reports", check: "Data check", help: "Help" }[h] || "Page");
+    document.querySelectorAll(".rail a[data-r]").forEach((a) => a.classList.toggle("on", a.dataset.r === (h === "app" ? "stages" : h)));
+    if (h === "home") renderHome(); else if (h === "stages") renderStages(); else if (h === "app") renderSheet(); else renderSoon({ explore: "Explore", reports: "Reports", check: "Data check", help: "Help" }[h] || "Page");
   }
   document.addEventListener("change", (e) => { if (e.target.id !== "fySel") return; fyPick = e.target.value; try { sessionStorage.setItem("wccdDashFy", fyPick); } catch { /* ignore */ } dRoute(); });
   // Data check is shown only to the administrator: the owner of the web map the app reads.
