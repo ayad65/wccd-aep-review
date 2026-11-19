@@ -212,6 +212,34 @@ main{padding:14px 18px 40px;min-width:0}
 @media (max-width:1000px){.homeg.x,.rw,.repdocs,.g3,.g3.four{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.mk2.on2 b{animation:none}.mk2 b{transition:none}}
 
+/* ---- D7b: Stages columns lift; Explore · Farms, selection, tinted figures, curves ---- */
+#board .bcol{transition:transform .18s,box-shadow .18s,background .18s}#board .bcol:hover,#board .bcol:focus-within{transform:translateY(-7px);background:rgba(21,26,34,.62);box-shadow:0 10px 24px rgba(0,0,0,.5),0 0 20px color-mix(in srgb,var(--c) 38%,transparent)}
+@media (prefers-reduced-motion:reduce){#board .bcol{transition:none}#board .bcol:hover,#board .bcol:focus-within{transform:none}}
+.cx.tint{background:linear-gradient(160deg,color-mix(in srgb,var(--d) 13%,#161B23),#12161D 78%);border-color:color-mix(in srgb,var(--d) 32%,var(--line))}.cx.tint .bigf{color:color-mix(in srgb,var(--d) 62%,#fff)}.cx.tint h2{color:color-mix(in srgb,var(--d) 35%,#E6EAEE)}.bigf small{font-weight:600}
+.pills a{background:rgba(255,192,67,.05);border-color:color-mix(in srgb,var(--acc) 22%,var(--line2))}
+.selbar{display:inline-flex;gap:8px;align-items:center;margin:0 0 10px;padding:5px 12px;border-radius:14px;background:rgba(255,192,67,.1);border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);font-size:12.5px}.selbar b{color:#fff}
+.olnk{font-size:11.5px;color:var(--dim);white-space:nowrap;border:1px solid var(--line2);border-radius:10px;padding:2px 8px}.olnk:hover,.olnk:focus-visible{color:var(--acc);border-color:var(--acc)}.wb td.oc{text-align:right;width:1%}
+.thx{display:block;padding:7px 9px;font:600 12px inherit;color:var(--dim)}
+.wb tr[tabindex]{cursor:pointer}.wb tr[tabindex]:hover td,.wb tr[tabindex]:focus-visible td{background:rgba(255,192,67,.07)}.wb tr.sel td{background:rgba(255,192,67,.16)}.wb tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--acc)}.wb tr.sib td{background:rgba(255,192,67,.05)}
+.achip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:#C9D2DA;margin:1px 8px 1px 0}.achip .n{width:17px;height:17px;font-size:10px}
+.fdc{min-width:180px;width:22%}.fdots{position:relative;height:16px;margin:2px 8px 2px 4px;border-bottom:1px solid var(--line2)}.fdots i{position:absolute;bottom:2px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#7C8896;opacity:.75;box-shadow:0 0 0 1.5px var(--panel)}.fdots i.in{background:#FFB45A;opacity:1;z-index:1}.fdots u{position:absolute;bottom:-3px;width:2px;height:19px;margin-left:-1px;background:#fff;opacity:.85}.fdc small{margin-left:4px!important}
+.fpop{position:fixed;right:22px;top:84px;bottom:22px;width:min(440px,calc(100vw - 120px));overflow-y:auto;z-index:40;background:#141920;border:1px solid color-mix(in srgb,var(--acc) 45%,var(--line));border-radius:14px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.7),0 0 30px rgba(255,170,50,.16);animation:fpin .2s ease-out}
+@keyframes fpin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.fpop{animation:none}}
+.fpop h3{font:700 22px "Barlow Semi Condensed",sans-serif;margin:0 30px 8px 0}.fpop h3 small{display:block;font:500 12px "Public Sans",sans-serif;color:var(--dim)}.fpop h4{font:700 14px "Public Sans",sans-serif;margin:12px 0 6px}
+.fx{position:absolute;right:10px;top:8px;width:30px;height:30px;border-radius:50%;background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-size:18px;line-height:1}.fx:hover{border-color:var(--acc);color:var(--acc)}
+.fmap{height:250px;border-radius:10px;overflow:hidden;background:#0d1512;border:1px solid var(--line)}.fmap arcgis-map{display:block;height:100%}
+.ffacts{margin:0;display:grid;gap:0}.ffacts div{display:grid;grid-template-columns:128px 1fr;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:12.5px}.ffacts dt{color:var(--dim)}.ffacts dd{margin:0}
+.fapps{list-style:none;margin:0;padding:0}.fapps li{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}.fapps li>span{flex:1;min-width:0}.fapps small{display:block;color:var(--dim);font-size:11.5px}.fapps .n{width:20px;height:20px;font-size:11px;flex:none}
+.strip2 s{position:absolute;bottom:30px;width:2px;height:30px;margin-left:-1px;background:#fff;opacity:.8;text-decoration:none}
+.fpin{position:absolute;bottom:33px;transform:translateX(-50%);height:24px;line-height:24px;padding:0 9px;border-radius:12px;background:#fff;color:#1A1208;font-size:11.5px;font-weight:700;white-space:nowrap;z-index:8;box-shadow:0 0 0 2px #0B0E13,0 0 16px rgba(255,255,255,.55)}
+.strip2.hasrow:not(.has) .mk2:not(.rh){opacity:.45}.mk2.rh b{outline:3px solid #fff;outline-offset:2px}.mk2.rh{z-index:7}
+.lcs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.lc h3{font:600 12.5px "Public Sans",sans-serif;color:#C9D2DA;margin:2px 0 2px}.lc svg{display:block;width:100%;height:auto;overflow:visible}
+.lc .gl{stroke:var(--line);stroke-width:1}.lc .ax{font:10px "Public Sans",sans-serif;fill:#8A95A3}.lc .ax.on{fill:#fff;font-weight:700}.lc .pt{stroke:var(--panel);stroke-width:2}.lc .sg{stroke:var(--acc);stroke-width:1.5;stroke-dasharray:3 3}.lc .hl{stroke:#fff;stroke-opacity:.5;stroke-width:1}.lc .slot{fill:transparent;cursor:pointer}
+.lgd{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 0 44px;font-size:11.5px;color:#C9D2DA}.lgd i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.cx:has(#xTip){position:relative}.ctip{position:absolute;z-index:9;pointer-events:none;background:#0B0E13;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;font-size:12px;min-width:170px;box-shadow:0 8px 22px rgba(0,0,0,.6)}.ctip b{display:block}.ctip small{display:block;color:var(--dim);margin-bottom:4px}.ctip div{display:flex;gap:7px;align-items:center;padding:1px 0}.ctip div i{width:12px;height:3px;border-radius:2px;flex:none}.ctip strong{min-width:64px}.ctip span{color:var(--dim)}
+@media (max-width:1100px){.lcs{grid-template-columns:1fr}.g3.xkeep{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media (min-width:1300px){body.haspop #page{padding-right:462px}body.haspop #page .g3.xkeep{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+
 /* ---- the classic app's own stylesheet, scoped to the editor inside the application page (generated by scope_css.py) ---- */
 .edzone.ed{--ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
             --red:#8A1515; --red-bg:#FBE4E4; --amber:#E08A1E;
@@ -2775,7 +2803,7 @@ main{padding:14px 18px 40px;min-width:0}
   // classic app (index.html) by build_dash.py: settings, sign-in, reading the applications, the forms and the field rows,
   // the flags, and the farm and field polygons. Nothing here writes to ArcGIS Online.
   // =====================================================================================================================
-  const D_BUILD = "D7a", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
+  const D_BUILD = "D7b", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
   const SCOL = ["#E4572E", "#F0A202", "#9BC53D", "#1B8A5A", "#0B7C8A", "#2A4FA8"];
   const sn = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
   const filled = (v) => v != null && String(v).trim() !== "";
@@ -2851,7 +2879,7 @@ main{padding:14px 18px 40px;min-width:0}
   }
   const DOORS = [["#/stages", "Stages", "Every application on the map and in its stage, from intake to closed. Open one to review it, edit it or print its documents.", "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01", ""],
     ["#/new", "New", "Enter a new application in five steps: the applicant, the fields on the map, lab data, documents, then review and create.", "M12 5v14M5 12h14", ""],
-    ["#/explore", "Explore", "Look across all applications: where they are, their fields and soil tests, and ranking and funding side by side.", "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6", ""],
+    ["#/explore", "Explore", "Look across all applications: their farms, their fields and soil tests, and ranking and funding side by side.", "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6", ""],
     ["#/reports", "Reports", "The four documents of an application in one place: summary, approval letter, agreement and cost verification form.", "M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6", ""]];
   function renderHome() {
     const list = shown(), closed = list.filter((m) => m.d === 6).length, needing = list.filter((m) => m.d < 6 && m.need.length).length;
@@ -2965,10 +2993,25 @@ main{padding:14px 18px 40px;min-width:0}
         if (idx.length <= 6) HM.hiL.add(new HM.G({ geometry: g, symbol: { type: "text", text: short(m.r.applicant, 28), color: "#fff", haloColor: [6, 9, 12, 0.95], haloSize: 2.5, font: { size: 11, weight: "bold" }, xoffset: 30, yoffset: -4, horizontalAlignment: "left" } })); }
     } catch (e) { console.warn("map highlight", e); }
   }
+  // When what is pointed at lies outside the part of the map in view (after zooming in or panning), the map moves to show it: it keeps its
+  // scale when the applications fit at that scale, and zooms out just enough when they do not. A short wait, so sweeping the mouse over the
+  // cards does not make the map jump about.
+  function mapFit(idx) {
+    try { if (!HM || !HM.el || !HM.el.goTo) return; const ext = HM.el.extent; if (!ext || !(ext.width > 0)) return;
+      const pts = idx.map((i) => HM.geo[i]).filter(Boolean); if (!pts.length) return;
+      const mx = ext.width * 0.07, my = ext.height * 0.09;
+      if (pts.every((p) => p.x >= ext.xmin + mx && p.x <= ext.xmax - mx && p.y >= ext.ymin + my && p.y <= ext.ymax - my)) return;
+      const x0 = Math.min(...pts.map((p) => p.x)), x1 = Math.max(...pts.map((p) => p.x)), y0 = Math.min(...pts.map((p) => p.y)), y1 = Math.max(...pts.map((p) => p.y));
+      let e;
+      if (x1 - x0 <= ext.width * 0.72 && y1 - y0 <= ext.height * 0.66) e = ext.clone().offset((x0 + x1) / 2 - (ext.xmin + ext.xmax) / 2, (y0 + y1) / 2 - (ext.ymin + ext.ymax) / 2);
+      else { const px = Math.max((x1 - x0) * 0.22, 1500), py = Math.max((y1 - y0) * 0.26, 1500); e = ext.clone(); e.xmin = x0 - px; e.xmax = x1 + px; e.ymin = y0 - py; e.ymax = y1 + py; }
+      const p = HM.el.goTo(e, { duration: 550 }); if (p && p.catch) p.catch(() => {});
+    } catch (e) { console.warn("map fit", e); }
+  }
   function boardHi(idx, fromMap) {
     const set = new Set(idx.map(String));
     for (const c of document.querySelectorAll(".board .bc[data-mi]")) c.classList.toggle("hi", set.has(c.dataset.mi));
-    if (!fromMap) mapHi(idx);
+    if (!fromMap) { mapHi(idx); clearTimeout(boardHi.t); if (idx.length) boardHi.t = setTimeout(() => mapFit(idx), 320); }
   }
   function renderStages() {
     const list = shown(), counts = [1, 2, 3, 4, 5, 6].map((k) => list.filter((m) => m.d === k).length);
@@ -2981,7 +3024,7 @@ main{padding:14px 18px 40px;min-width:0}
       '<div class="msw" role="group" aria-label="Background"><button type="button" data-bm="aerial" aria-pressed="' + (bmKind === "aerial") + '">Aerial</button><button type="button" data-bm="topo" aria-pressed="' + (bmKind === "topo") + '">Topo</button></div></div>' +
       '<div class="board" id="board">' + STAGES.map((st, i) => { const col = list.filter((m) => m.d === i + 1);
         return '<div class="bcol" style="--c:' + SCOL[i] + '"><div class="bh" data-stage="' + (i + 1) + '" tabindex="0" title="Point here to show these applications on the map">' + sn(i + 1) + "<b>" + esc(st) + "</b><span>" + col.length + "</span></div>" + (col.map(card).join("") || '<div class="bcnone">none</div>') + "</div>"; }).join("") + "</div>" +
-      '<p class="wnote">Point at a card, or at a stage\'s title, to see it on the map; point at a map point to see its card. A click opens the application. A red card lists what is still missing; "checks" are the red flags of the classic view.</p>' + footHtml();
+      '<p class="wnote">Point at a card, or at a stage\'s title, to see it on the map (the map moves when it is out of view); point at a map point to see its card. A click opens the application. A red card lists what is still missing; "checks" are the red flags of the classic view.</p>' + footHtml();
     homeMap(list).catch((e) => { console.warn("stages map", e); const n = $("mapNote"); if (n) n.textContent = "The map could not be drawn: " + mask(e.message || e); });
   }
   // pointing at (or tabbing to) a card or a stage title
@@ -3271,83 +3314,225 @@ main{padding:14px 18px 40px;min-width:0}
   { let t = null; new MutationObserver(() => { clearTimeout(t); t = setTimeout(stepsDraw, 30); }).observe($("naPane"), { childList: true }); }
 
   // =====================================================================================================================
-  // Piece 6: Explore (Map · Fields · Ranking and funding) and Reports. Read-only views over the same applications and
-  // field rows the rest of the page reads; nothing here writes.
+  // Piece 6: Explore (Farms · Fields · Ranking and funding) and Reports. Read-only views over the same applications, field
+  // rows and farm polygons the rest of the page reads; nothing here writes. On these pages a click on a record only selects
+  // it (figures and graphs follow); an application is opened only by its small "open in Stages ›" link (Yasser, 19 Nov).
   // =====================================================================================================================
-  const XTABS = [["map", "Map"], ["fields", "Fields"], ["rank", "Ranking and funding"]];
-  const XS = { stages: new Set([1, 2, 3, 4, 5, 6]), needOnly: false, picked: null, fsel: null, fsort: ["app", 1], rsort: ["score", -1] };
+  const XTABS = [["farms", "Farms"], ["fields", "Fields"], ["rank", "Ranking and funding"]];
+  const XS = { farm: null, farmSort: ["size", -1], fsel: null, frow: null, fsort: ["app", 1], rsel: null, rsort: ["score", -1], charts: {} };
+  const XC = { req: "#C98500", ap: "#3987E5", rr: "#D95926", paid: "#199E70", score: "#9085E9" };        // series colours, checked for the dark panel
+  const TINT = ["#FFB02E", "#5CC88A", "#35B6CF", "#9C8CF2", "#F0875A"];
   const xTop = (cur, figs) => topHtml("Explore", "look across the applications", figs).replace("</h1>", '</h1><span class="pills" role="tablist">' + XTABS.map(([k, t]) => '<a role="tab" href="#/explore/' + k + '" class="' + (k === cur ? "on" : "") + '" aria-selected="' + (k === cur) + '">' + esc(t) + "</a>").join("") + "</span>");
   const scoreOf = (r) => num(r.a[F.awarded]) ?? num(r.a[F.calc]);
+  const r1 = (v) => fmt(Math.round(v * 10) / 10), plural = (n, w) => n + " " + w + (n === 1 ? "" : "s"), usd0 = (v) => money(v).replace(/\.00$/, "");
+  const tiles = (arr) => '<div class="g3 xkeep" style="grid-template-columns:repeat(' + arr.length + ',minmax(0,1fr))">' + arr.map(([h, v, d], i) => '<div class="cx tint" style="--d:' + TINT[i % TINT.length] + '"><h2>' + esc(h) + '</h2><b class="bigf">' + v + '</b><span class="dimp">' + esc(d) + "</span></div>").join("") + "</div>";
+  const selBar = (txt) => '<div class="selbar xkeep">Showing <b>' + esc(txt) + '</b> only <button type="button" class="lnk" data-xclear>show all</button></div>';
+  const openLnk = (r) => '<a class="olnk" href="' + openHref(r) + '" title="Open this application">open in Stages ›</a>';
+  const sorter = (sk, sd) => (a, b) => { const x = a[sk], y = b[sk]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), "en", { numeric: true })) * sd; };
+  const thead = (cols, attrName, sk, sd) => "<tr>" + cols.map(([k, t]) => "<th>" + (k ? '<button type="button" ' + attrName + '="' + k + '">' + esc(t) + (sk === k ? (sd > 0 ? " ▲" : " ▼") : "") + "</button>" : '<span class="thx">' + esc(t) + "</span>") + "</th>").join("") + "</tr>";
   function renderExplore() {
-    const tab = (location.hash.split("/")[2] || "map"); if (tab === "fields") return xFields(); if (tab === "rank") return xRank(); return xMap();
+    const tab = (location.hash.split("/")[2] || "farms"); closePop(); if (tab === "fields") return xFields(); if (tab === "rank") return xRank(); return xFarms();
   }
-  // ---- Explore · Map: the same map, with the stages switched on and off, and a panel for the application that was clicked ----
-  function xMap() {
-    const all = shown(), list = all.filter((m) => XS.stages.has(m.d) && (!XS.needOnly || (m.need.length && m.d < 6)));
-    if (XS.picked && !list.some((m) => m.r.id === XS.picked)) XS.picked = null;
-    const pm = XS.picked ? list.find((m) => m.r.id === XS.picked) : null;
-    $("page").innerHTML = xTop("map", [[String(list.length), "shown"], [String(all.length), "applications"]]) +
-      '<div class="homeg x"><div class="mapc xm"><div id="homeMap"></div><div class="mnote" id="mapNote">Loading the map…</div><div class="mcard" id="mapCard" hidden></div>' +
-      '<div class="msw" role="group" aria-label="Background"><button type="button" data-bm="aerial" aria-pressed="' + (bmKind === "aerial") + '">Aerial</button><button type="button" data-bm="topo" aria-pressed="' + (bmKind === "topo") + '">Topo</button></div></div>' +
-      '<div class="hside"><div class="cx"><h2>Show</h2>' + STAGES.map((st, i) => '<label class="tg">' + sn(i + 1) + " " + esc(st) + " <span>" + all.filter((m) => m.d === i + 1).length + '</span><input type="checkbox" data-xstage="' + (i + 1) + '"' + (XS.stages.has(i + 1) ? " checked" : "") + "></label>").join("") +
-      '<label class="tg">Only those needing input<input type="checkbox" id="xNeed"' + (XS.needOnly ? " checked" : "") + '></label></div>' +
-      '<div class="cx" id="xPick">' + (pm ? '<h2>Clicked</h2><div class="xcard">' + hoverHtml(pm).replace("<u>click to open</u>", "") + '</div><a class="bt pri" href="' + openHref(pm.r) + '">Open the application</a>' : '<h2>Clicked</h2><p class="none">Click a point on the map to see the application here.</p>') + "</div></div></div>" + footHtml();
-    homeMap(list, (m) => { XS.picked = m.r.id; const h = $("xPick"); if (h) h.innerHTML = '<h2>Clicked</h2><div class="xcard">' + hoverHtml(m).replace("<u>click to open</u>", "") + '</div><a class="bt pri" href="' + openHref(m.r) + '">Open the application</a>'; mapHi([HM.list.indexOf(m)]); })
-      .then(() => { if (pm && HM) mapHi([HM.list.indexOf(pm)]); }).catch((e) => { const n = $("mapNote"); if (n) n.textContent = "The map could not be drawn: " + mask(e.message || e); });
-  }
-  document.addEventListener("change", (e) => { const t = e.target;
-    if (t.dataset && t.dataset.xstage) { const k = Number(t.dataset.xstage); if (t.checked) XS.stages.add(k); else XS.stages.delete(k); xMap(); }
-    else if (t.id === "xNeed") { XS.needOnly = t.checked; xMap(); } });
 
-  // ---- Explore · Fields: the soil strip on top, the fields under it; a clicked dot limits the table and the figures to that application ----
-  function xStrip(list) {
+  // ---- Explore · Farms: every farm that has an application: its size and fields (from the map layers) and its applications through the years ----
+  const ROLE = { Both: "Landowner and operator", Landowner: "Landowner", Operator: "Operator" };
+  function farmData() {
+    const by = new Map(), none = [];
+    for (const m of shown()) { const k = F.farmNo ? normFarm(m.r.a[F.farmNo]) : ""; if (!k) { none.push(m); continue; } if (!by.has(k)) by.set(k, []); by.get(k).push(m); }
+    const out = [];
+    for (const [k, apps] of by) {
+      const poly = (MAPS.farms || []).find((f) => f.farm === k), pf = (MAPS.fields || []).filter((f) => f.farm === k || f.pre === k), acs = pf.map((f) => num(f.acres)).filter((v) => v > 0);
+      const hist = MODELS.filter((m) => F.farmNo && normFarm(m.r.a[F.farmNo]) === k).sort((a, b) => String(a.r.id).localeCompare(String(b.r.id)));
+      const frs = apps.flatMap((m) => m.flds), keys = new Set(frs.map((x) => normKey(attr(x, "FieldNum")))), phs = frs.map((x) => num(attr(x, "SoilpH"))).filter((v) => v != null);
+      const sum = (f) => apps.reduce((a, m) => a + (f(m) || 0), 0), people = [];
+      for (const m of hist) { const a = m.r.a, role = attr(a, "ApplicantRole"), add = (t, n) => { if (filled(n) && !people.some((p) => p[0] === t && p[1] === String(n))) people.push([t, String(n)]); };
+        add(ROLE[role] || (filled(role) ? String(role) : "Applicant"), m.r.applicant); add("Landowner", attr(a, "LandownerName")); add("Operator", attr(a, "OperatorName")); }
+      const yrs = [...new Set(hist.map((m) => m.r.fy).filter((y) => y && y !== "—"))].sort();
+      out.push({ k, apps, hist, poly, pf, keys, people, yrs, no: (poly && poly.no) ?? apps[0].r.a[F.farmNo], name: (poly && filled(poly.name) ? String(poly.name) : "") || apps[0].r.applicant || "(no name)",
+        size: acs.length ? acs.reduce((a, b) => a + b, 0) : null, nf: pf.length || null, avg: acs.length ? acs.reduce((a, b) => a + b, 0) / acs.length : null, big: acs.length ? Math.max(...acs) : null, acs,
+        napp: apps.length, treated: sum((m) => m.flds.reduce((a, x) => a + (num(attr(x, "TreatedAcresInField")) || 0), 0)), ph: phs.length ? phs.reduce((a, b) => a + b, 0) / phs.length : null,
+        req: sum((m) => m.tons), ap: sum((m) => num(m.r.a[F.apprTons])), paid: sum((m) => num(m.r.a[F.paid])), done: hist.filter((m) => m.d === 6 && !m.r.ended).length });
+    }
+    return { farms: out, none };
+  }
+  const FARMCOLS = [["name", "Farm"], ["size", "Farm size and acres applied for"], ["avg", "Field sizes"], ["napp", "Applications"], ["ph", "Soil pH"]];
+  async function xFarms() {
+    const host = $("page"); host.innerHTML = xTop("farms", []) + '<div class="cx soonp"><p>Reading the farms and fields from the map…</p></div>' + footHtml();
+    let warn = ""; try { await loadPolygons(); } catch (e) { warn = "The farm and field polygons could not be read (" + mask(e.message || e) + "), so sizes and field counts are not shown."; }
+    if ((location.hash.split("/")[1] || "") !== "explore" || !["", "farms", "map"].includes(location.hash.split("/")[2] || "")) return;
+    const { farms, none } = farmData(); if (XS.farm && !farms.some((f) => f.k === XS.farm)) XS.farm = null;
+    const [sk, sd] = XS.farmSort; farms.sort(sorter(sk, sd));
+    const sel = XS.farm ? farms.find((f) => f.k === XS.farm) : null, use = sel ? [sel] : farms, tot = (k) => use.reduce((a, f) => a + (f[k] || 0), 0);
+    const nfAll = tot("nf"), sizeAll = tot("size"), yrs = [...new Set(use.flatMap((f) => f.yrs))].sort(), nHist = use.reduce((a, f) => a + f.hist.length, 0);
+    const mxS = Math.max(1, ...farms.map((f) => Math.max(f.size || 0, f.treated || 0))), mxF = Math.max(1, ...farms.map((f) => f.big || 0));
+    const bar = (v, col, txt, tip) => '<div class="pr" title="' + esc(tip) + '"><i style="width:' + (v ? Math.max(1.5, v / mxS * 72) : 0).toFixed(1) + "%;background:" + col + '"></i><span>' + txt + "</span></div>";
+    const dots = (f) => f.acs.length ? '<div class="fdots" title="' + esc(plural(f.pf.length, "field") + " · " + r1(Math.min(...f.acs)) + " to " + r1(f.big) + " ac · average " + r1(f.avg) + " ac") + '">' +
+      f.pf.map((p) => { const a = num(p.acres); return a > 0 ? '<i class="' + (f.keys.has(p.key) ? "in" : "") + '" style="left:' + (a / mxF * 100).toFixed(1) + '%"></i>' : ""; }).join("") + '<u style="left:' + (f.avg / mxF * 100).toFixed(1) + '%"></u></div><small>' + plural(f.pf.length, "field") + " · average " + r1(f.avg) + " ac</small>" : '<span class="dimp">not on the map</span>';
+    host.innerHTML = xTop("farms", [[String(farms.length), plural(farms.length, "farm").replace(/^\d+ /, "")], [String(shown().length), "applications"]]) +
+      (warn ? '<p class="wnote" style="color:var(--warn)">' + esc(warn) + "</p>" : "") + (sel ? selBar("Farm # " + sel.no + " · " + sel.name) : "") +
+      tiles([[sel ? "Farm" : "Farms", sel ? esc("# " + sel.no) : String(farms.length), sel ? sel.name : "with an application" + (none.length ? " · " + plural(none.length, "application") + " without a Farm #" : "")],
+        ["Farm size", sizeAll ? r1(sizeAll) + " <small>ac</small>" : "—", sel ? "sum of its fields on the map" : (farms.filter((f) => f.size).length ? "average " + r1(sizeAll / farms.filter((f) => f.size).length) + " ac per farm · from the fields on the map" : "no field polygons")],
+        ["Fields on the map", nfAll ? String(nfAll) : "—", nfAll && sizeAll ? "average field " + r1(sizeAll / use.reduce((a, f) => a + f.acs.length, 0)) + " ac" + (sel && sel.big ? " · largest " + r1(sel.big) + " ac" : "") : ""],
+        ["Applications", String(sel ? nHist : tot("napp")), (yrs.length ? yrs[0] + (yrs.length > 1 ? " to " + yrs[yrs.length - 1] : "") : "") + (sel ? " · " + sel.done + " limed and paid" : " · " + plural(farms.filter((f) => f.hist.length > 1).length, "farm") + " applied more than once")],
+        ["Acres applied for", r1(tot("treated")) + " <small>ac</small>", (sizeAll ? Math.round(tot("treated") / sizeAll * 100) + "% of the farm acres · " : "") + r1(tot("req")) + " t requested"]]) +
+      '<div class="cx xkeep"><h2>Every farm in the applications <span class="hint">click a farm for its map and record · click it again, or anywhere else, to close · <i class="lg" style="background:' + XC.ap + '"></i>farm acres <i class="lg" style="background:' + XC.req + '"></i>acres applied for</span></h2>' +
+      (farms.length ? '<table class="wb sm" id="xFarmTab">' + thead(FARMCOLS, "data-xfarmsort", sk, sd) +
+        farms.map((f) => '<tr data-xfarm="' + esc(f.k) + '" tabindex="0" class="' + (f.k === XS.farm ? "sel" : "") + '" aria-selected="' + (f.k === XS.farm) + '"><td><b>' + esc(f.name) + "</b><small>Farm # " + esc(f.no) + (f.people.length ? " · " + esc(short(f.people.map((p) => p[1]).filter((v, i, a) => a.indexOf(v) === i).join(", "), 44)) : "") + "</small></td><td>" +
+          bar(f.size, XC.ap, f.size ? r1(f.size) + " ac" : "not on the map", "Farm size: the sum of its fields on the map") + bar(f.treated, XC.req, r1(f.treated) + " ac" + (f.size ? " · " + Math.round(f.treated / f.size * 100) + "%" : ""), "Treated acres in the applications shown") + '</td><td class="fdc">' + dots(f) + "</td><td>" +
+          f.hist.map((m) => '<span class="achip" title="' + esc(m.r.id + " · " + STAGES[m.d - 1]) + '">' + sn(m.d) + esc(m.r.fy) + "</span>").join("") + "</td><td>" + (f.ph != null ? "<b>" + rd1(f.ph) + '</b> <span class="dimp">average</span>' : '<span class="dimp">—</span>') + "</td></tr>").join("") + "</table>" +
+        '<p class="wnote">Field sizes: one dot per field of the farm, placed by its acres (0 to ' + r1(mxF) + ' ac); bright dots are in an application, the line is the farm\'s average. Each numbered chip is one application and its stage.</p>' : '<p class="none">No application shown has a Farm #.</p>') + "</div>" + footHtml();
+    if (sel) farmPop(sel);
+  }
+  // the farm that was picked: a floating panel with its map and its record; any click elsewhere closes it
+  function closePop() { const p = $("fPop"); if (p) p.remove(); document.body.classList.remove("haspop"); }
+  function farmPop(f) {
+    closePop(); const p = document.createElement("div"); p.id = "fPop"; p.className = "fpop xkeep"; p.setAttribute("role", "dialog"); p.setAttribute("aria-label", "Farm " + f.no);
+    const fact = (k, v) => (v ? "<div><dt>" + esc(k) + "</dt><dd>" + v + "</dd></div>" : "");
+    p.innerHTML = '<button type="button" class="fx" data-xclear aria-label="Close">×</button><h3>' + esc(f.name) + "<small>Farm # " + esc(f.no) + '</small></h3><div class="fmap" id="fMap"><p class="none">Loading the map…</p></div>' +
+      '<p class="dimp" style="margin:4px 0 8px"><i class="lg" style="background:#FFB45A;margin-left:0"></i>fields in an application <i class="lg" style="background:transparent;border:1px solid #ddd"></i>other fields of the farm</p><dl class="ffacts">' +
+      f.people.map(([t, n]) => fact(t, esc(n))).join("") +
+      fact("Farm size", f.size ? r1(f.size) + " ac in " + plural(f.pf.length, "field") : "") + fact("Field size", f.avg ? "average " + r1(f.avg) + " ac · " + r1(Math.min(...f.acs)) + " to " + r1(f.big) + " ac" : "") +
+      fact("Applied for", plural(f.keys.size, "field") + (f.nf ? " of " + f.nf : "") + " · " + r1(f.treated) + " treated ac") + fact("Soil pH", f.ph != null ? "average " + rd1(f.ph) + " over the fields applied for" : "") +
+      fact("Lime", r1(f.req) + " t requested" + (f.ap ? " · " + r1(f.ap) + " t approved" : "") + (f.paid ? " · " + usd0(f.paid) + " paid" : "")) + "</dl>" +
+      "<h4>" + plural(f.hist.length, "application") + (f.yrs.length ? " · " + f.yrs.join(", ") : "") + '</h4><ul class="fapps">' + f.hist.map((m) => "<li>" + sn(m.d) + "<span><b>" + esc(m.r.id) + "</b> " + esc(STAGES[m.d - 1]) + (m.r.ended ? " · " + esc(String(m.r.statusText).replace(/\.$/, "")) : "") + "<small>" + esc(m.r.applicant || "") + " · " + plural(m.flds.length, "field") + (m.tons != null ? " · " + fmt(m.tons) + " t" : "") + "</small></span>" + openLnk(m.r) + "</li>").join("") + "</ul>";
+    document.body.appendChild(p); document.body.classList.add("haspop");
+    const host = $("fMap");
+    try { if (!MAPS.mods || (!f.poly && !f.pf.length)) { host.innerHTML = '<p class="none">No farm or field polygon was found for Farm # ' + esc(f.no) + ".</p>"; return; }
+      const { MapCls, GraphicsLayer, G } = MAPS.mods, lay = new GraphicsLayer();
+      if (f.poly && f.poly.g) lay.add(new G({ geometry: f.poly.g, symbol: { type: "simple-fill", color: [0, 0, 0, 0], outline: { color: [255, 255, 255, 0.9], width: 1.6 } } }));
+      for (const q of f.pf) { const on = f.keys.has(q.key); if (!q.g) continue;
+        lay.add(new G({ geometry: q.g, symbol: { type: "simple-fill", color: on ? [255, 180, 90, 0.45] : [255, 255, 255, 0.02], outline: { color: on ? [255, 180, 90, 1] : [220, 220, 220, 0.7], width: on ? 2 : 1 } } }));
+        if (on && q.g.extent) lay.add(new G({ geometry: q.g.extent.center, symbol: { type: "text", text: q.suf, color: "#fff", haloColor: [6, 9, 12, 0.9], haloSize: 2, font: { size: 10, weight: "bold" } } })); }
+      host.innerHTML = ""; const el = document.createElement("arcgis-map"); el.map = new MapCls({ basemap: BASES.aerial, layers: [lay] }); host.appendChild(el);
+      const target = f.poly && f.poly.g ? f.poly.g : f.pf.map((q) => q.g).filter(Boolean), zoom = () => { try { const z = el.goTo && el.goTo(target); if (z && z.catch) z.catch(() => {}); } catch (e) { console.warn("farm map zoom", e); } };
+      el.addEventListener("arcgisViewReadyChange", zoom); setTimeout(zoom, 1500);
+    } catch (e) { host.innerHTML = '<p class="none">The map could not be drawn: ' + esc(mask(e.message || e)) + "</p>"; }
+  }
+
+  // ---- Explore · Fields: the soil strip on top, the fields under it. A dot limits the page to that application; a table line marks its field on the strip ----
+  function xStrip(list, rowsF) {
     const pts = list.filter((m) => m.ph != null).sort((a, b) => a.ph - b.ph), lo = 4.5, hi = 7.5, pos = (v) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100));
     const ticks = [4.5, 5, 5.5, 6, 6.5, 7, 7.5].map((k) => '<span style="left:' + pos(k) + '%">' + k.toFixed(1) + "</span>").join("");
-    return '<div class="strip2' + (XS.fsel ? " has" : "") + '" id="xStrip"><div class="band2"></div>' + ticks + pts.map((m, i) => '<button type="button" class="mk2' + (m.r.id === XS.fsel ? " on2" : "") + '" data-xdot="' + esc(m.r.id) + '" style="left:' + pos(m.ph).toFixed(1) + "%;--c:" + SCOL[m.d - 1] + ";--h:" + (26 + (i % 3) * 44) + 'px" aria-pressed="' + (m.r.id === XS.fsel) + '" aria-label="' + esc(m.r.applicant + ", average soil pH " + rd1(m.ph) + ", stage " + m.d) + '"><em>' + esc(short(m.r.applicant, 22)) + " · " + rd1(m.ph) + "</em><b>" + m.d + "</b><u></u></button>").join("") + "</div>";
+    const row = XS.frow ? rowsF.find((x) => x.key === XS.frow) : null, hitApp = row ? row.m.r.id : null;
+    // the fields of the chosen application as thin marks on the band; the chosen line as a labelled pin
+    const marks = XS.fsel ? rowsF.filter((x) => x.ph != null && x.key !== XS.frow).map((x) => '<s style="left:' + pos(x.ph).toFixed(1) + '%" title="' + esc("Field " + x.field + " · pH " + x.ph) + '"></s>').join("") : "";
+    const pin = row && row.ph != null ? '<div class="fpin" style="left:' + pos(row.ph).toFixed(1) + '%">' + esc("Field " + short(row.field, 10) + " · pH " + row.ph) + "</div>" : "";
+    return '<div class="strip2' + (XS.fsel ? " has" : "") + (hitApp ? " hasrow" : "") + '" id="xStrip"><div class="band2"></div>' + ticks + marks + pin + pts.map((m, i) => '<button type="button" class="mk2' + (m.r.id === XS.fsel ? " on2" : "") + (m.r.id === hitApp ? " rh" : "") + '" data-xdot="' + esc(m.r.id) + '" style="left:' + pos(m.ph).toFixed(1) + "%;--c:" + SCOL[m.d - 1] + ";--h:" + (26 + (i % 3) * 44) + 'px" aria-pressed="' + (m.r.id === XS.fsel) + '" aria-label="' + esc(m.r.applicant + ", average soil pH " + rd1(m.ph) + ", stage " + m.d) + '"><em>' + esc(short(m.r.applicant, 22)) + " · " + rd1(m.ph) + "</em><b>" + m.d + "</b><u></u></button>").join("") + "</div>";
   }
-  const FCOLS = [["app", "Application"], ["field", "Field"], ["ac", "Treated ac"], ["ph", "Soil pH"], ["rate", "Lime rec. lb/ac"], ["tons", "Tons"], ["date", "Lab date"], ["ty", "3-year check"]];
+  const FCOLS = [["app", "Application"], ["field", "Field"], ["ac", "Treated ac"], ["ph", "Soil pH"], ["rate", "Lime rec. lb/ac"], ["tons", "Tons"], ["date", "Lab date"], ["ty", "3-year check"], ["", ""]];
   function xFields() {
     const list = shown(), sel = XS.fsel ? list.find((m) => m.r.id === XS.fsel) : null; if (XS.fsel && !sel) XS.fsel = null;
     const use = sel ? [sel] : list, rowsF = [];
     for (const m of use) { let ef = new Map(); try { ef = earlierFunding(m.r).out; } catch { /* no check */ }
-      for (const x of m.flds) { const hit = ef.get(normKey(attr(x, "FieldNum"))), d = attr(x, "LabReportDate") ?? attr(x, "DateSampled");
-        rowsF.push({ m, app: m.r.applicant || m.r.id, field: String(attr(x, "FieldNum") ?? "?"), ac: num(attr(x, "TreatedAcresInField")), ph: num(attr(x, "SoilpH")), rate: num(attr(x, "LimeRecLbPerAcre")) ?? (num(attr(x, "LimeRecTonsPerAcre")) != null ? num(attr(x, "LimeRecTonsPerAcre")) * 2000 : null), tons: num(attr(x, "TotalTonsForField")), date: typeof d === "number" ? d : null, ty: hit ? "limed " + (hit.year ?? "") + " (" + (hit.id ?? "") + ")" : "clear" }); } }
-    const [sk, sd] = XS.fsort; rowsF.sort((a, b) => { const x = a[sk], y = b[sk]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), "en", { numeric: true })) * sd; });
-    const phs = rowsF.map((x) => x.ph).filter((v) => v != null), ac = rowsF.reduce((a, x) => a + (x.ac || 0), 0), tons = rowsF.reduce((a, x) => a + (x.tons || 0), 0), totalFields = list.reduce((a, m) => a + m.flds.length, 0);
-    const cell = (v, f) => (v == null ? '<span class="mis">needs input</span>' : esc(f ? f(v) : v));
+      for (const x of m.flds) { const hit = ef.get(normKey(attr(x, "FieldNum"))), d = attr(x, "LabReportDate") ?? attr(x, "DateSampled"), field = String(attr(x, "FieldNum") ?? "?");
+        rowsF.push({ m, key: m.r.id + "|" + field, app: m.r.applicant || m.r.id, field, ac: num(attr(x, "TreatedAcresInField")), ph: num(attr(x, "SoilpH")), rate: num(attr(x, "LimeRecLbPerAcre")) ?? (num(attr(x, "LimeRecTonsPerAcre")) != null ? num(attr(x, "LimeRecTonsPerAcre")) * 2000 : null), tons: num(attr(x, "TotalTonsForField")), date: typeof d === "number" ? d : null, ty: hit ? "limed " + (hit.year ?? "") + " (" + (hit.id ?? "") + ")" : "clear" }); } }
+    if (XS.frow && !rowsF.some((x) => x.key === XS.frow)) XS.frow = null;
+    const [sk, sd] = XS.fsort; rowsF.sort(sorter(sk, sd));
+    const phs = rowsF.map((x) => x.ph).filter((v) => v != null), ac = rowsF.reduce((a, x) => a + (x.ac || 0), 0), tons = rowsF.reduce((a, x) => a + (x.tons || 0), 0), nT = rowsF.filter((x) => x.tons != null).length, totalFields = list.reduce((a, m) => a + m.flds.length, 0);
+    const cell = (v, f) => (v == null ? '<span class="mis">needs input</span>' : esc(f ? f(v) : v)), row = XS.frow ? rowsF.find((x) => x.key === XS.frow) : null;
     $("page").innerHTML = xTop("fields", [[String(rowsF.length), "fields shown"], [String(totalFields), "fields in all"]]) +
-      '<div class="cx stripc2"><h2>Average soil pH of each application <span class="hint" id="xHint">click a dot to show only its fields · click it again, or outside, to show all</span></h2>' + (list.some((m) => m.ph != null) ? xStrip(list) : '<p class="none">No soil pH is entered yet for the applications shown.</p>') + "</div>" +
-      '<div class="g3"><div class="cx"><h2>Fields shown</h2><b class="bigf">' + rowsF.length + " <small>of " + totalFields + '</small></b><span class="dimp">' + esc(sel ? (sel.r.applicant || sel.r.id) + " only" : "all applications shown") + '</span></div><div class="cx"><h2>Average soil pH</h2><b class="bigf">' + (phs.length ? rd1(phs.reduce((a, b) => a + b, 0) / phs.length) : "—") + '</b><span class="dimp">of the fields shown</span></div><div class="cx"><h2>Lime recommended</h2><b class="bigf">' + (ac ? fmt(Math.round(tons / ac * 100) / 100) + " t/ac" : "—") + '</b><span class="dimp">' + fmt(Math.round(tons * 10) / 10) + " tons on " + fmt(Math.round(ac * 10) / 10) + " treated acres</span></div></div>" +
-      '<div class="cx"><h2>' + esc(sel ? "Fields of " + (sel.r.applicant || sel.r.id) : "Every field of the applications shown") + " <span>click a column to sort · click a row to open its application" + (sel ? ' · <button type="button" class="lnk" id="xAll">show all fields</button>' : "") + "</span></h2>" +
-      (rowsF.length ? '<table class="wb" id="xFtab"><tr>' + FCOLS.map(([k, t]) => '<th><button type="button" data-xfsort="' + k + '">' + esc(t) + (sk === k ? (sd > 0 ? " ▲" : " ▼") : "") + "</button></th>").join("") + "</tr>" +
-        rowsF.map((x) => '<tr data-xopen="' + esc(x.m.r.id) + '" tabindex="0"><td>' + sn(x.m.d) + " <b>" + esc(x.app) + "</b></td><td>" + esc(x.field) + "</td><td>" + cell(x.ac, fmt) + "</td><td>" + cell(x.ph) + "</td><td>" + cell(x.rate, fmt) + "</td><td>" + cell(x.tons, fmt) + "</td><td>" + cell(x.date, dateOf) + "</td><td>" + esc(x.ty) + "</td></tr>").join("") + "</table>" : '<p class="none">No fields to show.</p>') + "</div>" + footHtml();
-    const h = $("xHint"); if (h) { clearTimeout(xFields.t); xFields.t = setTimeout(() => h.classList.add("gone"), XS.fsel ? 4000 : 6000); }
+      '<div class="cx stripc2 xkeep"><h2>Average soil pH of each application <span class="hint" id="xHint">click a dot to show only its fields · click a line of the table to mark that field here · click again, or outside, to clear</span></h2>' + (list.some((m) => m.ph != null) ? xStrip(list, rowsF) : '<p class="none">No soil pH is entered yet for the applications shown.</p>') + "</div>" +
+      tiles([["Fields shown", rowsF.length + " <small>of " + totalFields + "</small>", sel ? (sel.r.applicant || sel.r.id) + " only" : "all applications shown"],
+        ["Average soil pH", phs.length ? String(rd1(phs.reduce((a, b) => a + b, 0) / phs.length)) : "—", "of the fields shown" + (phs.length ? " · " + Math.min(...phs) + " to " + Math.max(...phs) : "")],
+        ["Lime recommended", ac ? fmt(Math.round(tons / ac * 100) / 100) + " <small>t/ac</small>" : "—", r1(tons) + " tons on " + r1(ac) + " treated acres"],
+        ["Suggested tons per field", nT ? fmt(Math.round(tons / nT * 10) / 10) + " <small>t</small>" : "—", nT ? "average of " + plural(nT, "field") + " · " + r1(tons) + " t in all" : "no tons worked out yet"]]) +
+      '<div class="cx xkeep"><h2>' + esc(sel ? "Fields of " + (sel.r.applicant || sel.r.id) : "Every field of the applications shown") + " <span>click a column to sort · click a line to mark it on the strip" + (sel ? ' · <button type="button" class="lnk" data-xclear>show all fields</button>' : "") + "</span></h2>" +
+      (rowsF.length ? '<table class="wb" id="xFtab">' + thead(FCOLS, "data-xfsort", sk, sd) +
+        rowsF.map((x) => '<tr data-xfrow="' + esc(x.key) + '" tabindex="0" class="' + (x.key === XS.frow ? "sel" : row && x.m === row.m ? "sib" : "") + '" aria-selected="' + (x.key === XS.frow) + '"><td>' + sn(x.m.d) + " <b>" + esc(x.app) + "</b></td><td>" + esc(x.field) + "</td><td>" + cell(x.ac, fmt) + "</td><td>" + cell(x.ph) + "</td><td>" + cell(x.rate, fmt) + "</td><td>" + cell(x.tons, fmt) + "</td><td>" + cell(x.date, dateOf) + "</td><td>" + esc(x.ty) + '</td><td class="oc">' + openLnk(x.m.r) + "</td></tr>").join("") + "</table>" : '<p class="none">No fields to show.</p>') + "</div>" + footHtml();
+    const h = $("xHint"); if (h) { clearTimeout(xFields.t); xFields.t = setTimeout(() => h.classList.add("gone"), XS.fsel || XS.frow ? 4000 : 7000); }
   }
-  // ---- Explore · Ranking and funding: totals, then each application with its score, tons and dollars ----
-  const RCOLS = [["name", "Application"], ["score", "Score"], ["req", "Tons: requested and approved"], ["rr", "Dollars: reimbursement requested and paid"]];
+
+  // ---- Explore · Ranking and funding: figures, three curves across the applications, and the table; a picked application drives all three ----
+  function smooth(p) {          // a curve through the points that never overshoots them (monotone cubic)
+    const n = p.length; if (n < 2) return ""; if (n === 2) return "M" + p[0] + "L" + p[1];
+    const dx = [], m = [], t = []; for (let i = 0; i < n - 1; i++) { dx[i] = p[i + 1][0] - p[i][0]; m[i] = (p[i + 1][1] - p[i][1]) / dx[i]; }
+    t[0] = m[0]; t[n - 1] = m[n - 2]; for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) { if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; } else { const a = t[i] / m[i], b = t[i + 1] / m[i], h = Math.hypot(a, b); if (h > 3) { t[i] = 3 / h * a * m[i]; t[i + 1] = 3 / h * b * m[i]; } } }
+    let d = "M" + p[0][0].toFixed(1) + " " + p[0][1].toFixed(1);
+    for (let i = 0; i < n - 1; i++) d += "C" + (p[i][0] + dx[i] / 3).toFixed(1) + " " + (p[i][1] + t[i] * dx[i] / 3).toFixed(1) + " " + (p[i + 1][0] - dx[i] / 3).toFixed(1) + " " + (p[i + 1][1] - t[i + 1] * dx[i] / 3).toFixed(1) + " " + p[i + 1][0].toFixed(1) + " " + p[i + 1][1].toFixed(1);
+    return d;
+  }
+  const niceMax = (v) => { if (!(v > 0)) return 1; const e = Math.pow(10, Math.floor(Math.log10(v))), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; };
+  function lineChart(key, title, series, list, fv, selI) {
+    const W = 420, H = 200, L = 44, R = 10, T = 12, B = 28, n = list.length, pw = W - L - R, ph = H - T - B, mx = niceMax(Math.max(0, ...series.flatMap((s) => s.vals.filter((v) => v != null)))), X = (i) => L + (i + 0.5) * pw / n, Y = (v) => T + ph - v / mx * ph;
+    XS.charts[key] = { title, series, fv, names: list.map((x) => x.name), ids: list.map((x) => x.m.r.id) };
+    const grid = [0, 0.5, 1].map((g) => '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(mx * g).toFixed(1) + '" y2="' + Y(mx * g).toFixed(1) + '" class="gl"/><text x="' + (L - 6) + '" y="' + (Y(mx * g) + 3.5).toFixed(1) + '" text-anchor="end" class="ax">' + esc(fv(mx * g, true)) + "</text>").join("");
+    const step = Math.ceil(n / 9), xl = list.map((x, i) => (i % step === 0 || i === selI ? '<text x="' + X(i).toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle" class="ax' + (i === selI ? " on" : "") + '">' + esc(String(x.m.r.id).slice(-6)) + "</text>" : "")).join("");
+    const lines = series.map((s) => { const runs = []; let cur = []; s.vals.forEach((v, i) => { if (v == null) { if (cur.length) runs.push(cur); cur = []; } else cur.push([X(i), Y(v)]); }); if (cur.length) runs.push(cur);
+      return runs.map((r) => (r.length > 1 ? '<path d="' + smooth(r) + '" fill="none" stroke="' + s.col + '" stroke-width="2" stroke-linecap="round"/>' : "")).join("") +
+        s.vals.map((v, i) => (v == null ? "" : '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="' + (i === selI ? 5.5 : 3.5) + '" fill="' + s.col + '" class="pt"/>')).join(""); }).join("");
+    const guide = selI >= 0 ? '<line x1="' + X(selI).toFixed(1) + '" x2="' + X(selI).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '" class="sg"/>' : "";
+    const slots = list.map((x, i) => '<rect class="slot" data-ch="' + key + '" data-i="' + i + '" data-xrsel="' + esc(x.m.r.id) + '" x="' + (L + i * pw / n).toFixed(1) + '" y="' + T + '" width="' + (pw / n).toFixed(1) + '" height="' + (ph + B) + '"/>').join("");
+    return '<div class="lc"><h3>' + esc(title) + '</h3><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(title + ", one point per application, in the order of the table") + '">' + grid + guide + '<line class="hl" x1="0" x2="0" y1="' + T + '" y2="' + (T + ph) + '" visibility="hidden"/>' + lines + xl + slots + "</svg>" +
+      (series.length > 1 ? '<p class="lgd">' + series.map((s) => '<span><i style="background:' + s.col + '"></i>' + esc(s.name) + "</span>").join("") + "</p>" : '<p class="lgd"><span class="dimp">' + esc(series[0].note || "") + "</span></p>") + "</div>";
+  }
+  const RCOLS = [["name", "Application"], ["score", "Score"], ["req", "Tons: requested and approved"], ["rr", "Dollars: reimbursement requested and paid"], ["", ""]];
   function xRank() {
     const list = shown().map((m) => ({ m, name: m.r.applicant || m.r.id, score: m.r.ranked || m.d >= 3 ? scoreOf(m.r) : null, req: m.tons, ap: num(m.r.a[F.apprTons]), rr: num(attr(m.r.a, "TotalReimbursementRequest")), paid: num(m.r.a[F.paid]), amt: num(m.r.a[F.apprAmt]) }));
-    const [sk, sd] = XS.rsort; list.sort((a, b) => { const x = a[sk], y = b[sk]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * sd; });
-    const tot = (k) => list.reduce((a, x) => a + (x[k] || 0), 0), usd = (v) => money(v).replace(/\.00$/, ""), mxT = Math.max(1, ...list.map((x) => Math.max(x.req || 0, x.ap || 0))), mxD = Math.max(1, ...list.map((x) => Math.max(x.rr || 0, x.paid || 0)));
+    const [sk, sd] = XS.rsort; list.sort(sorter(sk, sd));
+    if (XS.rsel && !list.some((x) => x.m.r.id === XS.rsel)) XS.rsel = null;
+    const selI = XS.rsel ? list.findIndex((x) => x.m.r.id === XS.rsel) : -1, sel = selI >= 0 ? list[selI] : null, use = sel ? [sel] : list;
+    const tot = (k) => use.reduce((a, x) => a + (x[k] || 0), 0), cnt = (k) => use.filter((x) => x[k]).length, mxT = Math.max(1, ...list.map((x) => Math.max(x.req || 0, x.ap || 0))), mxD = Math.max(1, ...list.map((x) => Math.max(x.rr || 0, x.paid || 0)));
+    const scs = use.map((x) => x.score).filter((v) => v != null), wait = (x) => (x.m.r.ended ? String(x.m.r.statusText).replace(/\.$/, "") : "in progress");
     const bar = (v, mx, col, txt) => '<div class="pr"><i style="width:' + (v ? Math.max(1.5, v / mx * 78) : 0).toFixed(1) + "%;background:" + col + '"></i><span>' + txt + "</span></div>";
-    $("page").innerHTML = xTop("rank", [[String(list.filter((x) => x.score != null).length), "ranked"], [String(list.length), "applications"]]) +
-      '<div class="g3 four">' + [["Requested", fmt(Math.round(tot("req") * 10) / 10) + " t", list.length + " application" + (list.length === 1 ? "" : "s")], ["Approved", fmt(Math.round(tot("ap") * 10) / 10) + " t", usd(tot("amt")) + " maximum"], ["Reimbursement requested", usd(tot("rr")), list.filter((x) => x.rr).length + " cost form" + (list.filter((x) => x.rr).length === 1 ? "" : "s")], ["Paid", usd(tot("paid")), list.filter((x) => x.paid).length + " payment" + (list.filter((x) => x.paid).length === 1 ? "" : "s")]].map(([h, v, d]) => '<div class="cx"><h2>' + esc(h) + '</h2><b class="bigf">' + esc(v) + '</b><span class="dimp">' + esc(d) + "</span></div>").join("") + "</div>" +
-      '<div class="cx"><h2>Each application <span>click a column to sort · click a row to open it · <i class="lg" style="background:#FFC043"></i>requested <i class="lg" style="background:#9BC53D"></i>approved <i class="lg" style="background:#FF9A3D"></i>reimbursement requested <i class="lg" style="background:#3FA7D6"></i>paid</span></h2>' +
-      (list.length ? '<table class="wb sm" id="xRtab"><tr>' + RCOLS.map(([k, t]) => '<th><button type="button" data-xrsort="' + k + '">' + esc(t) + (sk === k ? (sd > 0 ? " ▲" : " ▼") : "") + "</button></th>").join("") + "</tr>" +
-        list.map((x) => '<tr data-xopen="' + esc(x.m.r.id) + '" tabindex="0"><td>' + sn(x.m.d) + " <b>" + esc(x.name) + "</b><small>" + esc(x.m.r.id) + '</small></td><td class="tot">' + (x.score != null ? fmt(x.score) : '<span class="dimp">not ranked</span>') + "</td><td>" +
-          bar(x.req, mxT, "#FFC043", x.req != null ? fmt(x.req) + " t" : "—") + bar(x.ap, mxT, "#9BC53D", x.ap != null ? fmt(x.ap) + " t" : x.m.r.ended ? esc(x.m.r.statusText) : "in progress") + "</td><td>" +
-          bar(x.rr, mxD, "#FF9A3D", x.rr != null ? money(x.rr) : x.m.r.ended ? "—" : "in progress") + bar(x.paid, mxD, "#3FA7D6", x.paid != null ? money(x.paid) : x.m.r.ended ? "—" : "in progress") + "</td></tr>").join("") + "</table>" : '<p class="none">No applications to show.</p>') +
+    XS.charts = {};
+    $("page").innerHTML = xTop("rank", [[String(list.filter((x) => x.score != null).length), "ranked"], [String(list.length), "applications"]]) + (sel ? selBar(sel.name + " · " + sel.m.r.id) : "") +
+      tiles([["Score", scs.length ? fmt(Math.round(scs.reduce((a, b) => a + b, 0) / scs.length * 10) / 10) : "—", sel ? (sel.score == null ? "not ranked yet" : num(sel.m.r.a[F.awarded]) != null ? "awarded score" : "calculated score") : scs.length ? "average of " + plural(scs.length, "ranked application") + " · " + Math.min(...scs) + " to " + Math.max(...scs) : "none ranked yet"],
+        ["Requested", r1(tot("req")) + " <small>t</small>", sel ? STAGES[sel.m.d - 1] + " · " + sel.m.r.fy : plural(list.length, "application")],
+        ["Approved", sel && sel.ap == null ? '<small>' + esc(wait(sel)) + "</small>" : r1(tot("ap")) + " <small>t</small>", sel && sel.ap == null ? "no decision stored" : usd0(tot("amt")) + " maximum" + (tot("req") ? " · " + Math.round(tot("ap") / tot("req") * 100) + "% of the request" : "")],
+        ["Reimbursement requested", sel && sel.rr == null ? '<small>' + esc(wait(sel)) + "</small>" : usd0(tot("rr")), sel ? (sel.rr == null ? "no cost form yet" : "cost verification form") : plural(cnt("rr"), "cost form")],
+        ["Paid", sel && sel.paid == null ? '<small>' + esc(wait(sel)) + "</small>" : usd0(tot("paid")), sel ? (sel.paid == null ? "not paid yet" : tot("amt") ? Math.round(tot("paid") / tot("amt") * 100) + "% of the approved amount" : "") : plural(cnt("paid"), "payment")]]) +
+      (list.length > 1 ? '<div class="cx xkeep"><h2>Across the applications <span>in the order of the table below · point for the values · click to pick an application</span></h2><div class="lcs">' +
+        lineChart("score", "Score", [{ name: "Score", col: XC.score, vals: list.map((x) => x.score), note: "awarded, else calculated" }], list, (v) => fmt(Math.round(v * 10) / 10), selI) +
+        lineChart("tons", "Tons of lime", [{ name: "Requested", col: XC.req, vals: list.map((x) => x.req) }, { name: "Approved", col: XC.ap, vals: list.map((x) => x.ap) }], list, (v) => fmt(Math.round(v * 10) / 10) + " t", selI) +
+        lineChart("usd", "Dollars", [{ name: "Reimbursement requested", col: XC.rr, vals: list.map((x) => x.rr) }, { name: "Paid", col: XC.paid, vals: list.map((x) => x.paid) }], list, (v, ax) => (ax ? usd0(Math.round(v)) : money(v)), selI) + '</div><div class="ctip" id="xTip" hidden></div></div>' : "") +
+      '<div class="cx xkeep"><h2>Each application <span>click a column to sort · click a line to pick it; the figures and graphs follow · <i class="lg" style="background:' + XC.req + '"></i>requested <i class="lg" style="background:' + XC.ap + '"></i>approved <i class="lg" style="background:' + XC.rr + '"></i>reimbursement requested <i class="lg" style="background:' + XC.paid + '"></i>paid</span></h2>' +
+      (list.length ? '<table class="wb sm" id="xRtab">' + thead(RCOLS, "data-xrsort", sk, sd) +
+        list.map((x) => '<tr data-xrsel="' + esc(x.m.r.id) + '" tabindex="0" class="' + (x === sel ? "sel" : "") + '" aria-selected="' + (x === sel) + '"><td>' + sn(x.m.d) + " <b>" + esc(x.name) + "</b><small>" + esc(x.m.r.id) + '</small></td><td class="tot">' + (x.score != null ? fmt(x.score) : '<span class="dimp">not ranked</span>') + "</td><td>" +
+          bar(x.req, mxT, XC.req, x.req != null ? fmt(x.req) + " t" : "—") + bar(x.ap, mxT, XC.ap, x.ap != null ? fmt(x.ap) + " t" : esc(wait(x))) + "</td><td>" +
+          bar(x.rr, mxD, XC.rr, x.rr != null ? money(x.rr) : x.m.r.ended ? "—" : "in progress") + bar(x.paid, mxD, XC.paid, x.paid != null ? money(x.paid) : x.m.r.ended ? "—" : "in progress") + '</td><td class="oc">' + openLnk(x.m.r) + "</td></tr>").join("") + "</table>" : '<p class="none">No applications to show.</p>') +
       '<p class="wnote">Score: the awarded score where one is recorded, otherwise the calculated score; shown once the reviewer\'s answers are stored. Totals only; no budget is assumed.</p></div>' + footHtml();
   }
+  // pointing at a graph: a hairline on the nearest application and one box with every series' value there
+  document.addEventListener("pointermove", (e) => { const s = e.target.closest && e.target.closest("rect.slot"), tip = $("xTip"); if (!tip) return;
+    document.querySelectorAll(".lc .hl").forEach((h) => h.setAttribute("visibility", "hidden"));
+    if (!s) { tip.hidden = true; return; }
+    const c = XS.charts[s.dataset.ch], i = Number(s.dataset.i); if (!c) return;
+    const x = Number(s.getAttribute("x")) + Number(s.getAttribute("width")) / 2;
+    document.querySelectorAll(".lc .hl").forEach((h) => { h.setAttribute("x1", x); h.setAttribute("x2", x); h.setAttribute("visibility", "visible"); });
+    tip.textContent = ""; const hd = document.createElement("b"); hd.textContent = c.names[i]; const id = document.createElement("small"); id.textContent = c.ids[i]; tip.append(hd, id);
+    for (const ch of Object.values(XS.charts)) for (const se of ch.series) { const v = se.vals[i], row = document.createElement("div"), k = document.createElement("i"), val = document.createElement("strong"), nm = document.createElement("span");
+      k.style.background = se.col; val.textContent = v == null ? "—" : ch.fv(v); nm.textContent = se.name; row.append(k, val, nm); tip.append(row); }
+    tip.hidden = false; const box = tip.parentElement.getBoundingClientRect(); let lx = e.clientX - box.left + 16; if (lx + tip.offsetWidth > box.width - 8) lx = e.clientX - box.left - tip.offsetWidth - 16;
+    tip.style.left = Math.max(8, lx) + "px"; tip.style.top = Math.max(8, Math.min(e.clientY - box.top - 20, box.height - tip.offsetHeight - 8)) + "px"; });
+
+  // ---- clicks on the Explore pages: a click selects, sorts or clears; only an "open in Stages" link opens an application ----
+  const xTab = () => ((location.hash.split("/")[1] || "") === "explore" ? (location.hash.split("/")[2] || "farms") : "");
+  const xPick = (el) => {
+    const far = el.closest("[data-xfarm]"); if (far) { XS.farm = XS.farm === far.dataset.xfarm ? null : far.dataset.xfarm; xFarms(); return true; }
+    const fr2 = el.closest("[data-xfrow]"); if (fr2) { XS.frow = XS.frow === fr2.dataset.xfrow ? null : fr2.dataset.xfrow; xFields(); return true; }
+    const rs2 = el.closest("[data-xrsel]"); if (rs2) { XS.rsel = XS.rsel === rs2.dataset.xrsel ? null : rs2.dataset.xrsel; xRank(); return true; }
+    return false; };
   document.addEventListener("click", (e) => {
-    const dot = e.target.closest("[data-xdot]"); if (dot) { XS.fsel = XS.fsel === dot.dataset.xdot ? null : dot.dataset.xdot; xFields(); return; }
-    if (e.target.id === "xAll") { XS.fsel = null; xFields(); return; }
-    const fs = e.target.closest("[data-xfsort]"); if (fs) { const k = fs.dataset.xfsort; XS.fsort = [k, XS.fsort[0] === k ? -XS.fsort[1] : 1]; xFields(); return; }
-    const rs = e.target.closest("[data-xrsort]"); if (rs) { const k = rs.dataset.xrsort; XS.rsort = [k, XS.rsort[0] === k ? -XS.rsort[1] : (k === "name" ? 1 : -1)]; xRank(); return; }
-    const op = e.target.closest("[data-xopen]"); if (op) { location.hash = "#/app/" + encodeURIComponent(op.dataset.xopen); return; }
-    if (XS.fsel && $("xStrip") && e.target.closest(".stripc2") && !e.target.closest(".mk2")) { XS.fsel = null; xFields(); }       // a click on the strip, outside every dot
+    const tab = xTab(); if (!tab) return; const t = e.target;
+    if (t.closest("a[href]")) return;                                            // links (open in Stages, the tabs, the menu) do their own thing
+    if (t.closest("[data-xclear]")) { if (tab === "fields") { XS.fsel = null; XS.frow = null; xFields(); } else if (tab === "rank") { XS.rsel = null; xRank(); } else { XS.farm = null; closePop(); xFarms(); } return; }
+    const dot = t.closest("[data-xdot]"); if (dot) { XS.fsel = XS.fsel === dot.dataset.xdot ? null : dot.dataset.xdot; XS.frow = null; xFields(); return; }
+    const s1 = t.closest("[data-xfarmsort]"); if (s1) { const k = s1.dataset.xfarmsort; XS.farmSort = [k, XS.farmSort[0] === k ? -XS.farmSort[1] : (k === "name" ? 1 : -1)]; xFarms(); return; }
+    const s2 = t.closest("[data-xfsort]"); if (s2) { const k = s2.dataset.xfsort; XS.fsort = [k, XS.fsort[0] === k ? -XS.fsort[1] : 1]; xFields(); return; }
+    const s3 = t.closest("[data-xrsort]"); if (s3) { const k = s3.dataset.xrsort; XS.rsort = [k, XS.rsort[0] === k ? -XS.rsort[1] : (k === "name" ? 1 : -1)]; xRank(); return; }
+    if (t.closest("#fPop")) return;
+    if (xPick(t)) return;
+    // a click anywhere else: on the strip outside every dot it clears the strip's choice; outside the cards it clears whatever is picked
+    if (tab === "fields" && (XS.fsel || XS.frow) && (t.closest(".stripc2") || !t.closest(".xkeep"))) { XS.fsel = null; XS.frow = null; xFields(); }
+    else if (tab === "rank" && XS.rsel && !t.closest(".xkeep")) { XS.rsel = null; xRank(); }
+    else if (tab !== "fields" && tab !== "rank" && XS.farm && !t.closest("tr[data-xfarm]")) { XS.farm = null; closePop(); xFarms(); }
   });
-  document.addEventListener("keydown", (e) => { if (e.key !== "Enter") return; const op = e.target.closest && e.target.closest("tr[data-xopen]"); if (op) location.hash = "#/app/" + encodeURIComponent(op.dataset.xopen); });
+  document.addEventListener("keydown", (e) => { if (!xTab()) return;
+    if (e.key === "Escape" && XS.farm && xTab() !== "fields" && xTab() !== "rank") { XS.farm = null; closePop(); xFarms(); return; }
+    if (e.key !== "Enter" && e.key !== " ") return; const tr = e.target.closest && e.target.closest("tr[data-xfarm],tr[data-xfrow],tr[data-xrsel]"); if (tr && e.target === tr) { e.preventDefault(); const sel = tr.getAttribute("data-xfarm") ? "data-xfarm" : tr.getAttribute("data-xfrow") ? "data-xfrow" : "data-xrsel", v = tr.getAttribute(sel); xPick(tr);
+      const again = [...document.querySelectorAll("tr[" + sel + "]")].find((x) => x.getAttribute(sel) === v); if (again) again.focus(); } });
+  window.addEventListener("hashchange", () => { const t = xTab(); if (!t || t === "fields" || t === "rank") closePop(); });
 
   // ---- Reports: the four documents of one application, from the same preview as on its stages ----
   let repId = null;
