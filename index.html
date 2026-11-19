@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WCCD AEP – Lime applications</title>
   <!--
-    WCCD AEP custom app – Home + Worklist (build B13m, 19 Nov 2026; B13k plus the Dashboard link and the Help topics).
+    WCCD AEP custom app – Home + Worklist (build B13k, 15 Nov 2026).
     Saves ONLY from the stage tabs and the Field rows tab, on every record except those in CFG.viewOnly and closed applications (the TEST records in CFG.editable stay editable when closed; Yasser, 12 Nov), after the opening check and the review panel (safe save).
     ArcGIS Maps SDK for JavaScript pinned to 5.2 (the latest; moved from 5.1 on 12 Nov at Yasser's request). Components only, no SDK widgets.
   -->
@@ -360,9 +360,6 @@
     .guide table.gt { min-width: 0; width: 100%; border-collapse: collapse; margin: 0 0 12px; } .guide table.gt th { text-align: left; vertical-align: top; width: 120px; padding: 8px 12px 8px 0; font-weight: 700; border-top: 1px solid var(--soft); } .guide table.gt td { padding: 8px 0; border-top: 1px solid var(--soft); } .guide table.gt th { font-size: inherit; color: var(--ink); border-bottom: 0; background: none; text-transform: none; letter-spacing: 0; }
     .gstages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; } .gstages span { padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; color: #fff; }
     .gstages .s1 { background: var(--s1); } .gstages .s2 { background: var(--s2); color: var(--ink); } .gstages .s3 { background: var(--s3); color: var(--ink); } .gstages .s4 { background: var(--s4); } .gstages .s5 { background: var(--s5); } .gstages .s6 { background: var(--s6); }
-    .ghelp { display: grid; grid-template-columns: 215px minmax(0, 1fr); gap: 26px; align-items: start; } .gnav { position: sticky; top: 12px; display: grid; gap: 2px; padding-top: 30px; } .gnav button { text-align: left; background: none; border: 0; border-left: 3px solid var(--soft); padding: 6px 10px; font: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; } .gnav button:hover { border-left-color: var(--acc, #E08A1E); background: var(--blue-bg); }
-    .guide:has(.ghelp) { max-width: 1160px; } .guide table.gt3 th { width: auto; padding-right: 14px; } .guide table.gt3 td { padding-right: 14px; } @media (max-width: 900px) { .ghelp { grid-template-columns: 1fr; } .gnav { position: static; padding-top: 0; } }
-    @media print { .ghelp { display: block; } }
     .guide .gnote { background: var(--blue-bg); border-radius: 8px; padding: 10px 14px; font-weight: 600; } .guide .gfoot { margin-top: 22px; color: var(--muted); font-size: 13px; }
     @page { size: letter; margin: 0.7in; }
     @media print { body.onhelp { padding: 0; background: #fff; } body.onhelp nav.rail, body.onhelp header.top, body.onhelp #buildLine, body.onhelp .noprint, body.onhelp #gate { display: none !important; }
@@ -455,8 +452,77 @@
       <div class="guide">
         <div class="ghead"><div><h1>User guide</h1><p class="lead">WCCD Agricultural Enhancement Program · Lime applications</p></div><button type="button" class="btn noprint" id="helpPrint">Print or save as PDF</button></div>
 
-        <p class="gnote">This guide names the pages and buttons of the <a href="dashboard.html">Dashboard view</a>. The classic view, which you are in now, works on the same applications with the same rules and the same review-and-confirm saving; its tabs carry the same stage names.</p>
-        <div class="ghelp"><nav class="gnav noprint" id="helpNav" aria-label="Help topics"></nav><div id="helpBody"></div></div>
+        <h2>1. What the app does</h2>
+        <p>The app follows a lime application from the paper packet to the reimbursement check. You enter the application, rank it, record the decision, the agreement and the cost verification, and print the four program documents. Everything is stored in the district's ArcGIS Online account; you sign in with your ArcGIS Online name and password.</p>
+
+        <h2>2. Finding your way</h2>
+        <table class="gt"><tbody>
+          <tr><th>Home</th><td>Six coloured tiles count the applications at each stage. Click a tile to list only that stage; click it again to show all. Under the tiles are the open applications and anything that needs attention.</td></tr>
+          <tr><th>Tasks</th><td>Open applications grouped by the next thing to do. Click one to open it; click it again to close it.</td></tr>
+          <tr><th>New</th><td>Enter a new application.</td></tr>
+          <tr><th>Help</th><td>This guide.</td></tr>
+        </tbody></table>
+        <p>Each stage keeps one colour everywhere in the app:</p>
+        <div class="gstages"><span class="s1">1 Intake</span><span class="s2">2 Ranking</span><span class="s3">3 Approval</span><span class="s4">4 Agreement</span><span class="s5">5 Costs</span><span class="s6">6 Closed</span></div>
+
+        <h2>3. Entering a new application</h2>
+        <ol>
+          <li>Click <b>New</b>. Start on <b>Applicant and farm</b>: fiscal year, sequence number (the next free number is suggested), name, application date, the three plan and event answers, and the Farm #. The other tabs stay dimmed until these are filled and the Farm # has fields on the map.</li>
+          <li>Open <b>Fields</b>. Click a field on the map, or use <b>Add a field from the list</b>. A panel opens for that field.</li>
+          <li>In the panel, enter treated acres, soil pH and the lime recommendation, in lb/acre or tons/acre. Under <b>Lab report</b> enter the report date or the date sampled. The other lab details are optional. Click <b>Save field</b>.</li>
+          <li>A field with something missing shows a red <b>! Missing</b> note in the list. Click <b>Edit</b> on it to finish.</li>
+          <li>Fill <b>Contact details</b> and <b>Request and certification</b> if you have them, and attach the scanned packet (PDF) under <b>Notes and packet</b>.</li>
+          <li>Click <b>Review</b>, read the summary, then <b>Confirm and create</b>. Nothing is stored before that click.</li>
+        </ol>
+        <p class="gnote">Only fields that are on the map can be entered. A field that is missing has to be added to the fields layer in ArcGIS Pro first.</p>
+
+        <h2>4. Working on an application</h2>
+        <p>Open it from <b>Tasks</b> or from the Home list. The numbered steps across the top show where it stands; click a step to open its tab. The tabs under them hold its sections; inside a tab, the list on the left switches between its parts.</p>
+        <ol>
+          <li>Open the tab for the stage you are working on and click <b>Edit</b>.</li>
+          <li>Fill the boxes. A red mark on a left-hand tab means a required box in it is still empty.</li>
+          <li>Click <b>Review and save</b>. The panel lists what you changed and what the form calculated from it.</li>
+          <li>Click <b>Confirm and save</b>. A green line confirms the values were stored and read back. <b>Back to the form</b> or <b>Cancel</b> stores nothing.</li>
+        </ol>
+
+        <h2>5. Stage by stage</h2>
+        <table class="gt"><tbody>
+          <tr><th>Ranking</th><td>Questions 1, 3 and 8 come from the Intake answers, and 9 and 11 from the fields' lab dates and soil pH. To change one, change its source on the Intake or Fields tab. Answer the remaining questions and the eligibility question, then save.</td></tr>
+          <tr><th>Approval</th><td>The form suggests the tons, acres and maximum assistance from the ranking. Choose the decision. For an approved application also fill Approved by, Title and the signing window, which the approval letter prints. Saving moves the application to Approval.</td></tr>
+          <tr><th>Agreement</th><td>Record the signature dates and the WCCD representative. Once the landowner and WCCD dates are stored, the next step becomes the cost verification.</td></tr>
+          <tr><th>Costs</th><td>Enter the tons purchased and the cost per ton; the form works out the eligible tons, the rate and the request. Then record the verification answers and the invoice. Entering the amount paid, the payment date and the check number closes the application.</td></tr>
+        </tbody></table>
+
+        <h2>6. Documents and files</h2>
+        <ul>
+          <li>Each document opens from its own tab, at the top right: <b>Application Summary</b> on Intake, <b>Approval Letter</b> on Approval, <b>Agreement</b> on Agreement, <b>Cost Verification Form</b> on Costs.</li>
+          <li>The preview shows Letter pages. A red line at its top names any value that is still empty on the record. <b>Print</b> sends it to the printer; <b>Download Word file</b> gives an editable copy.</li>
+          <li>Opening, printing or downloading a document stores nothing on the application.</li>
+          <li>The <b>Files</b> tab holds attached files. Use <b>Attach</b> on the right group, and <b>Open</b> or <b>Delete</b> beside a file. Only PDF files can be attached. Files can be attached and deleted on a closed application too.</li>
+        </ul>
+
+        <h2>7. Fields and the map</h2>
+        <ul>
+          <li>The <b>Fields</b> tab lists the application's fields. Open one to see its values, <b>Edit</b> it, <b>Add a field</b> or <b>Delete</b> one.</li>
+          <li>The <b>Map</b> tab shows the farm. <b>Topo / Aerial</b> at its top right switches the background. The application's fields are coloured; a field funded within the last three years is marked, and the same check appears as a red line on the application.</li>
+        </ul>
+
+        <h2>8. Good to know</h2>
+        <ul>
+          <li>A <b>closed</b> application cannot be changed, apart from its attached files.</li>
+          <li><b>Delete application</b> is offered only before approval. It asks you to type the AEP ID and removes the application with its fields.</li>
+          <li>A red line under an application's figures is a flag, for example a missing Farm #. It tells you what to fix and where.</li>
+          <li>If a red box says <b>Editing is blocked</b>, nothing was saved. Click Cancel and try again; if it returns, open the diagnostics under it and send the text to the administrator.</li>
+          <li>To report a problem or ask a question, email the administrator at <a href="mailto:yayad@pennwest.edu">yayad@pennwest.edu</a>. Include the AEP ID, what you clicked, and the message on the screen.</li>
+          <li>Do not edit the same application in this app and in another ArcGIS tool at the same time.</li>
+        </ul>
+
+        <h2>9. Backups</h2>
+        <ul>
+          <li>At the bottom of <b>Home</b>, <b>Download backup (geodatabase)</b> saves every application, field row and attached file as one zip file. It can take a few minutes. Keep the file somewhere safe, outside ArcGIS Online.</li>
+          <li>Home shows a yellow reminder when no backup has been downloaded on that computer for six months.</li>
+          <li>ArcGIS Online also makes its own copy on the 1st of every month and keeps the newest six; the oldest is deleted when a seventh is made.</li>
+        </ul>
         <p class="gfoot" id="helpBuild"></p>
       </div>
     </section>
@@ -2129,7 +2195,7 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
   //  - each calculation has a hand-written rule below, stored WITH the survey's expression text it was written against;
   //  - at start-up the two are compared, and if they disagree in any way the app does not create applications.
   // =====================================================================================================================
-  const BUILD = "B13m", BUILD_DATE = "19 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
+  const BUILD = "B13k", BUILD_DATE = "15 Nov 2026", BORN_HASH = "ae0ca9f678700d50";
   const nb = (v) => v == null || v === "";
   const rd = (x, n) => { const k = Math.pow(10, n); return Math.round((Number(x) + Number.EPSILON) * k) / k; };
   const sum = (R, k) => R.reduce((t, r) => t + (Number(r[k]) || 0), 0);
@@ -2612,141 +2678,6 @@ rows: [{ re: /^Field$/i, w: "L", row: 1 }, { re: /lime rec/i, w: "R", row: 1, ti
       return out.join("\n");
     } catch (e) { return "The comparison could not be made: " + mask(e.message || e); }
   }
-  // ---------------- Help: the topics (one definition; the Dashboard view copies this block and shows the same topics) ----------------
-  // UPDATE THIS LIST WHENEVER A FEATURE, A PAGE OR A BUTTON NAME CHANGES, in the same build. Topic text is HTML (for <b>); the search strips the tags.
-  // Each topic: k (address key), t (title), go ([Dashboard address, button label]), intro, steps ([name, text]), tip, table (rows; the first is the header).
-  const HELP_POINTS = [["Question", "Answered by", "Points"],
-    ["1. Conservation plan", "Intake answer", "Yes 3 · otherwise 0"], ["2. Conservation plan verified", "Reviewer", "Yes 2 · No 0"],
-    ["3. Manure management / Act 38 plan", "Intake answer", "Yes or N/A 3 · No 0"], ["4. Plan verified", "Reviewer", "Yes 2 · No 0"],
-    ["5. First-time applicant", "Reviewer", "Yes 20 · No 0"], ["6. Earlier contracts completed on time", "Worked out from question 5", "10 for a returning applicant, unless marked not on time · 0 for a first-time applicant"],
-    ["7. All pasture", "Reviewer", "Yes 5 · No 0"], ["8. Attended a district event", "Intake answer", "Yes 5 · No 0"],
-    ["9. Soil tests within a year", "Fields: every included field's lab date is within 365 days of the application date", "Yes 5 · No 0"],
-    ["10. District visit", "Reviewer", "Yes 5 · No 0"], ["11. Average soil pH", "Fields: the average pH of the included fields", "5.0 or below 15 · 5.1 to 6.0 10 · 6.1 to 6.5 5 · 6.6 or above 0"]];
-  const HELP_WORDS = [
-    ["AEP ID", "The application's number, for example AEP63-27-001: county 63, fiscal year 2027, first application of that year."],
-    ["Farm #", "The farm's number on the map. It links an application to its farm and fields, so an application cannot be created without it."],
-    ["Stage", "Where an application stands: 1 Intake, 2 Ranking, 3 Approval, 4 Agreement, 5 Costs, 6 Closed."],
-    ["Needs input", "A value the next step depends on is still empty. The application's card is red and lists what is missing."],
-    ["Included field", "A field that counts in the application. A field marked Excluded or Withdrawn stays on record but is left out of the totals."],
-    ["Treated acres", "The part of a field that will be limed; never more than the field's total acres."],
-    ["Lime rec.", "The lab's lime recommendation for a field, in pounds per acre (2,000 lb = 1 ton)."],
-    ["3-year check", "Whether the same field was limed and paid for through the program within the last three fiscal years."],
-    ["Rate cap and cost share", "The most the program pays per ton, and the share of the lime cost it pays. Both are stored on each application for its fiscal year."],
-    ["CVF", "Cost Verification Form: what was bought and what it cost, the basis of the payment."]];
-  const HELP = [
-    { k: "around", t: "Getting around", go: ["#/", "Go to Home"],
-      intro: "The same applications can be worked on in two views: the Dashboard view and the classic view. This guide names the pages and buttons of the Dashboard view.",
-      steps: [["Home", "The program at a glance, and four doors: <b>Stages</b>, <b>New</b>, <b>Explore</b> and <b>Reports</b>."],
-        ["The side menu", "On every other page the menu on the left leads to <b>Home</b>, <b>Stages</b>, <b>New</b>, <b>Explore</b>, <b>Reports</b> and <b>Help</b>."],
-        ["Fiscal year", "The <b>Fiscal year</b> box at the top of Stages, Explore and Reports limits what those pages show. It opens on all years."],
-        ["The two views", "<b>Classic</b> at the bottom of the side menu opens the classic view; <b>Dashboard</b> in the classic view's menu comes back. Do not edit the same application in both at the same time."]],
-      tip: "<b>Nothing is ever saved by typing.</b> Every change is listed for review first and stored only when you confirm it." },
-    { k: "stages", t: "Stages and the application page", go: ["#/stages", "Go to Stages"],
-      intro: "Stages is the working page: every application on the map and in the column of its stage.",
-      steps: [["Read the columns", "Six numbered columns: <b>1 Intake</b>, <b>2 Ranking</b>, <b>3 Approval</b>, <b>4 Agreement</b>, <b>5 Costs</b>, <b>6 Closed</b>. A <b>red card</b> lists what the application still needs."],
-        ["Use the map with the columns", "Point at a card, or at a column's title, to see it on the map; the map moves when the farm is out of view. Point at a map point to see its card."],
-        ["Open an application", "Click its card or its map point. The page opens at the application's current stage."],
-        ["Move between its stages", "The six numbered steps on the left of the application page show each stage's values. <b>Show all fields, including the empty ones</b> lists the empty values too."],
-        ["Fields, map and paper", "On the right are the application's fields, a map of them, and the files that belong to the stage."]] },
-    { k: "new", t: "Starting a new application", go: ["#/new", "Start a new application"],
-      intro: "A new application is entered in five steps. Nothing exists until you confirm in the last one.",
-      steps: [["1 Application", "Fiscal year, sequence number (the next free number is suggested), applicant, application date, the plan and event answers, and the <b>Farm #</b>. The next steps open once the required boxes are filled and the farm has fields on the map."],
-        ["2 Fields", "Click a field on the map to add it, or use <b>Add a field from the list</b>. A panel opens for its acres."],
-        ["3 Lab data", "For each field enter the soil pH, the lime recommendation (lb/acre or tons/acre) and the lab report date or date sampled. A field with something missing is marked in red; <b>Edit</b> opens it again."],
-        ["4 Upload document(s)", "Add notes and attach the scanned packet as a PDF."],
-        ["5 Review and create", "Read the summary, then <b>Confirm and create</b>. The app stores the application, reads it back and opens it at 1 Intake."]],
-      tip: "<b>Back</b> and <b>Next</b> are at the top right and in the bar at the bottom of the window. Only fields that are on the map can be entered; a missing field is added to the fields layer in ArcGIS Pro first." },
-    { k: "fields", t: "Fields and lab data", go: ["#/stages", "Go to Stages"],
-      intro: "The fields of an application, with the values the ranking reads: treated acres, soil pH, lime recommendation and lab date.",
-      steps: [["Open the grid", "On an application, click <b>Fields grid</b> under the six steps. Each field is one line; a missing ranking value reads <b>needs input</b>."],
-        ["Edit a field", "<b>Edit field ›</b> opens that field's form joined to its line: acres, soil test results, lab report. Review and save as for a stage."],
-        ["Add a field", "<b>+ Add a field</b> offers the farm's fields that are not yet in the application. Or click the field on the map."],
-        ["Remove a field", "<b>Delete…</b> removes the field row after a confirmation. To keep it on record without counting it, set its status to Excluded or Withdrawn instead."],
-        ["Use the map", "On any map of the fields, a click on one of the application's fields opens it for editing, and a click on another field of the farm starts adding it."]],
-      tip: "<b>After changing a field's soil values</b>, open the ranking and save it again so the application's totals and score are refreshed." },
-    { k: "rank", t: "Ranking an application", go: ["#/stages", "Go to Stages"],
-      intro: "The eleven ranking questions of one application. Six are answered by the reviewer; five are worked out from the intake answers and the fields. Nothing is stored until you review and confirm.",
-      steps: [["Open the ranking", "On <b>Stages</b>, open an application in the <b>2 Ranking</b> column, then click <b>Edit this stage</b>. An application reaches this column when Intake has nothing missing."],
-        ["Answer the reviewer's questions", "<b>Eligibility</b> and questions <b>2, 4, 5, 7</b> and <b>10</b> are Yes / No. A red mark on a side tab means a required answer on it is still empty."],
-        ["Check the worked-out answers", "Questions <b>1, 3</b> and <b>8</b> come from the intake answers; <b>9</b> and <b>11</b> from the fields' lab dates and soil pH. Under each is a link to the place where it can be changed. <b>Override automatic answers?</b> unlocks them when the paper form says otherwise."],
-        ["Read the totals", "The general score, the lime score and the total application score update as you answer. A score awarded on a paper ranking goes under <b>Awarded score</b>; it then counts as the official score."],
-        ["Review and save", "The bar at the bottom counts your changes. <b>Review and save</b> lists what you changed and what the form calculated from it; <b>Confirm and save</b> stores it and reads it back. The application then moves to the <b>3 Approval</b> column."]],
-      tip: "<b>Out-of-date totals:</b> if a field's soil values were changed after the ranking was saved, the form opens with a line listing the figures that are out of date. Saving the ranking again refreshes them." },
-    { k: "appr", t: "Approval and the approval letter", go: ["#/stages", "Go to Stages"],
-      intro: "The decision on an application, the approved tons and acres, and the details the approval letter prints.",
-      steps: [["Open the approval", "Open an application in the <b>3 Approval</b> column, go to step <b>3 Approval</b> and click <b>Edit this stage</b>."],
-        ["Record the decision", "Choose the <b>Application status</b>. For an approved application the form suggests the tons, the acres and the maximum assistance from the ranking."],
-        ["Approve a different amount", "Switch on the override, enter the tons and acres, and give the reason. The form shows a notice when fewer or more acres are approved than were requested."],
-        ["Fill the letter details", "<b>Approved by</b>, the title and the signing window are printed on the approval letter. The review panel lists any that are still empty."],
-        ["Save, then print the letter", "<b>Review and save</b>, then <b>Confirm and save</b>. The <b>Approval Letter</b> is then offered at the top of this stage."]],
-      tip: "A decision of Not funded, Ineligible or Withdrawn closes the application. A closed application cannot be changed here afterwards." },
-    { k: "agr", t: "Agreement and signatures", go: ["#/stages", "Go to Stages"],
-      intro: "The agreement between the applicant and the district, and the dates it was signed.",
-      steps: [["Print the agreement", "On step <b>4 Agreement</b> of an approved application, use <b>Preview, print or Word file</b> on the Agreement."],
-        ["Record the signatures", "Click <b>Edit this stage</b> and enter the signature dates and the WCCD representative."],
-        ["Review and save", "Once the landowner's and the district's signature dates are both stored, the application moves to the <b>5 Costs</b> column."]] },
-    { k: "costs", t: "Cost verification and payment", go: ["#/stages", "Go to Stages"],
-      intro: "What was bought, what it cost, what the program reimburses, and the payment that closes the application.",
-      steps: [["Enter the purchase", "On step <b>5 Costs</b>, click <b>Edit this stage</b> and enter the tons purchased and the cost per ton. The form works out the eligible tons, the rate and the reimbursement request."],
-        ["Record the verification", "Answer the WCCD Internal Use questions and enter the invoice details, then review and save."],
-        ["Print the form", "The <b>Cost Verification Form</b> at the top of the stage prints on one Letter page, with the figures and the signature lines."],
-        ["Record the payment", "Enter the amount paid, the payment date and the check number, then review and save. This closes the application."]],
-      tip: "A red line says so when the amount paid differs from the reimbursement request." },
-    { k: "files", t: "Files", go: ["#/stages", "Go to Stages"],
-      intro: "The PDF files attached to an application: the application packet, the signed agreement, the cost verification packet and others.",
-      steps: [["Open the files", "On an application, click <b>Files</b> under the six steps. The files are grouped by kind."],
-        ["Attach a file", "Click <b>Attach</b> on the right group, choose the PDF, and confirm. The app uploads it and checks that it arrived."],
-        ["Open or delete", "<b>Open</b> shows a file; <b>Delete</b> removes it after a confirmation and cannot be undone."]],
-      tip: "Only PDF files can be attached. Files can be attached and deleted on a closed application too. The four program documents are never attached automatically: print or save one as PDF, then attach it if the district wants it kept with the application." },
-    { k: "explore", t: "Explore: farms, fields, ranking and funding", go: ["#/explore", "Go to Explore"],
-      intro: "Three pages that look across the applications. On these pages a click only selects; nothing opens unless you ask for it.",
-      steps: [["Farms", "One line per farm: its size, its field sizes, its applications and its average soil pH. Click a farm for its map and record; click it again, or anywhere else, to close."],
-        ["Fields", "The soil pH strip has one dot per application. Click a dot to see only its fields; click a line of the table to see that field in the figures and on the strip."],
-        ["Ranking and funding", "Scores, tons and dollars for every application, as figures, graphs and a table. Click a line or a point to see that application in all of them."],
-        ["Open an application", "Only the small <b>open in Stages ›</b> link on a line opens the application."]] },
-    { k: "reports", t: "Reports and printing", go: ["#/reports", "Go to Reports"],
-      intro: "The four program documents: Application Summary, Approval Letter, Agreement and Cost Verification Form.",
-      steps: [["Choose the application", "On <b>Reports</b>, pick the application. A document is offered once its stage is reached; otherwise the page says what it waits for."],
-        ["Preview", "<b>Preview, print or Word file</b> shows the document on Letter pages. A red line at the top names any value that is still empty on the record."],
-        ["Print or download", "<b>Print</b> sends it to the printer or saves it as a PDF; <b>Download Word file</b> gives a copy you can edit."]],
-      tip: "The same documents are at the top of their stages on the application page. Opening, printing or downloading one stores nothing and attaches nothing." },
-    { k: "fix", t: "Corrections and deleting", go: ["#/stages", "Go to Stages"],
-      intro: "How to correct a saved value, and how to remove an application that should not exist.",
-      steps: [["Correct a value", "Open the stage, click <b>Edit this stage</b>, change the value, then review and save. The form recalculates what depends on it."],
-        ["Get a hidden value back", "When a choice hides a box, its value is emptied but kept aside. If the box shows again, <b>Restore the earlier value</b> brings it back."],
-        ["Closed applications", "A closed application cannot be changed, apart from its files."],
-        ["Delete an application", "<b>Delete application…</b> at the top of an application works at any stage. Step 1 asks for a backup downloaded on that computer within the last hour; step 2 lists what will be removed and asks you to type the AEP ID."]],
-      tip: "<b>Deleting cannot be undone.</b> It removes the application, its fields and its files for every app that reads this data. The backup is the only way back." },
-    { k: "backup", t: "Backup", go: ["#/help/backup", "Download a backup"],
-      intro: "A copy of everything, kept outside ArcGIS Online.",
-      steps: [["Download", "<b>Download backup (geodatabase)</b> saves every application, field row and attached file as one zip file. It can take a few minutes; keep the page open."],
-        ["Keep it safe", "Store the file somewhere safe. Unzipped, it opens in ArcGIS Pro."],
-        ["How often", "Download a new one at least every six months, and before deleting an application. ArcGIS Online also makes its own copy on the 1st of every month and keeps the newest six."]] },
-    { k: "check", t: "Data check (administrator)", admin: true, go: ["#/check", "Go to Data check"],
-      intro: "A page for the administrator only: what the app could read, and records that need a closer look.",
-      steps: [["Open it", "<b>Check</b> in the side menu is shown only to the owner of the web map."],
-        ["Read the record checks", "Duplicate AEP IDs, applications without a Farm # or without fields, farms and fields that are not on the map, field rows that belong to no application."],
-        ["Read what was loaded", "The layers, forms, field rows and polygons the page read, the survey rules file, the versions, and the date of the last backup on that computer."]] },
-    { k: "calc", t: "How the scores and amounts are calculated", go: ["#/explore/rank", "Go to Ranking and funding"],
-      intro: "The app does not invent figures. Each one is worked out by the rules of the review forms; this topic says, in words, where each comes from.",
-      steps: [["Tons for a field", "Lime recommendation (pounds per acre) ÷ 2,000 × treated acres."],
-        ["Lime score", "Total tons ÷ total treated acres of the included fields, × 20."],
-        ["Total application score", "General ranking score (the eleven questions below) + lime score. A score recorded under Awarded score replaces it as the official score."],
-        ["Maximum assistance", "Approved tons × the rate cap per ton. The program limits stored on each application are 20 acres and 3 tons per acre; the rate cap is $30 per ton from fiscal year 2027 ($22 before)."],
-        ["Reimbursement", "The lower of the cost per ton and the rate cap, × the cost share (100% from fiscal year 2027, 75% before), × the eligible tons."]],
-      table: HELP_POINTS,
-      tip: "The points and limits above describe the rules as they stood when this guide was written. The review forms are the authority; if a figure on screen disagrees with this page, tell the administrator." }
-  ];
-  const helpText = (h) => [h.t, h.intro, ...(h.steps || []).flat(), h.tip, ...(h.table || []).flat()].map((s) => String(s || "").replace(/<[^>]+>/g, " ")).join(" ").toLowerCase();
-  const helpTable = (h, cls) => (h.table ? '<table class="' + cls + '"><tbody>' + h.table.map((r, i) => "<tr>" + r.map((c, j) => (i === 0 || j === 0 ? "<th>" : "<td>") + c + (i === 0 || j === 0 ? "</th>" : "</td>")).join("") + "</tr>").join("") + "</tbody></table>" : "");
-  // ---------------- Help: the classic page, filled from the same topics ----------------
-  { const hb = document.getElementById("helpBody"), hn = document.getElementById("helpNav");
-    if (hb) hb.innerHTML = HELP.map((h, i) => '<h2 id="ht-' + h.k + '">' + (i + 1) + ". " + h.t + "</h2><p>" + h.intro + "</p><ol>" + h.steps.map(([a, b]) => "<li><b>" + a + ".</b> " + b + "</li>").join("") + "</ol>" + helpTable(h, "gt gt3") +
-        (h.tip ? '<p class="gnote">' + h.tip + "</p>" : "") + (h.k === "backup" ? "<p>In the classic view the button is at the bottom of <b>Home</b>; in the Dashboard view it is on this Help topic.</p>" : '<p class="noprint"><a href="dashboard.html' + h.go[0] + '">' + h.go[1] + " in the Dashboard view ›</a></p>")).join("") +
-      '<h2 id="ht-words">Words used in the app</h2><table class="gt"><tbody>' + HELP_WORDS.map(([a, b]) => "<tr><th>" + a + "</th><td>" + b + "</td></tr>").join("") + "</tbody></table>";
-    if (hn) { hn.innerHTML = HELP.map((h, i) => '<button type="button" data-ht="' + h.k + '">' + (i + 1) + ". " + h.t + "</button>").join("") + '<button type="button" data-ht="words">Words used in the app</button>';
-      hn.addEventListener("click", (e) => { const b = e.target.closest("[data-ht]"), t = b && document.getElementById("ht-" + b.dataset.ht); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); }); } }
-
   // ---------- About this app ----------
   function aboutDraw() {
     $("buildLine").textContent = "WCCD lime applications review app · build " + BUILD + " · " + BUILD_DATE;
