@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WCCD lime applications · Dashboard view</title>
-  <!-- Dashboard view, pieces 1 to 5 (D6a). Data code copied unchanged from the classic app, build B13k. -->
+  <!-- Dashboard view, pieces 1 to 6 (D7a). Data code copied unchanged from the classic app, build B13k. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
   <script type="module" src="https://js.arcgis.com/5.2/"></script>
@@ -187,6 +187,30 @@ main{padding:14px 18px 40px;min-width:0}
 #board .bh{position:sticky;top:-8px;background:inherit;z-index:1;padding-top:6px;margin-top:-6px}
 .mapc.stg .mleg{display:none}
 @media (min-height:1100px){.mapc.stg{height:clamp(440px,calc(100vh - 470px),900px)}}
+/* the Stages bar: see-through enough to show the map under it (Yasser, 19 Nov) */
+#board.board{background:rgba(11,14,19,.26);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}#board .bcol{background:rgba(21,26,34,.4)}#board .bcol>h3,#board .bcol>header{text-shadow:0 1px 3px rgba(0,0,0,.8)}#board .bc{background:rgba(31,38,48,.84)}#board .bc.need2{background:rgba(52,28,24,.86)}
+/* ---- Explore and Reports ---- */
+.pills{display:flex;gap:4px;margin-left:6px}.pills a{padding:5px 13px;border-radius:15px;border:1px solid var(--line2);font-size:12.5px;font-weight:600;color:var(--dim)}.pills a.on{background:var(--acc);color:#1E1005;border-color:var(--acc)}.pills a:hover{color:var(--ink)}.pills a.on:hover{color:#1E1005}
+.homeg.x{grid-template-columns:minmax(0,1fr) 300px}.mapc.xm{height:clamp(440px,calc(100vh - 170px),900px)}
+.tg{display:flex;align-items:center;gap:7px;padding:6px 0;font-size:13px;border-top:1px solid var(--line);cursor:pointer}.tg span{color:var(--dim);font-size:12px}.tg input{margin-left:auto;width:17px;height:17px;accent-color:var(--acc2)}.tg .n{width:19px;height:19px;font-size:11px}
+.xcard{font-size:12.5px}.xcard strong{display:block;font-size:15px;color:#fff}.xcard small{display:block;color:var(--dim);margin-bottom:5px}.xcard span{display:flex;gap:6px;align-items:center;padding:1px 0;color:#DDE3E8}.xcard .n{width:17px;height:17px;font-size:10px}.xcard em{display:block;font-style:normal;color:var(--warn);margin-top:4px}
+.stripc2{margin-bottom:12px}.strip2{position:relative;height:214px;margin:6px 26px 0}.band2{position:absolute;left:0;right:0;bottom:30px;height:30px;border-radius:15px;background:linear-gradient(90deg,#E8323C,#F5701F 22%,#F7A61E 38%,#D9D22E 50%,#8FCB3B 60%,#2FBF71 72%,#1E9FB8 86%,#3B5BFF);box-shadow:0 0 26px rgba(255,170,60,.35)}
+.strip2>span{position:absolute;bottom:4px;transform:translateX(-50%);font-size:11px;color:var(--dim)}
+.mk2{position:absolute;bottom:60px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;padding:0;color:inherit}.mk2 em{font-style:normal;font-size:11px;color:var(--ink);white-space:nowrap;margin-bottom:3px}
+.mk2 b{width:30px;height:30px;border-radius:50%;background:var(--c);border:3px solid var(--bg);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px var(--c);transition:transform .18s,box-shadow .18s}.mk2 u{display:block;width:1px;height:var(--h);background:rgba(255,255,255,.45)}
+.mk2:hover{z-index:9}.mk2:hover b,.mk2:focus-visible b{transform:scale(1.28);box-shadow:0 0 22px 4px var(--c),0 0 0 2px rgba(255,255,255,.7)}
+.strip2.has .mk2:not(.on2){opacity:.32}.mk2.on2 b{outline:3px solid #fff;outline-offset:2px;animation:pulse2 1.6s ease-in-out infinite}
+@keyframes pulse2{0%,100%{box-shadow:0 0 12px var(--c),0 0 0 0 rgba(255,255,255,.75)}50%{box-shadow:0 0 22px 4px var(--c),0 0 0 9px rgba(255,255,255,0)}}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 12px}.g3.four{grid-template-columns:repeat(4,minmax(0,1fr))}.bigf{display:block;font:700 30px "Barlow Semi Condensed",sans-serif;color:var(--acc)}.bigf small{font-size:15px;color:var(--dim)}.dimp{font-size:12px;color:var(--dim)}
+.wb{border-collapse:collapse;width:100%}.wb th{text-align:left;padding:0;border-bottom:1px solid var(--line2)}.wb th button{background:none;border:0;color:var(--dim);font:600 12px inherit;padding:7px 9px;width:100%;text-align:left}.wb th button:hover{color:var(--acc)}
+.wb td{padding:7px 9px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}.wb td small{display:block;color:var(--dim);font-size:11px;margin-left:26px}.wb .n{width:18px;height:18px;font-size:10px;vertical-align:-3px}.wb tr[data-xopen]{cursor:pointer}.wb tr[data-xopen]:hover td,.wb tr[data-xopen]:focus-visible td{background:rgba(255,192,67,.08)}
+.wb .tot{font:700 19px "Barlow Semi Condensed",sans-serif}.pr{display:flex;align-items:center;gap:8px;height:14px;margin:2px 0}.pr i{display:block;height:10px;border-radius:5px;flex:none}.pr span{font-size:11.5px;color:#C9D2DA;white-space:nowrap}.lg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin:0 4px 0 8px}
+.rw{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;align-items:start}.repsel{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:8px;font:inherit}
+.repdocs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.repdoc{display:grid;grid-template-columns:96px 1fr;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.repdoc.off{opacity:.6}
+.repdoc .wp{width:96px;height:124px;background:#fff;color:#1E1712;border-radius:3px;padding:9px;font-size:7px;overflow:hidden}.repdoc .wp b{display:block;font-size:7.5px;line-height:1.2}.repdoc .wp hr{border:0;border-top:1px solid #1E1712;margin:4px 0}.repdoc .wp .l{height:4px;background:#DDD6CE;border-radius:2px;margin-bottom:5px}.repdoc .wp .l.s{width:62%}
+.repdoc>div:last-child b{display:block;font:700 19px "Barlow Semi Condensed",sans-serif}.repdoc>div:last-child span{display:block;font-size:12.5px;color:var(--dim);margin:3px 0 10px}.repdoc .pbtn{background:linear-gradient(180deg,var(--acc),var(--acc2));color:#1E1005}
+@media (max-width:1000px){.homeg.x,.rw,.repdocs,.g3,.g3.four{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.mk2.on2 b{animation:none}.mk2 b{transition:none}}
 
 /* ---- the classic app's own stylesheet, scoped to the editor inside the application page (generated by scope_css.py) ---- */
 .edzone.ed{--ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
@@ -839,8 +863,8 @@ main{padding:14px 18px 40px;min-width:0}
 <a href="#/" data-r="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</a>
 <a href="#/stages" data-r="stages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Stages</a>
 <a href="#/new" data-r="new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New</a>
-<a href="#/explore" data-r="explore" class="soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6"/></svg>Explore</a>
-<a href="#/reports" data-r="reports" class="soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg>Reports</a>
+<a href="#/explore" data-r="explore" ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6"/></svg>Explore</a>
+<a href="#/reports" data-r="reports" ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg>Reports</a>
 <a href="#/check" data-r="check" class="soon" id="navCheck" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 12l3 3 5-6"/></svg>Check</a>
 <a href="index.html#/help"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1.200-1.500 2.300M12 17v.5M12 3a9 9 0 100 18 9 9 0 000-18"/></svg>Help</a>
 <span class="sp"></span><a href="index.html" class="cl" title="Switch to the classic view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l-6 6 6 6M4 12h16"/></svg>Classic</a></nav>
@@ -2751,7 +2775,7 @@ main{padding:14px 18px 40px;min-width:0}
   // classic app (index.html) by build_dash.py: settings, sign-in, reading the applications, the forms and the field rows,
   // the flags, and the farm and field polygons. Nothing here writes to ArcGIS Online.
   // =====================================================================================================================
-  const D_BUILD = "D6d", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
+  const D_BUILD = "D7a", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
   const SCOL = ["#E4572E", "#F0A202", "#9BC53D", "#1B8A5A", "#0B7C8A", "#2A4FA8"];
   const sn = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
   const filled = (v) => v != null && String(v).trim() !== "";
@@ -2827,8 +2851,8 @@ main{padding:14px 18px 40px;min-width:0}
   }
   const DOORS = [["#/stages", "Stages", "Every application on the map and in its stage, from intake to closed. Open one to review it, edit it or print its documents.", "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01", ""],
     ["#/new", "New", "Enter a new application in five steps: the applicant, the fields on the map, lab data, documents, then review and create.", "M12 5v14M5 12h14", ""],
-    ["#/explore", "Explore", "Look across all applications: where they are, their fields and soil tests, and ranking and funding side by side.", "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6", "coming next"],
-    ["#/reports", "Reports", "The four documents of an application in one place: summary, approval letter, agreement and cost verification form.", "M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6", "coming next"]];
+    ["#/explore", "Explore", "Look across all applications: where they are, their fields and soil tests, and ranking and funding side by side.", "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6", ""],
+    ["#/reports", "Reports", "The four documents of an application in one place: summary, approval letter, agreement and cost verification form.", "M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6", ""]];
   function renderHome() {
     const list = shown(), closed = list.filter((m) => m.d === 6).length, needing = list.filter((m) => m.d < 6 && m.need.length).length;
     const sum = (f) => list.reduce((a, m) => a + (num(m.r.a[f]) || 0), 0);
@@ -2875,7 +2899,7 @@ main{padding:14px 18px 40px;min-width:0}
   let HM = null, bmKind = "aerial";
   const DARK = "brightness(0.8) contrast(1.12)";
   function shade(el) { try { const b = el.map.basemap; if (!b || !b.baseLayers) return; b.baseLayers.forEach((l) => { l.effect = bmKind === "aerial" ? DARK : "brightness(0.55) saturate(0.7)"; }); } catch (e) { console.warn("shade", e); } }
-  async function homeMap(list) {
+  async function homeMap(list, onPick) {
     const host = $("homeMap"); if (!host) return;
     await loadPolygons();
     const { MapCls, GraphicsLayer, G } = MAPS.mods;
@@ -2903,7 +2927,7 @@ main{padding:14px 18px 40px;min-width:0}
     const ready = () => { shade(el); };
     el.addEventListener("arcgisViewReadyChange", ready); setTimeout(ready, 1500); setTimeout(ready, 4000);
     const pick = async (d) => { const hit = await el.hitTest(d); const g = hit && hit.results && hit.results.map((x) => x.graphic).find((x) => x && x.attributes && x.attributes.mi != null); return g ? list[g.attributes.mi] : null; };
-    el.addEventListener("arcgisViewClick", async (evt) => { try { const m = await pick(evt.detail); if (m) location.hash = openHref(m.r); } catch (e) { console.warn("home map click", e); } });
+    el.addEventListener("arcgisViewClick", async (evt) => { try { const m = await pick(evt.detail); if (m && onPick) onPick(m); else if (m) location.hash = openHref(m.r); } catch (e) { console.warn("home map click", e); } });
     // pointing at a point: a small card with the application's key facts
     let busy = false, last = null;
     const card = $("mapCard"), hide = () => { if (last) boardHi([], true); last = null; if (card) card.hidden = true; el.style.cursor = ""; };
@@ -3246,6 +3270,100 @@ main{padding:14px 18px 40px;min-width:0}
   // The copied code redraws the entry page on its own (when the rules file arrives, on Back, on Clear): the steps follow.
   { let t = null; new MutationObserver(() => { clearTimeout(t); t = setTimeout(stepsDraw, 30); }).observe($("naPane"), { childList: true }); }
 
+  // =====================================================================================================================
+  // Piece 6: Explore (Map · Fields · Ranking and funding) and Reports. Read-only views over the same applications and
+  // field rows the rest of the page reads; nothing here writes.
+  // =====================================================================================================================
+  const XTABS = [["map", "Map"], ["fields", "Fields"], ["rank", "Ranking and funding"]];
+  const XS = { stages: new Set([1, 2, 3, 4, 5, 6]), needOnly: false, picked: null, fsel: null, fsort: ["app", 1], rsort: ["score", -1] };
+  const xTop = (cur, figs) => topHtml("Explore", "look across the applications", figs).replace("</h1>", '</h1><span class="pills" role="tablist">' + XTABS.map(([k, t]) => '<a role="tab" href="#/explore/' + k + '" class="' + (k === cur ? "on" : "") + '" aria-selected="' + (k === cur) + '">' + esc(t) + "</a>").join("") + "</span>");
+  const scoreOf = (r) => num(r.a[F.awarded]) ?? num(r.a[F.calc]);
+  function renderExplore() {
+    const tab = (location.hash.split("/")[2] || "map"); if (tab === "fields") return xFields(); if (tab === "rank") return xRank(); return xMap();
+  }
+  // ---- Explore · Map: the same map, with the stages switched on and off, and a panel for the application that was clicked ----
+  function xMap() {
+    const all = shown(), list = all.filter((m) => XS.stages.has(m.d) && (!XS.needOnly || (m.need.length && m.d < 6)));
+    if (XS.picked && !list.some((m) => m.r.id === XS.picked)) XS.picked = null;
+    const pm = XS.picked ? list.find((m) => m.r.id === XS.picked) : null;
+    $("page").innerHTML = xTop("map", [[String(list.length), "shown"], [String(all.length), "applications"]]) +
+      '<div class="homeg x"><div class="mapc xm"><div id="homeMap"></div><div class="mnote" id="mapNote">Loading the map…</div><div class="mcard" id="mapCard" hidden></div>' +
+      '<div class="msw" role="group" aria-label="Background"><button type="button" data-bm="aerial" aria-pressed="' + (bmKind === "aerial") + '">Aerial</button><button type="button" data-bm="topo" aria-pressed="' + (bmKind === "topo") + '">Topo</button></div></div>' +
+      '<div class="hside"><div class="cx"><h2>Show</h2>' + STAGES.map((st, i) => '<label class="tg">' + sn(i + 1) + " " + esc(st) + " <span>" + all.filter((m) => m.d === i + 1).length + '</span><input type="checkbox" data-xstage="' + (i + 1) + '"' + (XS.stages.has(i + 1) ? " checked" : "") + "></label>").join("") +
+      '<label class="tg">Only those needing input<input type="checkbox" id="xNeed"' + (XS.needOnly ? " checked" : "") + '></label></div>' +
+      '<div class="cx" id="xPick">' + (pm ? '<h2>Clicked</h2><div class="xcard">' + hoverHtml(pm).replace("<u>click to open</u>", "") + '</div><a class="bt pri" href="' + openHref(pm.r) + '">Open the application</a>' : '<h2>Clicked</h2><p class="none">Click a point on the map to see the application here.</p>') + "</div></div></div>" + footHtml();
+    homeMap(list, (m) => { XS.picked = m.r.id; const h = $("xPick"); if (h) h.innerHTML = '<h2>Clicked</h2><div class="xcard">' + hoverHtml(m).replace("<u>click to open</u>", "") + '</div><a class="bt pri" href="' + openHref(m.r) + '">Open the application</a>'; mapHi([HM.list.indexOf(m)]); })
+      .then(() => { if (pm && HM) mapHi([HM.list.indexOf(pm)]); }).catch((e) => { const n = $("mapNote"); if (n) n.textContent = "The map could not be drawn: " + mask(e.message || e); });
+  }
+  document.addEventListener("change", (e) => { const t = e.target;
+    if (t.dataset && t.dataset.xstage) { const k = Number(t.dataset.xstage); if (t.checked) XS.stages.add(k); else XS.stages.delete(k); xMap(); }
+    else if (t.id === "xNeed") { XS.needOnly = t.checked; xMap(); } });
+
+  // ---- Explore · Fields: the soil strip on top, the fields under it; a clicked dot limits the table and the figures to that application ----
+  function xStrip(list) {
+    const pts = list.filter((m) => m.ph != null).sort((a, b) => a.ph - b.ph), lo = 4.5, hi = 7.5, pos = (v) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100));
+    const ticks = [4.5, 5, 5.5, 6, 6.5, 7, 7.5].map((k) => '<span style="left:' + pos(k) + '%">' + k.toFixed(1) + "</span>").join("");
+    return '<div class="strip2' + (XS.fsel ? " has" : "") + '" id="xStrip"><div class="band2"></div>' + ticks + pts.map((m, i) => '<button type="button" class="mk2' + (m.r.id === XS.fsel ? " on2" : "") + '" data-xdot="' + esc(m.r.id) + '" style="left:' + pos(m.ph).toFixed(1) + "%;--c:" + SCOL[m.d - 1] + ";--h:" + (26 + (i % 3) * 44) + 'px" aria-pressed="' + (m.r.id === XS.fsel) + '" aria-label="' + esc(m.r.applicant + ", average soil pH " + rd1(m.ph) + ", stage " + m.d) + '"><em>' + esc(short(m.r.applicant, 22)) + " · " + rd1(m.ph) + "</em><b>" + m.d + "</b><u></u></button>").join("") + "</div>";
+  }
+  const FCOLS = [["app", "Application"], ["field", "Field"], ["ac", "Treated ac"], ["ph", "Soil pH"], ["rate", "Lime rec. lb/ac"], ["tons", "Tons"], ["date", "Lab date"], ["ty", "3-year check"]];
+  function xFields() {
+    const list = shown(), sel = XS.fsel ? list.find((m) => m.r.id === XS.fsel) : null; if (XS.fsel && !sel) XS.fsel = null;
+    const use = sel ? [sel] : list, rowsF = [];
+    for (const m of use) { let ef = new Map(); try { ef = earlierFunding(m.r).out; } catch { /* no check */ }
+      for (const x of m.flds) { const hit = ef.get(normKey(attr(x, "FieldNum"))), d = attr(x, "LabReportDate") ?? attr(x, "DateSampled");
+        rowsF.push({ m, app: m.r.applicant || m.r.id, field: String(attr(x, "FieldNum") ?? "?"), ac: num(attr(x, "TreatedAcresInField")), ph: num(attr(x, "SoilpH")), rate: num(attr(x, "LimeRecLbPerAcre")) ?? (num(attr(x, "LimeRecTonsPerAcre")) != null ? num(attr(x, "LimeRecTonsPerAcre")) * 2000 : null), tons: num(attr(x, "TotalTonsForField")), date: typeof d === "number" ? d : null, ty: hit ? "limed " + (hit.year ?? "") + " (" + (hit.id ?? "") + ")" : "clear" }); } }
+    const [sk, sd] = XS.fsort; rowsF.sort((a, b) => { const x = a[sk], y = b[sk]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), "en", { numeric: true })) * sd; });
+    const phs = rowsF.map((x) => x.ph).filter((v) => v != null), ac = rowsF.reduce((a, x) => a + (x.ac || 0), 0), tons = rowsF.reduce((a, x) => a + (x.tons || 0), 0), totalFields = list.reduce((a, m) => a + m.flds.length, 0);
+    const cell = (v, f) => (v == null ? '<span class="mis">needs input</span>' : esc(f ? f(v) : v));
+    $("page").innerHTML = xTop("fields", [[String(rowsF.length), "fields shown"], [String(totalFields), "fields in all"]]) +
+      '<div class="cx stripc2"><h2>Average soil pH of each application <span class="hint" id="xHint">click a dot to show only its fields · click it again, or outside, to show all</span></h2>' + (list.some((m) => m.ph != null) ? xStrip(list) : '<p class="none">No soil pH is entered yet for the applications shown.</p>') + "</div>" +
+      '<div class="g3"><div class="cx"><h2>Fields shown</h2><b class="bigf">' + rowsF.length + " <small>of " + totalFields + '</small></b><span class="dimp">' + esc(sel ? (sel.r.applicant || sel.r.id) + " only" : "all applications shown") + '</span></div><div class="cx"><h2>Average soil pH</h2><b class="bigf">' + (phs.length ? rd1(phs.reduce((a, b) => a + b, 0) / phs.length) : "—") + '</b><span class="dimp">of the fields shown</span></div><div class="cx"><h2>Lime recommended</h2><b class="bigf">' + (ac ? fmt(Math.round(tons / ac * 100) / 100) + " t/ac" : "—") + '</b><span class="dimp">' + fmt(Math.round(tons * 10) / 10) + " tons on " + fmt(Math.round(ac * 10) / 10) + " treated acres</span></div></div>" +
+      '<div class="cx"><h2>' + esc(sel ? "Fields of " + (sel.r.applicant || sel.r.id) : "Every field of the applications shown") + " <span>click a column to sort · click a row to open its application" + (sel ? ' · <button type="button" class="lnk" id="xAll">show all fields</button>' : "") + "</span></h2>" +
+      (rowsF.length ? '<table class="wb" id="xFtab"><tr>' + FCOLS.map(([k, t]) => '<th><button type="button" data-xfsort="' + k + '">' + esc(t) + (sk === k ? (sd > 0 ? " ▲" : " ▼") : "") + "</button></th>").join("") + "</tr>" +
+        rowsF.map((x) => '<tr data-xopen="' + esc(x.m.r.id) + '" tabindex="0"><td>' + sn(x.m.d) + " <b>" + esc(x.app) + "</b></td><td>" + esc(x.field) + "</td><td>" + cell(x.ac, fmt) + "</td><td>" + cell(x.ph) + "</td><td>" + cell(x.rate, fmt) + "</td><td>" + cell(x.tons, fmt) + "</td><td>" + cell(x.date, dateOf) + "</td><td>" + esc(x.ty) + "</td></tr>").join("") + "</table>" : '<p class="none">No fields to show.</p>') + "</div>" + footHtml();
+    const h = $("xHint"); if (h) { clearTimeout(xFields.t); xFields.t = setTimeout(() => h.classList.add("gone"), XS.fsel ? 4000 : 6000); }
+  }
+  // ---- Explore · Ranking and funding: totals, then each application with its score, tons and dollars ----
+  const RCOLS = [["name", "Application"], ["score", "Score"], ["req", "Tons: requested and approved"], ["rr", "Dollars: reimbursement requested and paid"]];
+  function xRank() {
+    const list = shown().map((m) => ({ m, name: m.r.applicant || m.r.id, score: m.r.ranked || m.d >= 3 ? scoreOf(m.r) : null, req: m.tons, ap: num(m.r.a[F.apprTons]), rr: num(attr(m.r.a, "TotalReimbursementRequest")), paid: num(m.r.a[F.paid]), amt: num(m.r.a[F.apprAmt]) }));
+    const [sk, sd] = XS.rsort; list.sort((a, b) => { const x = a[sk], y = b[sk]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * sd; });
+    const tot = (k) => list.reduce((a, x) => a + (x[k] || 0), 0), usd = (v) => money(v).replace(/\.00$/, ""), mxT = Math.max(1, ...list.map((x) => Math.max(x.req || 0, x.ap || 0))), mxD = Math.max(1, ...list.map((x) => Math.max(x.rr || 0, x.paid || 0)));
+    const bar = (v, mx, col, txt) => '<div class="pr"><i style="width:' + (v ? Math.max(1.5, v / mx * 78) : 0).toFixed(1) + "%;background:" + col + '"></i><span>' + txt + "</span></div>";
+    $("page").innerHTML = xTop("rank", [[String(list.filter((x) => x.score != null).length), "ranked"], [String(list.length), "applications"]]) +
+      '<div class="g3 four">' + [["Requested", fmt(Math.round(tot("req") * 10) / 10) + " t", list.length + " application" + (list.length === 1 ? "" : "s")], ["Approved", fmt(Math.round(tot("ap") * 10) / 10) + " t", usd(tot("amt")) + " maximum"], ["Reimbursement requested", usd(tot("rr")), list.filter((x) => x.rr).length + " cost form" + (list.filter((x) => x.rr).length === 1 ? "" : "s")], ["Paid", usd(tot("paid")), list.filter((x) => x.paid).length + " payment" + (list.filter((x) => x.paid).length === 1 ? "" : "s")]].map(([h, v, d]) => '<div class="cx"><h2>' + esc(h) + '</h2><b class="bigf">' + esc(v) + '</b><span class="dimp">' + esc(d) + "</span></div>").join("") + "</div>" +
+      '<div class="cx"><h2>Each application <span>click a column to sort · click a row to open it · <i class="lg" style="background:#FFC043"></i>requested <i class="lg" style="background:#9BC53D"></i>approved <i class="lg" style="background:#FF9A3D"></i>reimbursement requested <i class="lg" style="background:#3FA7D6"></i>paid</span></h2>' +
+      (list.length ? '<table class="wb sm" id="xRtab"><tr>' + RCOLS.map(([k, t]) => '<th><button type="button" data-xrsort="' + k + '">' + esc(t) + (sk === k ? (sd > 0 ? " ▲" : " ▼") : "") + "</button></th>").join("") + "</tr>" +
+        list.map((x) => '<tr data-xopen="' + esc(x.m.r.id) + '" tabindex="0"><td>' + sn(x.m.d) + " <b>" + esc(x.name) + "</b><small>" + esc(x.m.r.id) + '</small></td><td class="tot">' + (x.score != null ? fmt(x.score) : '<span class="dimp">not ranked</span>') + "</td><td>" +
+          bar(x.req, mxT, "#FFC043", x.req != null ? fmt(x.req) + " t" : "—") + bar(x.ap, mxT, "#9BC53D", x.ap != null ? fmt(x.ap) + " t" : x.m.r.ended ? esc(x.m.r.statusText) : "in progress") + "</td><td>" +
+          bar(x.rr, mxD, "#FF9A3D", x.rr != null ? money(x.rr) : x.m.r.ended ? "—" : "in progress") + bar(x.paid, mxD, "#3FA7D6", x.paid != null ? money(x.paid) : x.m.r.ended ? "—" : "in progress") + "</td></tr>").join("") + "</table>" : '<p class="none">No applications to show.</p>') +
+      '<p class="wnote">Score: the awarded score where one is recorded, otherwise the calculated score; shown once the reviewer\'s answers are stored. Totals only; no budget is assumed.</p></div>' + footHtml();
+  }
+  document.addEventListener("click", (e) => {
+    const dot = e.target.closest("[data-xdot]"); if (dot) { XS.fsel = XS.fsel === dot.dataset.xdot ? null : dot.dataset.xdot; xFields(); return; }
+    if (e.target.id === "xAll") { XS.fsel = null; xFields(); return; }
+    const fs = e.target.closest("[data-xfsort]"); if (fs) { const k = fs.dataset.xfsort; XS.fsort = [k, XS.fsort[0] === k ? -XS.fsort[1] : 1]; xFields(); return; }
+    const rs = e.target.closest("[data-xrsort]"); if (rs) { const k = rs.dataset.xrsort; XS.rsort = [k, XS.rsort[0] === k ? -XS.rsort[1] : (k === "name" ? 1 : -1)]; xRank(); return; }
+    const op = e.target.closest("[data-xopen]"); if (op) { location.hash = "#/app/" + encodeURIComponent(op.dataset.xopen); return; }
+    if (XS.fsel && $("xStrip") && e.target.closest(".stripc2") && !e.target.closest(".mk2")) { XS.fsel = null; xFields(); }       // a click on the strip, outside every dot
+  });
+  document.addEventListener("keydown", (e) => { if (e.key !== "Enter") return; const op = e.target.closest && e.target.closest("tr[data-xopen]"); if (op) location.hash = "#/app/" + encodeURIComponent(op.dataset.xopen); });
+
+  // ---- Reports: the four documents of one application, from the same preview as on its stages ----
+  let repId = null;
+  function renderReports() {
+    const list = shown().slice().sort((a, b) => String(b.r.id).localeCompare(String(a.r.id))); if (!list.some((m) => m.r.id === repId)) repId = list.length ? list[0].r.id : null;
+    const m = list.find((x) => x.r.id === repId);
+    $("page").innerHTML = topHtml("Reports", "the four documents of an application", [[String(list.length), "applications"]]) +
+      (list.length ? '<div class="rw"><div class="cx"><h2>Application</h2><select id="repSel" class="repsel">' + list.map((x) => '<option value="' + esc(x.r.id) + '"' + (x.r.id === repId ? " selected" : "") + ">" + esc(x.r.id + " · " + (x.r.applicant || "(no name)")) + "</option>").join("") + "</select>" +
+        (m ? '<p class="dimp" style="margin-top:8px">' + sn(m.d) + " " + esc(STAGES[m.d - 1]) + " · " + esc(m.r.fy) + '</p><a class="bt" href="' + openHref(m.r) + '">Open the application</a>' : "") + "</div>" +
+        '<div class="repdocs">' + (m ? ["summary", "letter", "agreement", "cvf"].map((dk) => { const d = PR.docs[dk]; if (!d) return ""; const why = d.when(m.r);
+          return '<div class="repdoc' + (why ? " off" : "") + '"><div class="wp" aria-hidden="true"><b>' + esc(d.label) + '</b><hr><div class="l"></div><div class="l s"></div><div class="l"></div><div class="l"></div><div class="l s"></div></div><div><b>' + esc(d.label) + "</b><span>" + esc(why || "Ready. Opens on Letter pages; print it, save it as a PDF, or download a Word file.") + '</span><button type="button" class="pbtn" data-rep="' + dk + '"' + (why ? " disabled" : "") + ">Preview, print or Word file</button></div></div>"; }).join("") : "") + "</div></div>" +
+        '<p class="wnote">A document becomes available when its stage is reached. Opening or printing one stores nothing and attaches nothing.</p>' : '<div class="cx soonp"><p>No applications to show.</p></div>') + footHtml();
+  }
+  document.addEventListener("change", (e) => { if (e.target.id === "repSel") { repId = e.target.value; renderReports(); } });
+  document.addEventListener("click", (e) => { const b = e.target.closest(".pbtn[data-rep]"); if (b && !b.disabled) { const r = rows.find((x) => x.id === repId); if (r) prOpen(r, b.dataset.rep); } });
+
   // ---- routes ----
   function dRoute() {
     const h = location.hash.replace(/^#\/?/, "").split("/")[0] || "home"; HM = null;
@@ -3256,7 +3374,7 @@ main{padding:14px 18px 40px;min-width:0}
     if (h === "work") { history.replaceState(null, "", "#/app/" + (location.hash.split("/")[2] || "") + "/1"); return dRoute(); }      // where the copied create code sends the page afterwards
     $("newapp").hidden = h !== "new"; $("detail").hidden = h === "new";
     if (h === "new") { naOpen(); stepsDraw(); return; }
-    if (h === "home") renderHome(); else if (h === "stages") renderStages(); else if (h === "app") renderSheet(); else renderSoon({ explore: "Explore", reports: "Reports", check: "Data check", help: "Help" }[h] || "Page");
+    if (h === "home") renderHome(); else if (h === "stages") renderStages(); else if (h === "app") renderSheet(); else if (h === "explore") renderExplore(); else if (h === "reports") renderReports(); else renderSoon({ explore: "Explore", reports: "Reports", check: "Data check", help: "Help" }[h] || "Page");
   }
   document.addEventListener("click", (e) => { if (e.target.id !== "fyAll") return; fyPick = "all"; try { sessionStorage.setItem("wccdDashFy", fyPick); } catch { /* ignore */ } dRoute(); });
   document.addEventListener("change", (e) => { if (e.target.id !== "fySel") return; fyPick = e.target.value; try { sessionStorage.setItem("wccdDashFy", fyPick); } catch { /* ignore */ } dRoute(); });
