@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WCCD lime applications · Dashboard view</title>
-  <!-- Dashboard view, pieces 1 to 7 (D9b). Data code copied unchanged from the classic app, build B13k. -->
+  <!-- Dashboard view, pieces 1 to 7 (D9d). Data code copied unchanged from the classic app, build B13k. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
   <script type="module" src="https://js.arcgis.com/5.2/"></script>
@@ -284,10 +284,30 @@ main{padding:14px 18px 40px;min-width:0}
 .rail a.adm{opacity:.75;border:1px dashed var(--line2)}.rail a.adm[hidden]{display:none}
 .nsub.parts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.nsub.parts .arr{font-style:normal;color:var(--dim)}.nsub.parts button em{font-style:normal;font-weight:400;font-size:11px;opacity:.8;margin-left:4px}.nsub.parts button.done{border-color:#5CC88A;color:#BFE9CF}
 .nnav button.skip,#naFoot button.skip{background:transparent;border:1px dashed var(--line2);color:#C9D2DA}
-.edzone.ed .rneed{font-weight:600;font-size:11.5px;margin-left:4px}.edzone.ed .rneed.req{color:#B3261E}.edzone.ed .rneed.okk{color:#8A7B69;font-weight:400}
-.edzone.ed .stpanel>.merged{margin-top:12px}
 /* the review box opens over the form, in view, instead of under it */
 .edzone.ed.ed #edReview:not([hidden]){position:fixed;z-index:70;top:7vh;left:50%;transform:translateX(-50%);width:min(760px,calc(100vw - 32px));max-height:86vh;overflow:auto;margin:0;border-radius:14px;box-shadow:0 0 0 100vmax rgba(8,10,14,.62),0 24px 60px rgba(0,0,0,.6)}
+/* ---- D9c: the field editor arranged like New application's field panel ---- */
+.edzone.ed .nrtop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.7fr);gap:10px;background:#F4ECDF;border:1px solid #E0CFB6;border-radius:10px;padding:10px;margin:10px 0 0}.edzone.ed .nrtop .fld{min-width:0}.edzone.ed .nrtop .fld:first-child:nth-last-child(n+7){grid-column:span 1}
+.edzone.ed .nrtop label,.edzone.ed .nrtop .lab{display:block;font-size:13px;font-weight:600;margin-bottom:4px}.edzone.ed .ndlime{display:flex;gap:6px}.edzone.ed .ndlime input{flex:1;min-width:0}.edzone.ed .ndlime select{width:112px;flex:none;padding:0 6px}
+.edzone.ed .nrcalc{display:flex;gap:22px;flex-wrap:wrap;margin:8px 2px 0;font-size:13px}.edzone.ed .nrcalc .fld{display:flex;gap:8px;align-items:baseline}.edzone.ed .nrcalc .lab{color:#6A5B4B}.edzone.ed .nrcalc .cval{font-weight:700}
+.edzone.ed .nrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 12px}.edzone.ed .nrgrid .fld.wide{grid-column:span 2}.edzone.ed .nrgrid .fld{min-width:0}
+.edzone.ed .nrstar{color:#C2410C;font-weight:700}.edzone.ed .fld.nrmiss input,.edzone.ed .fld.nrmiss select{border-color:#C2410C;box-shadow:0 0 0 1px #C2410C inset}
+.edzone.ed .nrleg,#naDlg .nrleg{font-size:12.5px;color:#6A5B4B;margin:10px 2px 0}.edzone.ed .nrleg .req,#naDlg .nrleg .req{color:#C2410C;font-weight:700}
+.edzone.ed .nrmsg{margin:10px 0 0;display:grid;gap:6px}.edzone.ed .ndnote{margin:0 0 8px;color:#6A5B4B;font-size:12.5px}
+@media (max-width:900px){.edzone.ed .nrtop{grid-template-columns:1fr 1fr}}
+.edzone.ed.ed .nrtop{grid-template-columns:minmax(0,.7fr) repeat(4,minmax(0,1fr)) minmax(0,1.9fr)}.edzone.ed.ed .nrtop .ndlime input{flex:1 1 auto;width:auto;min-width:0}.edzone.ed.ed .nrtop .ndlime select{flex:0 0 116px;width:116px}
+.edzone.ed.ed .nrtop .fld{display:flex;flex-direction:column;justify-content:flex-end}.edzone.ed .nrno input{background:#EFE7DA;color:#3A2C1E}.edzone.ed .nrhint{margin:6px 2px 0;color:#6A5B4B;font-size:12.5px}
+#naDlg .ndtop label{display:block}#naDlg .ndtop label input,#naDlg .ndtop label select,#naDlg .ndtop label .ndlime{margin-top:4px}
+@media (max-width:900px){.edzone.ed.ed .nrtop{grid-template-columns:1fr 1fr}}
+.edzone.ed.ed .nrtop{grid-template-columns:minmax(0,.6fr) repeat(4,minmax(0,1fr)) minmax(0,2.3fr)}.edzone.ed.ed .fld.nrmiss input{border-color:#C2410C;box-shadow:0 0 0 1px #C2410C inset}
+/* ---- D9d: field editing and adding on the Fields grid, docked like New application's field panel ---- */
+body.fdock #edZone,body.fdock #rowTool{position:fixed;z-index:50;top:10px;left:0;right:0;margin:0 auto;width:min(1180px,calc(100vw - 110px));max-height:54vh;overflow:auto;background:#FBF7F0;color:#1E1712;border:2px solid #E8742E;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.6);padding:4px 14px 10px}
+body.fdock #rowTool:empty,body.fdock #rowTool:not(:has(.tool)){display:none}
+body.fdock #page{padding-top:calc(54vh + 26px)}
+body.fdock #edZone .pane{border:0;box-shadow:none;margin:0;padding:6px 0 0;background:transparent}body.fdock #edZone .pane>.edBtns{bottom:0}
+body.fdock #rowTool .tool{border:0;margin:0;padding:6px 0;background:transparent}
+.edzone.ed .fstep,#rowTool .fstep{margin:8px 0;padding:8px 12px;border-radius:9px;background:#FFF0D6;border:1px solid #F0C98A;color:#4A2E08;font-size:13px}
+@media (max-width:900px){body.fdock #edZone,body.fdock #rowTool{width:calc(100vw - 16px);max-height:62vh}body.fdock #page{padding-top:calc(62vh + 20px)}}
 
 /* ---- the classic app's own stylesheet, scoped to the editor inside the application page (generated by scope_css.py) ---- */
 .edzone.ed{--ink:#1A1D21; --muted:#4A525B; --line:#C9CED4; --soft:#E3E6EA; --bg:#F4F5F6; --blue:#17457A; --blue-bg:#E6EEF7;
@@ -2989,7 +3009,7 @@ main{padding:14px 18px 40px;min-width:0}
   // classic app (index.html) by build_dash.py: settings, sign-in, reading the applications, the forms and the field rows,
   // the flags, and the farm and field polygons. Nothing here writes to ArcGIS Online.
   // =====================================================================================================================
-  const D_BUILD = "D9b", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
+  const D_BUILD = "D9d", D_DATE = "19 Nov 2026", CLASSIC = "index.html";
   const SCOL = ["#E4572E", "#F0A202", "#9BC53D", "#1B8A5A", "#0B7C8A", "#2A4FA8"];
   const sn = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
   const filled = (v) => v != null && String(v).trim() !== "";
@@ -3430,10 +3450,10 @@ main{padding:14px 18px 40px;min-width:0}
     const open = tr.hidden; tr.hidden = !open; b.setAttribute("aria-expanded", String(open)); if (!open) return;
     const x = (fr.rows || []).find((q) => String(q[fr.oidField]) === String(oid)), r = rows.find((q) => q.id === curId); if (!x) { host.innerHTML = '<p class="none2">This field row could not be found.</p>'; return; }
     let hit = null; try { hit = r ? earlierFunding(r).out.get(normKey(attr(x, "FieldNum"))) : null; } catch { /* no check */ }
-    const groups = []; let cur = null, n = 0, tot = 0;
-    for (const it of fr.list || []) { const f = fr.fields[it.field.toLowerCase()], text = show(f, attr(x, it.field)); const gname = /^more soil test results$/i.test(it.group || "") && groups.some((g) => /^soil test results$/i.test(g.name)) ? groups.find((g) => /^soil test results$/i.test(g.name)).name : (it.group || "");
-      if (!cur || cur.name !== gname) { cur = groups.find((g) => g.name === gname) || null; if (!cur) { cur = { name: gname, rows: [] }; groups.push(cur); } }
-      tot++; if (text != null) n++; if (text != null || showAll) cur.rows.push([niceLabel(it.label, f, it.field), text]); }
+    const groups = [{ name: "Field and lime recommendation", rows: [] }].concat(NR_GROUPS.map((g) => ({ name: g.label, rows: [], set: new Set(g.fields) })), [{ name: "Other values", rows: [] }]); let n = 0, tot = 0;
+    const topSet = new Set(["FieldNum", "FieldStatus", "TotalAcresInField", "TreatedAcresInField", "SoilpH", "LimeRecLbPerAcre", "LimeRecTonsPerAcre", "TotalTonsForField", "TonsForFieldRounded"]);
+    for (const it of fr.list || []) { const f = fr.fields[it.field.toLowerCase()], text = show(f, attr(x, it.field)), g = topSet.has(it.field) ? groups[0] : groups.find((q) => q.set && q.set.has(it.field)) || groups[groups.length - 1];
+      tot++; if (text != null) n++; if (text != null || showAll) g.rows.push([niceLabel(it.label, f, it.field), text]); }
     host.innerHTML = '<div class="fvbox"><p class="count">Field ' + esc(attr(x, "FieldNum") ?? "?") + ": " + n + " of " + tot + " values filled" + (showAll ? "" : " · empty values are hidden") + "</p>" +
       (hit ? '<p class="fr">' + ICON.red + "Limed and paid " + esc(hit.yr ?? "") + " in " + esc(hit.id) + (hit.name ? " as field " + esc(hit.name) : "") + ": " + esc(fmt(hit.used)) + " acres" + (num(attr(x, "TotalAcresInField")) != null ? " of " + esc(fmt(num(attr(x, "TotalAcresInField")))) + "; " + esc(fmt(Math.max(0, num(attr(x, "TotalAcresInField")) - hit.used))) + " acres available; this application asks " + esc(fmt(num(attr(x, "TreatedAcresInField")) || 0)) : "") + ".</p>" : "") +
       '<div class="fvg">' + groups.filter((g) => g.rows.length).map((g) => "<div><h3>" + esc(g.name || "Field") + "</h3>" + g.rows.map(([l, t]) => '<div class="row' + (t == null ? " empty" : "") + '"><label>' + esc(l) + "</label><b>" + (t == null ? "—" : esc(t)) + "</b></div>").join("") + "</div>").join("") + "</div></div>"; });
@@ -3461,7 +3481,23 @@ main{padding:14px 18px 40px;min-width:0}
     SH.forId = null;
     if (location.hash !== want) history.replaceState(null, "", want);
     renderSheet();
+    // a field was just added on the Fields grid: its editor opens straight away for the soil and lab values (step 2 of 2, which can be skipped)
+    if (ADDP && ADDP.id === id && curTab === "rows") { const r = rows.find((x) => x.id === id), neu = r ? fieldsOf(r).filter((x) => !ADDP.before.has(String(x[fr.oidField]))) : []; ADDP = null;
+      if (neu.length === 1) { NEWF = String(neu[0][fr.oidField]); setTimeout(() => { try { fieldGo("e:" + NEWF); } catch (e) { console.warn("open the new field", e); } }, 80); } }
   }
+  let ADDP = null, NEWF = null;
+  document.addEventListener("click", (e) => { const go = e.target.closest && e.target.closest('#rowTool [data-tool="go"]'); if (go && tool && tool.kind === "add") { const r = rows.find((x) => x.id === curId); if (r) ADDP = { id: r.id, before: new Set(fieldsOf(r).map((x) => String(x[fr.oidField]))) }; }
+    if (e.target.id === "edCancel" || (e.target.closest && e.target.closest('#rowTool [data-tool="cancel"]'))) { NEWF = null; if (e.target.id !== "edCancel") ADDP = null; } }, true);
+  // Adding or editing a field on the Fields grid is docked at the top of the window with the page (grid and map) under it, like the field panel of New application
+  function fieldDock() {
+    const on = !!((ed && ed.own && curTab === "rows" && $("own")) || (tool && tool.kind === "add" && document.querySelector("#rowTool .tool"))), was = document.body.classList.contains("fdock");
+    if (on !== was) { document.body.classList.toggle("fdock", on); if (on) window.scrollTo(0, 0); }
+    const t = document.querySelector("#rowTool .tool"); if (on && t && tool && tool.kind === "add" && !t.querySelector(".fstep")) { const n = document.createElement("p"); n.className = "fstep"; n.innerHTML = "<b>Step 1 of 2 · the field and its acres.</b> Step 2, its soil pH, lime recommendation and lab report, opens next and can be skipped."; t.insertBefore(n, t.children[1] || null); }
+    const sel = document.querySelector("#fgrid tr.sel"), own = $("own"), isNew = !!(NEWF && sel && sel.dataset.row === NEWF && ed && ed.own);
+    if (own && isNew && !own.parentElement.querySelector(".fstep")) { const n = document.createElement("p"); n.className = "fstep"; n.innerHTML = "<b>Step 2 of 2 · the field is added.</b> Enter its soil pH, lime recommendation and lab report now, or press <b>Skip for now</b>: they can be entered later with Edit field."; own.parentElement.insertBefore(n, own); }
+    const c = $("edCancel"); if (c && curTab === "rows") { const want = isNew ? "Skip for now" : "Cancel"; if (c.textContent !== want) c.textContent = want; }
+  }
+  new MutationObserver(fieldDock).observe($("detail"), { childList: true, subtree: true }); window.addEventListener("hashchange", () => setTimeout(fieldDock, 0));
   document.addEventListener("click", (e) => {
     const d = $("detail"); if (!d || !d.contains(e.target)) return;
     const id = e.target.id, r = rows.find((x) => x.id === curId);
@@ -3473,7 +3509,7 @@ main{padding:14px 18px 40px;min-width:0}
       const sel = document.querySelector("#fgrid tr.sel"), zone = $("edZone"); if (sel && zone) { const host = sel.nextElementSibling.firstElementChild; host.appendChild(zone); }
       for (const b of document.querySelectorAll("#fgrid .gbtn, [data-rowadd]")) b.disabled = true;
       { const x = fieldsOf(r).find((q) => String(q[fr.oidField]) === String(re.dataset.rowedit)); if (x) mapShow(normKey(attr(x, "FieldNum")), false); }
-      $("edZone").classList.add("ed"); OWN.open(r, "rows", re.dataset.rowedit); setTimeout(() => { try { $("edZone").scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch { /* ignore */ } }, 300); return; }
+      $("edZone").classList.add("ed"); OWN.open(r, "rows", re.dataset.rowedit); return; }
     if (id === "edOpen" && r && !ed) { $("edZone").classList.add("ed"); OWN.open(r, curTab); }
     else if (id === "edCancel") { if (leaveEdit()) renderSheet(); }       // (redrawing the page also clears the field highlighted on the map)
     else if (id === "edSave" && ed && ed.ready) OWN.review();
@@ -3484,25 +3520,80 @@ main{padding:14px 18px 40px;min-width:0}
   let lastHash = location.hash;
   window.addEventListener("hashchange", (e) => { if (ed && !leaveEdit()) { e.stopImmediatePropagation(); history.replaceState(null, "", lastHash); return; } lastHash = location.hash; }, true);
 
-  // ---- The field editor (Fields grid › Edit field): show where a value the ranking needs is still empty, and keep all soil test results on one side tab ----
-  // The marks use the classic editor's own "required" marker, so its red dot on the side tab follows; they do not block saving (the form's own
-  // rules decide that). "More soil test results" is shown under "Soil test results"; only where things sit on the page changes.
-  const RANK_NEEDS = [["TreatedAcresInField"], ["SoilpH"], ["LimeRecLbPerAcre", "LimeRecTonsPerAcre"], ["LabReportDate", "DateSampled"]];
-  function fieldEditorMarks() {
+  // ---- The field editor (Fields grid › Edit field), arranged like the field panel of New application (Yasser, 19 Nov: the same task must
+  // look and behave the same in both places). The classic editor still draws the Field Rows form, runs its rules and saves; after each draw
+  // its boxes are only MOVED into the New-application arrangement: a top strip (field, status, acres, soil pH, one lime-recommendation box with
+  // a lb/acre | tons/acre choice) and the same five side tabs (NR_GROUPS). The lime box writes pounds per acre into the form's own box, as
+  // New application stores it, and fills "rate exactly as written" the same way. A box the arrangement does not know stays, under "Other values". ----
+  const NRL = { ed: null, text: "", unit: "lb", auto: "" }, NR_TOPF = ["FieldNum", "FieldStatus", "TotalAcresInField", "TreatedAcresInField", "SoilpH"], NR_CALCF = ["TotalTonsForField", "TonsForFieldRounded"], NR_STAR = ["TreatedAcresInField", "SoilpH", "LabReportDate", "DateSampled"];
+  const nrVal = (f) => { if (!f) return ""; const i = f.querySelector("input, select, textarea"), c = f.querySelector(".cval"); return i ? String(i.value || "").trim() : c && c.textContent.trim() !== "—" ? c.textContent.trim() : ""; };
+  function fieldEditorLayout() {
     const own = $("own"); if (!own || !ed || !ed.own || curTab !== "rows") return;
-    const wrap = own.querySelector(":scope .stabs") || own.querySelector(".stabs"); 
-    try { if (wrap) { const pan = (re) => [...wrap.querySelectorAll(":scope > .stbody > .stpanel")].find((p) => re.test(p.dataset.stl || "")), src = pan(/^more soil test results$/i), dst = pan(/^soil test results$/i);
-        if (src && dst && src !== dst) { const tab = wrap.querySelector(':scope > .stnav > [data-stp="' + src.dataset.stp + '"]'), dtab = wrap.querySelector(':scope > .stnav > [data-stp="' + dst.dataset.stp + '"]'), was = !src.hidden;
-          for (const c of [...src.children]) { c.classList.add("merged"); dst.appendChild(c); } dst.classList.add("multi"); src.hidden = true; if (tab) tab.hidden = true; if (was && dtab) dtab.click(); } } } catch (e) { console.warn("soil tabs", e); }
-    for (const set of RANK_NEEDS) { const flds = set.map((n) => own.querySelector('.fld[data-ef="' + n + '"]')).filter(Boolean), val = (f) => { const i = f.querySelector("input, select, textarea"); return i ? String(i.value || "").trim() : (f.querySelector(".cval") || {}).textContent && f.querySelector(".cval").textContent.trim() !== "—" ? "x" : ""; };
-      const any = flds.some((f) => val(f));
-      for (const f of flds) { const lab = f.querySelector("label, .lab"); if (!lab || f.classList.contains("calcfld")) continue; let m = lab.querySelector(".rneed");
-        if (!m) { m = document.createElement("span"); m.className = "rneed"; m.textContent = set.length > 1 ? " * needed before ranking (one of the two)" : " * needed before ranking"; lab.appendChild(m); }
-        m.classList.toggle("req", !any); m.classList.toggle("okk", any); } }
+    const wrap = own.querySelector(".stabs"), fld = (n) => own.querySelector('.fld[data-ef="' + n + '"]');
+    if (wrap && wrap.dataset.nr !== "1") { try {
+      const act = document.activeElement, aid = act && own.contains(act) ? act.id : "", s0 = aid ? act.selectionStart : null, s1 = aid ? act.selectionEnd : null;
+      const nav = wrap.querySelector(":scope > .stnav"), body = wrap.querySelector(":scope > .stbody"), oldP = [...body.children], oldT = [...nav.children];
+      const top = document.createElement("div"); top.className = "nrtop"; for (const n of NR_TOPF) { const f = fld(n); if (f) top.appendChild(f); }
+      // the same names over the boxes as in New application
+      for (const [n, t] of [["FieldStatus", "Status"], ["TotalAcresInField", "Total acres"], ["TreatedAcresInField", "Treated acres"], ["SoilpH", "Soil pH"]]) { const lab = top.querySelector('.fld[data-ef="' + n + '"] label, .fld[data-ef="' + n + '"] .lab'); if (lab && lab.firstChild && lab.firstChild.nodeType === 3) lab.firstChild.textContent = t + " "; }
+      if (!top.querySelector('.fld[data-ef="FieldNum"]')) { const h = (document.querySelector("#edZone h2") || {}).textContent || "", m = /^Field (.+?) – editing/.exec(h), no = document.createElement("div"); no.className = "fld nrno"; no.innerHTML = '<span class="lab">Field #</span><input type="text" readonly aria-label="Field number" value="' + esc(m ? m[1] : "") + '">'; top.insertBefore(no, top.firstChild); }
+      const lb = $("f_LimeRecLbPerAcre"), fl = fld("LimeRecLbPerAcre"), ft = fld("LimeRecTonsPerAcre");
+      if (fl && lb && !lb.disabled) {
+        if (NRL.ed !== ed) { const lbv = String(lb.value || "").trim(), tv = nrVal(ft); NRL.ed = ed; NRL.unit = lbv || !tv ? "lb" : "t"; NRL.text = lbv || tv; NRL.auto = ""; const w0 = $("f_LimeRecUnitAsWritten"); if (w0 && NRL.text && w0.value === NRL.text + (NRL.unit === "t" ? " tons/acre" : " lb/acre")) NRL.auto = w0.value; }
+        const box = document.createElement("div"); box.className = "fld nrlime";
+        box.innerHTML = '<label for="nrLime">Lime recommendation</label><span class="ndlime"><input type="text" inputmode="decimal" id="nrLime" aria-label="Lime recommendation" value="' + esc(NRL.text) + '"><select id="nrUnit" aria-label="Unit of the lime recommendation"><option value="lb"' + (NRL.unit === "t" ? "" : " selected") + '>lb/acre</option><option value="t"' + (NRL.unit === "t" ? " selected" : "") + ">tons/acre</option></select></span>";
+        top.appendChild(box); const hid = document.createElement("div"); hid.className = "nrhid"; hid.hidden = true; hid.appendChild(fl); if (ft) hid.appendChild(ft); own.insertBefore(hid, wrap);
+      } else { if (fl) top.appendChild(fl); if (ft) top.appendChild(ft); }
+      own.insertBefore(top, wrap);
+      if (top.querySelector(".nrlime")) { const hint = document.createElement("div"); hint.className = "small nrhint"; hint.textContent = "Type the rate in either unit; it is stored as lb/acre, as the survey stores it."; own.insertBefore(hint, wrap); }
+      const calc = NR_CALCF.map(fld).filter(Boolean); if (calc.length) { const c = document.createElement("div"); c.className = "nrcalc"; for (const f of calc) c.appendChild(f); own.insertBefore(c, wrap); }
+      const groups = NR_GROUPS.map((g) => ({ label: g.label, key: g.key, flds: g.fields.map(fld).filter(Boolean) })).filter((g) => g.flds.length);
+      const moved = new Set(groups.flatMap((g) => g.flds)), rest = oldP.flatMap((p) => [...p.querySelectorAll(".fld")]).filter((f) => !moved.has(f)); if (rest.length) groups.push({ label: "Other values", key: "other", flds: rest });
+      const pick = groups.some((g) => g.label === stSel["nr:rows"]) ? stSel["nr:rows"] : groups.length ? groups[0].label : "";
+      groups.forEach((g, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "sttab"; b.dataset.stp = "n" + i; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", g.label === pick ? "true" : "false"); const t = document.createElement("span"); t.textContent = g.label; b.appendChild(t); nav.appendChild(b);
+        const p = document.createElement("div"); p.className = "stpanel"; p.dataset.stp = "n" + i; p.dataset.stl = g.label; p.setAttribute("role", "tabpanel"); p.hidden = g.label !== pick;
+        if (g.key === "lab") { const n = document.createElement("div"); n.className = "small ndnote"; n.textContent = "At least one of the two dates is needed before ranking: it decides whether the soil test is current."; p.appendChild(n); }
+        const grid = document.createElement("div"); grid.className = "nrgrid"; for (const f of g.flds) { if (NR_WIDE.has(f.dataset.ef)) f.classList.add("wide"); grid.appendChild(f); } p.appendChild(grid); body.appendChild(p); });
+      // what the form says in words (its message lines) stays, above the tabs
+      const msgs = oldP.flatMap((p) => [...p.querySelectorAll(".ebody > *, .col > *")]).filter((x) => !x.matches(".fld, .cols, .col") && x.textContent.trim()); if (msgs.length) { const m = document.createElement("div"); m.className = "nrmsg"; for (const x of msgs) m.appendChild(x); own.insertBefore(m, top); }
+      for (const p of oldP) p.remove(); for (const t of oldT) t.remove();
+      wrap.dataset.stkey = "nr:rows"; wrap.dataset.nr = "1";
+      const leg = document.createElement("p"); leg.className = "nrleg"; leg.innerHTML = '<span class="req">*</span> needed before the application can be ranked. It can be entered later; the application waits at 1 Intake until then.'; own.insertBefore(leg, wrap.nextSibling);
+      // the cursor stays where it was: either the classic redraw kept it (aid), or the box it was in was hidden or rebuilt by that redraw (NRF)
+      // (a redraw can land between pressing the mouse on another box and the browser moving the cursor there: then that box is the one meant)
+      const meant = performance.now() - NRF.down < 500 && NRF.downId && NRF.downId !== aid && $(NRF.downId) && own.contains($(NRF.downId)) ? NRF.downId : "";
+      const back = meant ? [meant, null, null] : aid ? [aid, s0, s1] : NRF.live && NRF.id && (document.activeElement === document.body || !document.activeElement) ? [NRF.id, NRF.a, NRF.b] : null;
+      if (back) { const again = $(back[0]); if (again && !again.disabled && again !== document.activeElement) { again.focus({ preventScroll: true }); try { if (back[1] != null) again.setSelectionRange(back[1], back[2]); } catch { /* not a text box */ } } }
+    } catch (e) { console.warn("field editor arrangement", e); } }
+    // the red star of New application on the same values, and the classic red dot on a side tab while one of them is empty
+    const star = (f, empty, counts) => { const lab = f && f.querySelector("label, .lab"); if (!lab || f.classList.contains("calcfld")) return; let m = lab.querySelector(".nrstar"); if (!m) { m = document.createElement("span"); m.className = "nrstar"; m.textContent = " *"; m.title = "Needed before the application can be ranked"; lab.appendChild(m); } m.classList.toggle("req", !!(empty && counts)); f.classList.toggle("nrmiss", !!empty); };
+    const dEmpty = !nrVal(fld("LabReportDate")) && !nrVal(fld("DateSampled"));
+    star(fld("TreatedAcresInField"), !nrVal(fld("TreatedAcresInField")), false); star(fld("SoilpH"), !nrVal(fld("SoilpH")), false);
+    star(fld("LabReportDate"), dEmpty, true); star(fld("DateSampled"), dEmpty, true);
+    const lime = own.querySelector(".nrlime"); if (lime) star(lime, !String(($("nrLime") || {}).value || "").trim(), false); else { const le = !nrVal(fld("LimeRecLbPerAcre")) && !nrVal(fld("LimeRecTonsPerAcre")); star(fld("LimeRecLbPerAcre"), le, false); }
     if (wrap) try { stMarks(wrap); } catch (e) { console.warn("marks", e); }
   }
-  { let t = null, busy = false; new MutationObserver(() => { if (busy) return; clearTimeout(t); t = setTimeout(() => { busy = true; try { fieldEditorMarks(); } finally { setTimeout(() => { busy = false; }, 0); } }, 30); }).observe($("detail"), { childList: true, subtree: true });
-    $("detail").addEventListener("input", () => setTimeout(fieldEditorMarks, 0)); $("detail").addEventListener("change", () => setTimeout(fieldEditorMarks, 60)); }
+  // where the cursor is inside the editor, so it can be put back after a redraw that hid or rebuilt its box
+  const NRF = { id: "", a: null, b: null, live: false, down: 0, downId: "" };
+  { const note = (e) => { const t = e.target; if (!e.isTrusted || !t || !t.id || !$("own") || !$("own").contains(t)) return; NRF.id = t.id; NRF.live = true; try { NRF.a = t.selectionStart; NRF.b = t.selectionEnd; } catch { NRF.a = NRF.b = null; } };
+    for (const ev of ["focusin", "input", "keyup", "click"]) $("detail").addEventListener(ev, note);
+    document.addEventListener("pointerdown", (e) => { NRF.down = performance.now(); NRF.downId = e.isTrusted && e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) ? e.target.id : ""; }, true); document.addEventListener("keydown", (e) => { if (e.key === "Tab") NRF.down = performance.now(); }, true);
+    $("detail").addEventListener("focusout", (e) => { if (e.relatedTarget || performance.now() - NRF.down < 400) NRF.live = false; }); }
+  // the one lime box: what is typed goes into the form's pounds-per-acre box (tons × 2,000), exactly as New application stores it
+  function nrLimeWrite(commit) {
+    const box = $("nrLime"), un = $("nrUnit"), lb = $("f_LimeRecLbPerAcre"); if (!box || !un || !lb) return;
+    NRL.text = box.value; NRL.unit = un.value; const raw = box.value.trim(), n = Number(raw), v = raw === "" ? "" : isNaN(n) ? raw : String(un.value === "t" ? Math.round(n * 2000 * 100) / 100 : n);
+    const fire = (el) => { el.dispatchEvent(new Event("input", { bubbles: true })); if (commit) el.dispatchEvent(new Event("change", { bubbles: true })); };
+    if (lb.value !== v) { lb.value = v; fire(lb); } else if (commit) lb.dispatchEvent(new Event("change", { bubbles: true }));
+    const w = $("f_LimeRecUnitAsWritten"), auto = raw === "" || isNaN(n) ? "" : raw + (un.value === "t" ? " tons/acre" : " lb/acre");
+    if (w && !w.disabled && (w.value.trim() === "" || w.value === NRL.auto) && w.value !== auto) { w.value = auto; fire(w); } NRL.auto = auto;
+  }
+  { let busy = false; new MutationObserver(() => { if (busy) return; const w = document.querySelector("#own .stabs"); if (!w || w.dataset.nr === "1") return; busy = true; try { fieldEditorLayout(); } finally { setTimeout(() => { busy = false; }, 0); } }).observe($("detail"), { childList: true, subtree: true });      // straight after the classic draw, so no keystroke falls in between
+    $("detail").addEventListener("input", (e) => { if (e.target.id === "nrLime") nrLimeWrite(false); setTimeout(fieldEditorLayout, 0); });
+    $("detail").addEventListener("change", (e) => { if (e.target.id === "nrLime" || e.target.id === "nrUnit") nrLimeWrite(true); setTimeout(fieldEditorLayout, 60); }); }
+  // New application's field panel: the same line under the boxes, so both places say what the star means
+  new MutationObserver(() => { const d = $("naDlg"), b = d && d.querySelector(".ndbody"); const dn = b && [...b.querySelectorAll(".ndnote")].find((x) => /is required: it decides/.test(x.textContent)); if (dn) dn.textContent = "At least one of the two dates is needed before ranking: it decides whether the soil test is current.";
+    if (b && !b.querySelector(".nrleg")) { const leg = document.createElement("p"); leg.className = "nrleg"; leg.innerHTML = '<span class="req">*</span> needed before the application can be ranked. It can be entered later; the application waits at 1 Intake until then.'; b.appendChild(leg); } }).observe(document.body, { childList: true, subtree: true });
 
   // =====================================================================================================================
   // Piece 5: New application. The entry page, its checks against the survey's rules file, the field panel, the review
@@ -3860,8 +3951,8 @@ main{padding:14px 18px 40px;min-width:0}
     { k: "fields", t: "Fields and lab data", go: ["#/stages", "Go to Stages"],
       intro: "The fields of an application, with the values the ranking reads: treated acres, soil pH, lime recommendation and lab date.",
       steps: [["Open the grid", "On an application, click <b>Fields grid</b> under the six steps. Each field is one line; a missing ranking value reads <b>needs input</b>. <b>All values</b> shows everything stored for a field, on closed applications too."],
-        ["Edit a field", "<b>Edit field ›</b> opens that field's form joined to its line: acres, soil test results, lab report. A red dot on a side tab, and <b>* needed before ranking</b> beside a box, show where a value the ranking needs is still empty. Review and save as for a stage."],
-        ["Add a field", "<b>+ Add a field</b> offers the farm's fields that are not yet in the application. Or click the field on the map."],
+        ["Edit a field", "<b>Edit field ›</b> opens that field's form in a panel at the top of the window, with the grid and the map under it. It is laid out like the field panel of a new application: field, acres, soil pH and one lime-recommendation box (lb/acre or tons/acre) on top, then the same five side tabs. A red star marks the values the ranking needs; a red outline, or a red dot on a side tab, shows where one is still empty. Review and save as for a stage."],
+        ["Add a field", "<b>+ Add a field</b> offers the farm's fields that are not yet in the application. Or click the field on the map. Step 1 takes the field and its acres; step 2 opens by itself for its soil pH, lime recommendation and lab report, and <b>Skip for now</b> leaves them for later."],
         ["Remove a field", "<b>Delete…</b> removes the field row after a confirmation. To keep it on record without counting it, set its status to Excluded or Withdrawn instead."],
         ["Use the map", "On any map of the fields, a click on one of the application's fields opens it for editing, and a click on another field of the farm starts adding it."]],
       tip: "<b>After changing a field's soil values</b>, open the ranking and save it again so the application's totals and score are refreshed." },
