@@ -3047,7 +3047,7 @@ tr.tyrow2 td{background:rgba(255,84,56,.16)}tr.tyrow2 td:first-child{box-shadow:
   // classic app (index.html) by build_dash.py: settings, sign-in, reading the applications, the forms and the field rows,
   // the flags, and the farm and field polygons. Nothing here writes to ArcGIS Online.
   // =====================================================================================================================
-  const D_BUILD = "D9h", D_DATE = "20 Nov 2026", CLASSIC = "index.html";
+  const D_BUILD = "D9i", D_DATE = "20 Nov 2026", CLASSIC = "index.html";
   const SCOL = ["#E4572E", "#F0A202", "#9BC53D", "#1B8A5A", "#0B7C8A", "#2A4FA8"];
   const sn = (k, cls) => '<i class="n' + (cls ? " " + cls : "") + '" style="--c:' + SCOL[k - 1] + '">' + k + "</i>";
   const filled = (v) => v != null && String(v).trim() !== "";
@@ -3081,7 +3081,8 @@ tr.tyrow2 td{background:rgba(255,84,56,.16)}tr.tyrow2 td:first-child{box-shadow:
     return { r, d, need, intake, ty: tyList(r), checks: r.red.filter((t) => !/^No Farm #|^No field rows/.test(t)), flds, ph: phs.length ? phs.reduce((a, b) => a + b, 0) / phs.length : null, tons };
   }
   let MODELS = rows.map(model), fyPick = "";
-  const years = [...new Set(rows.map((r) => r.fy))].filter((y) => y && y !== "—").sort();
+  const yearsNow = () => [...new Set(rows.map((r) => r.fy))].filter((y) => y && y !== "—").sort();      // read from the applications each time: one created or deleted since the page loaded changes the list
+  let years = yearsNow();
   try { fyPick = sessionStorage.getItem("wccdDashFy") ?? ""; } catch { /* ignore */ }
   if (fyPick !== "all" && !years.includes(fyPick)) fyPick = "all";            // every year is shown unless a year is chosen (Yasser, 18 Nov: one year by default hid the others)
   const shown = () => MODELS.filter((m) => fyPick === "all" || m.r.fy === fyPick);
@@ -3648,6 +3649,21 @@ tr.tyrow2 td{background:rgba(255,84,56,.16)}tr.tyrow2 td:first-child{box-shadow:
     const w = $("f_LimeRecUnitAsWritten"), auto = raw === "" || isNaN(n) ? "" : raw + (un.value === "t" ? " tons/acre" : " lb/acre");
     if (w && !w.disabled && (w.value.trim() === "" || w.value === NRL.auto) && w.value !== auto) { w.value = auto; fire(w); } NRL.auto = auto;
   }
+  // Costs: the values the form needs before it moves the application to 6 Closed (who approved the reimbursement and when, payment date, check number)
+  // and the amount paid carry a red star while empty, so the classic red dot shows on their side tab. Saving is never blocked by it.
+  const CVF_CLOSE = ["CVFApprovedBy", "CVFApprovedDate", "TotalReimbursementPaid", "PaymentDate", "CheckNumber"];
+  function cvfMarks() {
+    const own = $("own"); if (!own || !ed || !ed.own || curTab !== "cvf") return;
+    for (const n of CVF_CLOSE) { const f = own.querySelector('.fld[data-ef="' + n + '"]'), lab = f && f.querySelector("label, .lab"); if (!lab || f.classList.contains("calcfld")) continue;
+      const empty = !nrVal(f); let m = lab.querySelector(".nrstar"); if (!m) { m = document.createElement("span"); m.className = "nrstar"; m.textContent = " *"; m.title = "Needed before the application can be closed"; lab.appendChild(m); }
+      if (m.classList.contains("req") !== empty) m.classList.toggle("req", empty); if (f.classList.contains("nrmiss") !== empty) f.classList.toggle("nrmiss", empty); }
+    const wrap = own.querySelector(".stabs");
+    if (!own.querySelector(".cvfleg") && own.querySelector(".nrstar")) { const leg = document.createElement("p"); leg.className = "nrleg cvfleg"; leg.innerHTML = '<span class="req">*</span> needed before the application moves to 6 Closed. These can be saved later; the application waits at 5 Costs until then.'; if (wrap) wrap.insertAdjacentElement("afterend", leg); else own.appendChild(leg); }
+    if (wrap) try { stMarks(wrap); } catch (e) { console.warn("marks", e); }
+  }
+  { let busy = false; const run = () => { if (busy) return; busy = true; try { cvfMarks(); } finally { setTimeout(() => { busy = false; }, 0); } };
+    new MutationObserver(run).observe($("detail"), { childList: true, subtree: true });
+    $("detail").addEventListener("input", () => setTimeout(run, 0)); $("detail").addEventListener("change", () => setTimeout(run, 60)); }
   { let busy = false; new MutationObserver(() => { if (busy) return; const w = document.querySelector("#own .stabs"); if (!w || w.dataset.nr === "1") return; busy = true; try { fieldEditorLayout(); } finally { setTimeout(() => { busy = false; }, 0); } }).observe($("detail"), { childList: true, subtree: true });      // straight after the classic draw, so no keystroke falls in between
     $("detail").addEventListener("input", (e) => { if (e.target.id === "nrLime") nrLimeWrite(false); setTimeout(fieldEditorLayout, 0); });
     $("detail").addEventListener("change", (e) => { if (e.target.id === "nrLime" || e.target.id === "nrUnit") nrLimeWrite(true); setTimeout(fieldEditorLayout, 60); }); }
@@ -4050,7 +4066,7 @@ tr.tyrow2 td{background:rgba(255,84,56,.16)}tr.tyrow2 td:first-child{box-shadow:
       steps: [["Enter the purchase", "On step <b>5 Costs</b>, click <b>Edit this stage</b> and enter the tons purchased and the cost per ton. The form works out the eligible tons, the rate and the reimbursement request."],
         ["Record the verification", "Answer the WCCD Internal Use questions and enter the invoice details, then review and save."],
         ["Print the form", "The <b>Cost Verification Form</b> at the top of the stage prints on one Letter page, with the figures and the signature lines."],
-        ["Record the payment", "Enter the amount paid, the payment date and the check number, then review and save. This closes the application."]],
+        ["Record the payment", "Enter the amount paid, the payment date and the check number, then review and save. This closes the application, provided the reimbursement approval (approved by, approved on) is recorded. These values carry a red star, and their side tab a red dot, while they are empty."]],
       tip: "A red line says so when the amount paid differs from the reimbursement request." },
     { k: "files", t: "Files", go: ["#/stages", "Go to Stages"],
       intro: "The PDF files attached to an application: the application packet, the signed agreement, the cost verification packet and others.",
@@ -4224,6 +4240,7 @@ tr.tyrow2 td{background:rgba(255,84,56,.16)}tr.tyrow2 td:first-child{box-shadow:
   document.addEventListener("click", (e) => { if (e.target.id === "delNoteX") { delNote = null; e.target.closest(".delnote").remove(); } });
   function dRoute() {
     bkPark(); gateDraw.on = false;
+    years = yearsNow(); if (fyPick !== "all" && !years.includes(fyPick)) { fyPick = "all"; try { sessionStorage.setItem("wccdDashFy", fyPick); } catch { /* ignore */ } }
     // the copied delete code writes its result into #newAppNote and goes to "#/". Here that result becomes a confirmation on Stages.
     { const nn = $("newAppNote"); if (nn && nn.textContent && /^(Deleted and verified|The delete reported)/.test(nn.textContent)) { delNote = { text: nn.textContent, ok: nn.className === "okmsg" }; nn.textContent = ""; nn.hidden = true; tool = null; gateDraw.on = false;
         if (!/^#\/stages/.test(location.hash)) { location.replace("#/stages"); return; } }
